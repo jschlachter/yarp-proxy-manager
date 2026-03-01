@@ -3,8 +3,6 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 
-using West94.ProxyManager.Endpoints;
-
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -47,12 +45,12 @@ try
         });
     }
 
+    app.UseDefaultFiles();
     app.UseStaticFiles();
     app.UseSerilogRequestLogging();
     app.UseHttpsRedirection();
     app.MapReverseProxy();
 
-    app.MapRouteEndpoints();
     app.MapFallbackToFile("404.html");
 
     Log.Information("Starting Proxy Manager host...");

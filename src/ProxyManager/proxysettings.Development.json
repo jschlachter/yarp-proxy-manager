@@ -1,8 +1,36 @@
 {
   "ReverseProxy": {
     "Routes": {
+      "apiRoute": {
+        "ClusterId": "apiCluster",
+        "Match": {
+          "Path": "/api/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathRemovePrefix": "/api"
+          }
+        ]
+      }
     },
     "Clusters": {
+      "apiCluster": {
+        "Destinations": {
+          "local": {
+            "Address": "https://localhost:5001/"
+          }
+        },
+        "HealthCheck": {
+          "Passive": {
+            "Enabled": true,
+            "Policy": "TransportFailureRate",
+            "ReactivationPeriod": "00:01:00" //Reactivate after 1 minute
+          }
+        },
+        "Metadata": {
+          "TransportFailureRateHealthPolicy.RateLimit": "0.5"
+        }
+      }
     }
   }
 }

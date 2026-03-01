@@ -12,5 +12,7 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
+EXPOSE 8443
+
 COPY --from=builder /app/out .
 ENTRYPOINT [ "dotnet", "West94.ProxyManager.dll" ]

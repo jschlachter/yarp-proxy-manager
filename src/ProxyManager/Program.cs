@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Scalar.AspNetCore;
 
 using Serilog;
@@ -21,6 +24,34 @@ try
 
     services.AddReverseProxy()
         .LoadFromConfig(configuration.GetSection("ReverseProxy"));
+
+    services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    })
+    .AddCookie(options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+    })
+    .AddOpenIdConnect(options =>
+    {
+        options.Authority = configuration["Authentication:Authority"];
+        options.ClientId = configuration["Authentication:ClientId"];
+        options.ClientSecret = configuration["Authentication:ClientSecret"];
+        options.ResponseType = OpenIdConnectResponseType.Code;
+        options.CallbackPath = configuration["Authentication:CallbackPath"] ?? "/signin-oidc";
+        options.SaveTokens = true;
+        options.GetClaimsFromUserInfoEndpoint = true;
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+    });
+
+    services.AddAuthorization();
 
     // Add services to the container.
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -49,6 +80,8 @@ try
     app.UseStaticFiles();
     app.UseSerilogRequestLogging();
     app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.MapReverseProxy();
 
     app.MapFallbackToFile("404.html");

@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Scalar.AspNetCore;
 
 using Serilog;
@@ -17,6 +18,15 @@ try {
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddOpenApi();
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.Authority = builder.Configuration["Authentication:Authority"];
+            options.Audience = builder.Configuration["Authentication:Audience"];
+        });
+
+    builder.Services.AddAuthorization();
 
     builder.Host.UseSerilog((ctx, services, config) => config
         .ReadFrom.Configuration(ctx.Configuration)
@@ -39,6 +49,8 @@ try {
 
     app.UseHttpsRedirection();
     app.UseSerilogRequestLogging();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapRouteEndpoints();
 

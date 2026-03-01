@@ -1,4 +1,4 @@
-FROM mcr.mcirosoft.com/dotnet/sdk:10.0 as builder
+FROM mcr.microsoft.com/dotnet/sdk:10.0 as builder
 WORKDIR /app
 
 COPY . ./

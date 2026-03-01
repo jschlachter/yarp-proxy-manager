@@ -1,6 +1,10 @@
 
+using Scalar.AspNetCore;
+
 using Serilog;
 using Serilog.Events;
+
+using West94.ProxyManager.Endpoints;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -12,40 +16,33 @@ Log.Logger = new LoggerConfiguration()
 try {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Add services to the container.
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
+    builder.Host.UseSerilog((ctx, services, config) => config
+        .ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(services));
+        
     var app = builder.Build();
 
-    // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
+        app.MapScalarApiReference((options) =>
+        {
+                options
+                    .SortOperationsByMethod()
+                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+                    .WithTitle("Proxy Manager API")
+                    .WithTheme(ScalarTheme.Mars);
+        });
     }
 
     app.UseHttpsRedirection();
+    app.UseSerilogRequestLogging();
 
-    var summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    app.MapRouteEndpoints();
 
-    app.MapGet("/weatherforecast", () =>
-    {
-        var forecast =  Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                summaries[Random.Shared.Next(summaries.Length)]
-            ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
-
-    Log.Information("Starting Proxy Manager host...");
+    Log.Information("Starting Proxy Manager API host...");
     app.Run();
 }
 catch (Exception ex)
@@ -55,9 +52,4 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }

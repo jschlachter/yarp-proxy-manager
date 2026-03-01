@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyManager.Core", "src\Pr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyManager.Infrastructure", "src\ProxyManager.Infrastructure\ProxyManager.Infrastructure.csproj", "{AB50E77C-2186-4981-95B9-07BAA4BA2DBE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProxyManager.API", "src\ProxyManager.API\ProxyManager.API.csproj", "{60C7C145-EF86-4028-B3B0-42B0CF99A71A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,18 @@ Global
 		{AB50E77C-2186-4981-95B9-07BAA4BA2DBE}.Release|x64.Build.0 = Release|Any CPU
 		{AB50E77C-2186-4981-95B9-07BAA4BA2DBE}.Release|x86.ActiveCfg = Release|Any CPU
 		{AB50E77C-2186-4981-95B9-07BAA4BA2DBE}.Release|x86.Build.0 = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|x64.Build.0 = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Debug|x86.Build.0 = Debug|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|x64.ActiveCfg = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|x64.Build.0 = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|x86.ActiveCfg = Release|Any CPU
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,5 +79,6 @@ Global
 		{87786601-35CC-4FFA-A1D7-1674DD3FF7D2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{264DA973-0D23-4192-9B44-0347171A8532} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{AB50E77C-2186-4981-95B9-07BAA4BA2DBE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{60C7C145-EF86-4028-B3B0-42B0CF99A71A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

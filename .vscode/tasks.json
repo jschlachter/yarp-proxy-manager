@@ -17,16 +17,36 @@
       "problemMatcher": "$msCompile"
     },
     {
-      "label": "dotnet: publish",
+      "label": "dotnet: publish (App)",
       "type": "shell",
       "command": "dotnet",
       "args": [
         "publish",
-        "${workspaceFolder}/ProxyManager.sln",
+        "${workspaceFolder}/ProxyManager/ProxyManager.csproj",
         "-c",
         "Release",
         "-o",
-        "${workspaceFolder}/publish",
+        "${workspaceFolder}/publish/ProxyManager",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "dotnet: publish (API)",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/ProxyManager/ProxyManager.API.csproj",
+        "-c",
+        "Release",
+        "-o",
+        "${workspaceFolder}/publish/ProxyManager.API",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],

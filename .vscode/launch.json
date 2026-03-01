@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-          "name": ".NET Core Launch (web)",
+          "name": ".NET Core Launch (app)",
           "type": "coreclr",
           "request": "launch",
           "preLaunchTask": "dotnet: build",
@@ -16,7 +16,26 @@
           "env": {
             "ASPNETCORE_ENVIRONMENT": "Development"
           }
+        },
+        {
+          "name": ".NET Core Launch (api)",
+          "type": "coreclr",
+          "request": "launch",
+          "preLaunchTask": "dotnet: build",
+          "program": "${workspaceFolder}/src/ProxyManager.API/bin/Debug/net10.0/West94.ProxyManager.API.dll",
+          "args": [],
+          "cwd": "${workspaceFolder}/src/ProxyManager.API",
+          "stopAtEntry": false,
+          "env": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "ASPNETCORE_URLS": "https://localhost:5001"
+          }
         }
-
+    ],
+    "compounds": [
+        {
+            "name": "Launch Both",
+            "configurations": [".NET Core Launch (app)", ".NET Core Launch (api)"]
+        }
     ]
 }

@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProxyManager.Core\ProxyManager.Core.csproj" />
+  </ItemGroup>
+
 </Project>

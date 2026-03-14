@@ -38,6 +38,8 @@ Four projects in `src/`:
 
 The proxy routes `/api/{**catch-all}` to the API (via YARP configuration), so in production all traffic enters through ProxyManager.
 
+Publish/subscribe messaging used for inter-service communicatation and data integration
+
 ## Configuration
 
 **YARP proxy routes/clusters** live in `proxysettings.{Environment}.json` (separate from `appsettings.json`), loaded at startup. This file drives all routing, health checks, and path transforms.
@@ -72,3 +74,4 @@ Both apps use Serilog: console + rolling daily file logs in `logs/`. File size l
 - Scalar.AspNetCore (OpenAPI UI, dev-only)
 - Authentik (external OIDC provider)
 - Podman / Quadlet for deployment
+- RabbitMQ for Messaging

@@ -1,0 +1,14 @@
+[Unit]
+Description=Proxy Manager Pod (PostgreSQL, Proxy, API)
+After=network-online.target
+
+[Container]
+Environment=PORT=${PROXY_MANAGER_PORT:-8443}
+
+[Pod]
+PodName=proxymanager
+PublishPort=$PORT:8443
+Network=proxymanager.network
+
+[Install]
+WantedBy=default.target

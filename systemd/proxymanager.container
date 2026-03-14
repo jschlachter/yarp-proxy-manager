@@ -1,0 +1,22 @@
+[Unit]
+Description=Proxy Manager
+After=network-online.target proxymanager-postgresql.service
+Requires=proxymanager-postgresql.service
+
+[Container]
+Image=west94.com/proxymanager:1.0.0-alpha
+ContainerName=proxymanager
+EnvironmentFile=.env
+Volume=%h/proxymanager/config:/app/config
+Volume=%h/proxymanager/certs:/app/certs
+Pod=proxymanager.pod
+
+
+[Service]
+ExecStartPre=mkdir -p %h/proxymanager/config
+ExecStartPre=mkdir -p %h/proxymanager/certs
+Restart=always
+TimeoutStartSec=900 
+
+[Install]
+WantedBy=multi-user.target

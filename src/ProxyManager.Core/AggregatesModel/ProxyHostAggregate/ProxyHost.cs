@@ -1,44 +1,45 @@
+using West94.ProxyManager.Core.SeedWork;
+
 namespace West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 
-public sealed class ProxyHost
+public class ProxyHost : Entity
 {
     private List<string> _domainNames;
 
-    private ProxyHost(Guid id, List<string> domainNames, string destinationAddress, bool isEnabled, ProxyCertificate? certificate)
+    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, ProxyCertificate? certificate)
     {
         Id = id;
         _domainNames = domainNames;
-        DestinationAddress = destinationAddress;
+        Destination = destination;
         IsEnabled = isEnabled;
         Certificate = certificate;
     }
 
-    public Guid Id { get; private set; }
     public IReadOnlyList<string> DomainNames => _domainNames;
-    public string DestinationAddress { get; private set; }
+    public DestinationUri Destination { get; private set; }
     public bool IsEnabled { get; private set; }
     public ProxyCertificate? Certificate { get; private set; }
 
-    public static ProxyHost Create(IEnumerable<string> domainNames, string destinationAddress, ProxyCertificate? certificate = null)
+    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, ProxyCertificate? certificate = null)
     {
         ArgumentNullException.ThrowIfNull(domainNames);
-        ArgumentException.ThrowIfNullOrWhiteSpace(destinationAddress);
+        ArgumentNullException.ThrowIfNull(destination);
 
         var domains = domainNames.ToList();
         if (domains.Count == 0)
             throw new ArgumentException("At least one domain name is required.", nameof(domainNames));
 
-        return new ProxyHost(Guid.NewGuid(), domains, destinationAddress, isEnabled: true, certificate);
+        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificate);
     }
 
     public void Enable() => IsEnabled = true;
 
     public void Disable() => IsEnabled = false;
 
-    public void UpdateDestination(string destinationAddress)
+    public void UpdateDestination(DestinationUri destination)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(destinationAddress);
-        DestinationAddress = destinationAddress;
+        ArgumentNullException.ThrowIfNull(destination);
+        Destination = destination;
     }
 
     public void UpdateDomainNames(IEnumerable<string> domainNames)

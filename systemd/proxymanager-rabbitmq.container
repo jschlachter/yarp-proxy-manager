@@ -1,0 +1,18 @@
+[Unit]
+Description=Proxy Manager RabbitMQ
+After=network-online.target
+
+
+[Container]
+Image=docker.io/library/rabbitmq:4-management-alpine
+ContainerName=proxy-manager-rabbitmq
+PublishPort=15672:15672
+PublishPort=5672:5672
+Volume=proxy-manager-rabbitmq:/var/lib/rabbitmq
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

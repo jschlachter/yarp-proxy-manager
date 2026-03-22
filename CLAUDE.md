@@ -29,6 +29,39 @@ VSCode provides compound launch config "Launch Both" to run both services simult
 
 ## Architecture
 
+```
+                        Internet
+                           │
+                    ┌──────▼──────┐
+                    │  ProxyManager│  :80 / :8443
+                    │  (YARP)      │──── OIDC ──── Authentik
+                    │  + UI        │             (auth.west94.io)
+                    └──┬───────┬──┘
+                       │       │
+          /api/**      │       │  upstream routes
+          ┌────────────▼─┐   ┌─▼────────────────┐
+          │ ProxyManager │   │  Backend Services │
+          │    .API      │   │  (proxied hosts)  │
+          │  JWT Bearer  │   └───────────────────┘
+          └──────┬───────┘
+                 │
+        ┌────────▼────────┐
+        │  ProxyManager   │
+        │    .Core        │  Domain models / business logic
+        └────────┬────────┘
+                 │
+        ┌────────▼────────┐
+        │  ProxyManager   │
+        │ .Infrastructure │  Data access / external services
+        └────────┬────────┘
+                 │
+         ┌───────┴───────┐
+         │               │
+    ┌────▼────┐    ┌──────▼──────┐
+    │PostgreSQL│    │  RabbitMQ   │  pub/sub messaging
+    └─────────┘    └─────────────┘
+```
+
 Four projects in `src/`:
 
 - **ProxyManager** – ASP.NET Core 10 app that IS the reverse proxy. Uses YARP (Yarp.ReverseProxy) to route traffic. Serves UI, authenticates users via OIDC (Authentik), manages TLS via SNI certificate loading from `certs/`.
@@ -37,6 +70,8 @@ Four projects in `src/`:
 - **ProxyManager.Infrastructure** – Class library for data access and external services (currently scaffolding only).
 
 The proxy routes `/api/{**catch-all}` to the API (via YARP configuration), so in production all traffic enters through ProxyManager.
+
+Publish/subscribe messaging used for inter-service communicatation and data integration
 
 ## Configuration
 
@@ -72,3 +107,4 @@ Both apps use Serilog: console + rolling daily file logs in `logs/`. File size l
 - Scalar.AspNetCore (OpenAPI UI, dev-only)
 - Authentik (external OIDC provider)
 - Podman / Quadlet for deployment
+- RabbitMQ for Messaging

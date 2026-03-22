@@ -84,16 +84,16 @@ confirm 200 responses. Run without a token; confirm 401.
 
 ### Tests for User Story 1 ⚠️ Write first — confirm failing before T024
 
-- [ ] T020 [P] [US1] Write failing unit tests for `GetProxyHostsHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/GetProxyHostsHandlerTests.cs`: covers empty repo returns empty paged result; repo with items returns paginated result sorted by first domain name; page/pageSize parameters respected
-- [ ] T021 [P] [US1] Write failing unit tests for `GetProxyHostByIdHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/GetProxyHostByIdHandlerTests.cs`: covers found ID returns populated `ProxyHostDto`; unknown ID returns null
-- [ ] T022 [P] [US1] Write failing integration tests in `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `GET /proxyhosts` with valid token → 200 with `PagedResult<ProxyHostDto>`; `GET /proxyhosts/{id}` with valid token and existing ID → 200; `GET /proxyhosts/{id}` with unknown ID → 404 Problem Details; `GET /proxyhosts` without token → 401
-- [ ] T023 [P] [US1] Write failing unit tests for `ProxyHost` aggregate in `tests/ProxyManager.Core.Tests/Unit/ProxyHostAggregateTests.cs`: covers `Create` with valid/invalid args; `Enable`/`Disable`; `UpdateDestination`; `UpdateDomainNames` with empty list throws
+- [x] T020 [P] [US1] Write failing unit tests for `GetProxyHostsHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/GetProxyHostsHandlerTests.cs`: covers empty repo returns empty paged result; repo with items returns paginated result sorted by first domain name; page/pageSize parameters respected
+- [x] T021 [P] [US1] Write failing unit tests for `GetProxyHostByIdHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/GetProxyHostByIdHandlerTests.cs`: covers found ID returns populated `ProxyHostDto`; unknown ID returns null
+- [x] T022 [P] [US1] Write failing integration tests in `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `GET /proxyhosts` with valid token → 200 with `PagedResult<ProxyHostDto>`; `GET /proxyhosts/{id}` with valid token and existing ID → 200; `GET /proxyhosts/{id}` with unknown ID → 404 Problem Details; `GET /proxyhosts` without token → 401
+- [x] T023 [P] [US1] Write failing unit tests for `ProxyHost` aggregate in `tests/ProxyManager.Core.Tests/Unit/ProxyHostAggregateTests.cs`: covers `Create` with valid/invalid args; `Enable`/`Disable`; `UpdateDestination`; `UpdateDomainNames` with empty list throws
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Implement `GetProxyHostsHandler` in `src/ProxyManager.API/Handlers/GetProxyHostsHandler.cs` — Wolverine handler for `GetProxyHostsQuery` that calls `IProxyHostRepository.GetAllAsync`, sorts by first domain name, applies pagination, and maps to `PagedResult<ProxyHostDto>` (depends on T020)
-- [ ] T025 [US1] Implement `GetProxyHostByIdHandler` in `src/ProxyManager.API/Handlers/GetProxyHostByIdHandler.cs` — Wolverine handler for `GetProxyHostByIdQuery` that calls `IProxyHostRepository.FindAsync` and maps to `ProxyHostDto?` (depends on T021)
-- [ ] T026 [US1] Add `GET /proxyhosts` and `GET /proxyhosts/{id:guid}` endpoint mappings to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; dispatch `GetProxyHostsQuery` and `GetProxyHostByIdQuery` via `IMessageBus`; return `TypedResults.Ok(result)` or `TypedResults.Problem(...)` (404) with Problem Details (depends on T024, T025, T022)
+- [x] T024 [US1] Implement `GetProxyHostsHandler` in `src/ProxyManager.API/Handlers/GetProxyHostsHandler.cs` — Wolverine handler for `GetProxyHostsQuery` that calls `IProxyHostRepository.GetAllAsync`, sorts by first domain name, applies pagination, and maps to `PagedResult<ProxyHostDto>` (depends on T020)
+- [x] T025 [US1] Implement `GetProxyHostByIdHandler` in `src/ProxyManager.API/Handlers/GetProxyHostByIdHandler.cs` — Wolverine handler for `GetProxyHostByIdQuery` that calls `IProxyHostRepository.FindAsync` and maps to `ProxyHostDto?` (depends on T021)
+- [x] T026 [US1] Add `GET /proxyhosts` and `GET /proxyhosts/{id:guid}` endpoint mappings to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; dispatch `GetProxyHostsQuery` and `GetProxyHostByIdQuery` via `IMessageBus`; return `TypedResults.Ok(result)` or `TypedResults.Problem(...)` (404) with Problem Details (depends on T024, T025, T022)
 
 **Checkpoint**: `GET /proxyhosts` and `GET /proxyhosts/{id}` functional; all US1 tests passing.
 

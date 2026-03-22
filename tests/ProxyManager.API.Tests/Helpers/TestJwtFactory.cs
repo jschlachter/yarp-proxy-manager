@@ -12,7 +12,7 @@ namespace West94.ProxyManager.API.Tests.Helpers;
 /// </summary>
 public static class TestJwtFactory
 {
-    public const string TestIssuer = "test-issuer";
+    public const string TestIssuer = "https://test-issuer";
     public const string TestAudience = "test-audience";
 
     // Minimum 32-byte key required for HMAC-SHA256

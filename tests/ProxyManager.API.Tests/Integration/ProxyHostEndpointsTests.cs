@@ -77,6 +77,61 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    // --- US2: POST /proxyhosts ---
+
+    [Fact]
+    public async Task CreateProxyHost_WithValidBody_Returns201WithLocationHeader()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new { domainNames = new[] { "create-test.example.com" }, destinationUri = "http://backend:8080" };
+
+        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
+        var dto = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
+        Assert.NotNull(dto);
+        Assert.NotEqual(Guid.Empty, dto.Id);
+        Assert.Contains("create-test.example.com", dto.DomainNames);
+        Assert.StartsWith("/proxyhosts/", response.Headers.Location.ToString());
+    }
+
+    [Fact]
+    public async Task CreateProxyHost_DuplicateHostname_Returns409()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        await SeedHostAsync("duplicate.example.com");
+        var body = new { domainNames = new[] { "duplicate.example.com" }, destinationUri = "http://backend:8080" };
+
+        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateProxyHost_MissingDestinationUri_Returns400()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new { domainNames = new[] { "missing-dest.example.com" } };
+
+        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateProxyHost_WithoutToken_Returns401()
+    {
+        var body = new { domainNames = new[] { "noauth.example.com" }, destinationUri = "http://backend:8080" };
+
+        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();

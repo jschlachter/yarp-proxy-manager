@@ -1,11 +1,23 @@
+using System.Security.Claims;
+
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 using Wolverine;
 
 using West94.ProxyManager.Core.DTOs;
+using West94.ProxyManager.Core.Exceptions;
+using West94.ProxyManager.Core.Messages.Commands;
 using West94.ProxyManager.Core.Messages.Queries;
 
 namespace West94.ProxyManager.Endpoints;
+
+/// <summary>Request body for POST /proxyhosts.</summary>
+public sealed record CreateProxyHostRequest(
+    IEnumerable<string>? DomainNames,
+    string? DestinationUri,
+    string? CertificatePath,
+    string? CertificateKeyPath);
 
 public static class ProxyHostEndpoints
 {
@@ -31,6 +43,50 @@ public static class ProxyHostEndpoints
                 statusCode: StatusCodes.Status404NotFound,
                 title: "Proxy host not found",
                 detail: $"No proxy host with id '{id}' was found.");
+        });
+
+        group.MapPost("/", async Task<Results<Created<ProxyHostDto>, ProblemHttpResult>> (
+            [FromBody] CreateProxyHostRequest request,
+            ClaimsPrincipal user,
+            IMessageBus bus,
+            CancellationToken ct) =>
+        {
+            if (string.IsNullOrEmpty(request.DestinationUri))
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Validation error",
+                    detail: "'destinationUri' must be a valid absolute http or https URI.");
+
+            var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub")
+                ?? "unknown";
+
+            var command = new CreateProxyHostCommand(
+                request.DomainNames ?? [],
+                request.DestinationUri,
+                request.CertificatePath,
+                request.CertificateKeyPath,
+                actorId);
+
+            try
+            {
+                var dto = await bus.InvokeAsync<ProxyHostDto>(command, ct);
+                return TypedResults.Created($"/proxyhosts/{dto.Id}", dto);
+            }
+            catch (ProxyHostValidationException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Validation error",
+                    detail: ex.Message);
+            }
+            catch (ProxyHostConflictException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Conflict",
+                    detail: ex.Message);
+            }
         });
 
         return app;

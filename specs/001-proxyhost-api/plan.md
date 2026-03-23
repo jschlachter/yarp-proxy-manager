@@ -18,7 +18,7 @@ require JWT Bearer authorization. Error responses use RFC 9457 Problem Details.
 ## Technical Context
 
 **Language/Version**: C# / .NET 10.0
-**Primary Dependencies**: ASP.NET Core Minimal APIs, WolverineFx 3.9.x, WolverineFx.RabbitMQ 3.9.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x
+**Primary Dependencies**: ASP.NET Core Minimal APIs, WolverineFx 5.22.x, WolverineFx.RabbitMQ 5.22.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x
 **Storage**: In-memory (ConcurrentDictionary for ProxyHosts, ConcurrentQueue for AuditLog)
 **Testing**: xunit + Microsoft.AspNetCore.Mvc.Testing (integration), xunit (unit)
 **Target Platform**: Linux server (Podman container), .NET 10 runtime

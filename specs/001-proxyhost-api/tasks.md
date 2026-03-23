@@ -30,7 +30,7 @@ within each story phase. Tests MUST be written and confirmed failing before impl
 
 **Purpose**: Package setup and test project initialization.
 
-- [x] T001 Add `WolverineFx` (3.9.0) and `WolverineFx.RabbitMQ` (3.9.0) NuGet package references to `src/ProxyManager.API/ProxyManager.API.csproj`
+- [x] T001 Add `WolverineFx` (5.22.0) and `WolverineFx.RabbitMQ` (5.22.0) NuGet package references to `src/ProxyManager.API/ProxyManager.API.csproj`
 - [x] T002 [P] Scaffold `tests/ProxyManager.API.Tests/` xunit project: `dotnet new xunit -n ProxyManager.API.Tests -o tests/ProxyManager.API.Tests` then add references to `Microsoft.AspNetCore.Mvc.Testing` (10.0.x), and project reference to `ProxyManager.API.csproj` (WolverineFx obtained transitively via project reference)
 - [x] T003 [P] Scaffold `tests/ProxyManager.Core.Tests/` xunit project: `dotnet new xunit -n ProxyManager.Core.Tests -o tests/ProxyManager.Core.Tests` then add project reference to `ProxyManager.Core.csproj`
 - [x] T004 Add both test projects to `ProxyManager.sln`: `dotnet sln add tests/ProxyManager.API.Tests/ProxyManager.API.Tests.csproj tests/ProxyManager.Core.Tests/ProxyManager.Core.Tests.csproj`

@@ -110,8 +110,8 @@ Both apps use Serilog: console + rolling daily file logs in `logs/`. File size l
 - RabbitMQ for Messaging
 
 ## Active Technologies
-- C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 3.9.x, WolverineFx.RabbitMQ 3.9.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x (001-proxyhost-api)
+- C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 5.22.x, WolverineFx.RabbitMQ 5.22.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x (001-proxyhost-api)
 - In-memory (ConcurrentDictionary for ProxyHosts, ConcurrentQueue for AuditLog) (001-proxyhost-api)
 
 ## Recent Changes
-- 001-proxyhost-api: Added C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 3.9.x, WolverineFx.RabbitMQ 3.9.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x
+- 001-proxyhost-api: Added C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 5.22.x, WolverineFx.RabbitMQ 5.22.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x

@@ -4,7 +4,7 @@
 
 ## Decision 1: Wolverine as CQRS Message Bus
 
-- **Decision**: Use `WolverineFx` (v3.9.x) as the in-process CQRS mediator and out-of-process
+- **Decision**: Use `WolverineFx` (v5.22.x) as the in-process CQRS mediator and out-of-process
   message broker transport.
 - **Rationale**: Wolverine provides a unified handler pattern for both in-process commands/queries
   and out-of-process RabbitMQ publishing via `WolverineFx.RabbitMQ`. The existing project already
@@ -76,7 +76,7 @@
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| WolverineFx | 3.9.0 | CQRS message bus + handler discovery |
-| WolverineFx.RabbitMQ | 3.9.0 | RabbitMQ transport for integration events |
+| WolverineFx | 5.22.0 | CQRS message bus + handler discovery |
+| WolverineFx.RabbitMQ | 5.22.0 | RabbitMQ transport for integration events |
 | xunit | 2.9.x | Unit and integration test framework |
 | Microsoft.AspNetCore.Mvc.Testing | 10.0.x | In-process integration test host |

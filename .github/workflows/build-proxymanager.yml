@@ -15,6 +15,10 @@ env:
   BUILD_CONFIGURATION: Release
   SOLUTION_PATH: ProxyManager.sln
 
+permissions:
+  contents: read
+  pull-requests: write
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,15 +52,15 @@ jobs:
           targetdir: coveragereport
           reporttypes: Html;MarkdownSummaryGithub
 
-      - name: Add comment to PR # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
-        if: github.event_name == 'pull_request'
-        run: gh pr comment $PR_NUMBER --edit-last --create-if-none --body-file coveragereport/SummaryGithub.md # Adjust path and filename if necessary
+      - name: Add comment to PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: gh pr comment $PR_NUMBER --edit-last --create-if-none --body-file coveragereport/SummaryGithub.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
           
-      - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
-        run: cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
+      - name: Publish coverage in build summary
+        run: cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
         shell: bash
           
 

@@ -4,7 +4,7 @@ root = true
 [*]
 indent_style = space
 
-[*.{json, js, ts}]
+[*.{json, js, ts, yml, yaml}]
 indent_size = 2
 
 # Xml files

@@ -1,0 +1,45 @@
+name: Build Proxy Manager 
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: 
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, edited]
+    paths-ignore: 
+      - '**.md'
+
+env:
+  RID: linux-x64
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore src/ProxyManager.sln
+
+      - name: Build
+        run: dotnet build src/ProxyManager.sln --configuration $BUILD_CONFIGURATION --no-restore
+
+      - name: Test
+        run: dotnet test src/ProxyManager.sln --configuration $BUILD_CONFIGURATION --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-results
+          path: coverage/**/coverage.cobertura.xml
+          if-no-files-found: error
+
+      
+
+  

@@ -132,6 +132,41 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    // --- US4: DELETE /proxyhosts/{id} ---
+
+    [Fact]
+    public async Task DeleteProxyHost_WithExistingId_Returns204()
+    {
+        var seededId = await SeedHostAsync("delete-integration.example.com");
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+
+        var response = await _client.DeleteAsync($"/proxyhosts/{seededId}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteProxyHost_SecondDelete_Returns404()
+    {
+        var seededId = await SeedHostAsync("delete-twice.example.com");
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+
+        await _client.DeleteAsync($"/proxyhosts/{seededId}");
+        var response = await _client.DeleteAsync($"/proxyhosts/{seededId}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteProxyHost_WithoutToken_Returns401()
+    {
+        var response = await _client.DeleteAsync($"/proxyhosts/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     // --- US3: PUT /proxyhosts/{id} ---
 
     [Fact]

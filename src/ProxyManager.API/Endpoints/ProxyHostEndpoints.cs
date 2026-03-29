@@ -97,6 +97,30 @@ public static class ProxyHostEndpoints
             }
         });
 
+        group.MapDelete("/{id:guid}", async Task<Results<NoContent, ProblemHttpResult>> (
+            Guid id,
+            ClaimsPrincipal user,
+            IMessageBus bus,
+            CancellationToken ct) =>
+        {
+            var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub")
+                ?? "unknown";
+
+            try
+            {
+                await bus.InvokeAsync(new DeleteProxyHostCommand(id, actorId), ct);
+                return TypedResults.NoContent();
+            }
+            catch (ProxyHostNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Proxy host not found",
+                    detail: ex.Message);
+            }
+        });
+
         group.MapPut("/{id:guid}", async Task<Results<Ok<ProxyHostDto>, ProblemHttpResult>> (
             Guid id,
             [FromBody] UpdateProxyHostRequest request,

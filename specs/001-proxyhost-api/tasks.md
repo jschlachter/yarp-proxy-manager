@@ -154,13 +154,13 @@ Successful deletion writes audit log entry and publishes `ProxyHostDeletedEvent`
 
 ### Tests for User Story 4 ⚠️ Write first — confirm failing before T037
 
-- [ ] T035 [P] [US4] Write failing unit tests for `DeleteProxyHostHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/DeleteProxyHostHandlerTests.cs`: covers successful delete calls `RemoveAsync`; unknown Id throws not-found exception; audit log entry appended with operation `Deleted` and `PreviousState` snapshot; `ProxyHostDeletedEvent` published with correct domain names
-- [ ] T036 [P] [US4] Add failing integration tests to `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `DELETE /proxyhosts/{id}` with existing id → 204; second delete of same id → 404 Problem Details; no token → 401
+- [x] T035 [P] [US4] Write failing unit tests for `DeleteProxyHostHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/DeleteProxyHostHandlerTests.cs`: covers successful delete calls `RemoveAsync`; unknown Id throws not-found exception; audit log entry appended with operation `Deleted` and `PreviousState` snapshot; `ProxyHostDeletedEvent` published with correct domain names
+- [x] T036 [P] [US4] Add failing integration tests to `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `DELETE /proxyhosts/{id}` with existing id → 204; second delete of same id → 404 Problem Details; no token → 401
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Implement `DeleteProxyHostHandler` in `src/ProxyManager.API/Handlers/DeleteProxyHostHandler.cs` — Wolverine handler for `DeleteProxyHostCommand` that: loads host via `FindAsync` (404 if missing); captures state as JSON snapshot for audit; calls `IProxyHostRepository.RemoveAsync`; appends `AuditLogEntry` (operation `Deleted` with `PreviousState`, null `NewState`); publishes `ProxyHostDeletedEvent` (depends on T035)
-- [ ] T038 [US4] Add `DELETE /proxyhosts/{id:guid}` endpoint to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; build `DeleteProxyHostCommand` with actor from claims; dispatch via `IMessageBus`; return `TypedResults.NoContent()` or Problem Details (404) (depends on T037, T036)
+- [x] T037 [US4] Implement `DeleteProxyHostHandler` in `src/ProxyManager.API/Handlers/DeleteProxyHostHandler.cs` — Wolverine handler for `DeleteProxyHostCommand` that: loads host via `FindAsync` (404 if missing); captures state as JSON snapshot for audit; calls `IProxyHostRepository.RemoveAsync`; appends `AuditLogEntry` (operation `Deleted` with `PreviousState`, null `NewState`); publishes `ProxyHostDeletedEvent` (depends on T035)
+- [x] T038 [US4] Add `DELETE /proxyhosts/{id:guid}` endpoint to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; build `DeleteProxyHostCommand` with actor from claims; dispatch via `IMessageBus`; return `TypedResults.NoContent()` or Problem Details (404) (depends on T037, T036)
 
 **Checkpoint**: All four user stories functional and independently testable.
 
@@ -170,10 +170,10 @@ Successful deletion writes audit log entry and publishes `ProxyHostDeletedEvent`
 
 **Purpose**: Cleanup, coverage gate, and end-to-end validation.
 
-- [ ] T039 [P] Delete `src/ProxyManager.API/Endpoints/RouteEndpoints.cs` (replaced by `ProxyHostEndpoints.cs`); confirm `Program.cs` no longer references `MapRouteEndpoints()`
-- [ ] T040 [P] Write unit tests for `AuditLogEntry` in `tests/ProxyManager.Core.Tests/Unit/AuditLogEntryTests.cs`: factory method sets Id, OccurredAt in UTC, and validates ActorId not empty; `PreviousState` null for `Created`; `NewState` null for `Deleted`
-- [ ] T041 Run `dotnet test ProxyManager.sln --collect:"XPlat Code Coverage"` and verify ≥80% line coverage for all new code in `ProxyManager.API/Handlers/`, `ProxyManager.Core/Messages/`, `ProxyManager.Core/AggregatesModel/AuditLogAggregate/`, and `ProxyManager.Infrastructure/Repositories/`
-- [ ] T042 Validate quickstart.md manually: start RabbitMQ, run API, execute all five curl commands from `specs/001-proxyhost-api/quickstart.md`, confirm RabbitMQ management UI shows published events on the `proxy-hosts` exchange
+- [x] T039 [P] Delete `src/ProxyManager.API/Endpoints/RouteEndpoints.cs` (replaced by `ProxyHostEndpoints.cs`); confirm `Program.cs` no longer references `MapRouteEndpoints()`
+- [x] T040 [P] Write unit tests for `AuditLogEntry` in `tests/ProxyManager.Core.Tests/Unit/AuditLogEntryTests.cs`: factory method sets Id, OccurredAt in UTC, and validates ActorId not empty; `PreviousState` null for `Created`; `NewState` null for `Deleted`
+- [x] T041 Run `dotnet test ProxyManager.sln --collect:"XPlat Code Coverage"` and verify ≥80% line coverage for all new code in `ProxyManager.API/Handlers/`, `ProxyManager.Core/Messages/`, `ProxyManager.Core/AggregatesModel/AuditLogAggregate/`, and `ProxyManager.Infrastructure/Repositories/`
+- [x] T042 Validate quickstart.md manually: start RabbitMQ, run API, execute all five curl commands from `specs/001-proxyhost-api/quickstart.md`, confirm RabbitMQ management UI shows published events on the `proxy-hosts` exchange
 
 ---
 

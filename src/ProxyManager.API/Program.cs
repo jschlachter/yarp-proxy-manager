@@ -51,8 +51,15 @@ try
         if (rabbitEnabled)
         {
             var rabbitHost = builder.Configuration.GetValue<string>("RabbitMQ:Host") ?? "localhost";
+            var rabbitUser = builder.Configuration.GetValue<string>("RabbitMQ:UserName");
+            var rabbitPass = builder.Configuration.GetValue<string>("RabbitMQ:Password");
 
-            opts.UseRabbitMq(rabbit => rabbit.HostName = rabbitHost)
+            opts.UseRabbitMq(rabbit =>
+            {
+                rabbit.HostName = rabbitHost;
+                if (rabbitUser is not null) rabbit.UserName = rabbitUser;
+                if (rabbitPass is not null) rabbit.Password = rabbitPass;
+            })
                 .AutoProvision()
                 .DeclareExchange("proxy-hosts", exchange =>
                 {

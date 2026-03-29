@@ -132,6 +132,60 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    // --- US3: PUT /proxyhosts/{id} ---
+
+    [Fact]
+    public async Task UpdateProxyHost_WithValidPartialUpdate_Returns200WithUpdatedDto()
+    {
+        var seededId = await SeedHostAsync("update-integration.example.com");
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new { isEnabled = false };
+
+        var response = await _client.PutAsJsonAsync($"/proxyhosts/{seededId}", body);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var dto = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
+        Assert.NotNull(dto);
+        Assert.Equal(seededId, dto.Id);
+        Assert.False(dto.IsEnabled);
+    }
+
+    [Fact]
+    public async Task UpdateProxyHost_UnknownId_Returns404()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new { isEnabled = false };
+
+        var response = await _client.PutAsJsonAsync($"/proxyhosts/{Guid.NewGuid()}", body);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateProxyHost_MalformedDestinationUri_Returns400()
+    {
+        var seededId = await SeedHostAsync("update-bad-uri.example.com");
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new { destinationUri = "not-a-valid-uri" };
+
+        var response = await _client.PutAsJsonAsync($"/proxyhosts/{seededId}", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateProxyHost_WithoutToken_Returns401()
+    {
+        var body = new { isEnabled = false };
+
+        var response = await _client.PutAsJsonAsync($"/proxyhosts/{Guid.NewGuid()}", body);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();

@@ -19,6 +19,14 @@ public sealed record CreateProxyHostRequest(
     string? CertificatePath,
     string? CertificateKeyPath);
 
+/// <summary>Request body for PUT /proxyhosts/{id}.</summary>
+public sealed record UpdateProxyHostRequest(
+    IEnumerable<string>? DomainNames,
+    string? DestinationUri,
+    bool? IsEnabled,
+    string? CertificatePath,
+    string? CertificateKeyPath);
+
 public static class ProxyHostEndpoints
 {
     public static IEndpointRouteBuilder MapProxyHostEndpoints(this IEndpointRouteBuilder app)
@@ -85,6 +93,47 @@ public static class ProxyHostEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Conflict",
+                    detail: ex.Message);
+            }
+        });
+
+        group.MapPut("/{id:guid}", async Task<Results<Ok<ProxyHostDto>, ProblemHttpResult>> (
+            Guid id,
+            [FromBody] UpdateProxyHostRequest request,
+            ClaimsPrincipal user,
+            IMessageBus bus,
+            CancellationToken ct) =>
+        {
+            var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub")
+                ?? "unknown";
+
+            var command = new UpdateProxyHostCommand(
+                id,
+                request.DomainNames,
+                request.DestinationUri,
+                request.IsEnabled,
+                request.CertificatePath,
+                request.CertificateKeyPath,
+                actorId);
+
+            try
+            {
+                var dto = await bus.InvokeAsync<ProxyHostDto>(command, ct);
+                return TypedResults.Ok(dto);
+            }
+            catch (ProxyHostNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Proxy host not found",
+                    detail: ex.Message);
+            }
+            catch (ProxyHostValidationException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Validation error",
                     detail: ex.Message);
             }
         });

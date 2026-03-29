@@ -133,13 +133,13 @@ publishes `ProxyHostUpdatedEvent`.
 
 ### Tests for User Story 3 ⚠️ Write first — confirm failing before T033
 
-- [ ] T031 [P] [US3] Write failing unit tests for `UpdateProxyHostHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/UpdateProxyHostHandlerTests.cs`: covers partial update (only `isEnabled` provided) leaves other fields unchanged; unknown Id throws not-found exception; invalid `destinationUri` throws validation exception; audit log entry appended with operation `Updated`, `PreviousState` snapshot, and `NewState` snapshot; `ProxyHostUpdatedEvent` is published
-- [ ] T032 [P] [US3] Add failing integration tests to `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `PUT /proxyhosts/{id}` with valid partial update → 200; unknown id → 404 Problem Details; malformed `destinationUri` → 400 Problem Details; no token → 401
+- [x] T031 [P] [US3] Write failing unit tests for `UpdateProxyHostHandler` in `tests/ProxyManager.API.Tests/Unit/Handlers/UpdateProxyHostHandlerTests.cs`: covers partial update (only `isEnabled` provided) leaves other fields unchanged; unknown Id throws not-found exception; invalid `destinationUri` throws validation exception; audit log entry appended with operation `Updated`, `PreviousState` snapshot, and `NewState` snapshot; `ProxyHostUpdatedEvent` is published
+- [x] T032 [P] [US3] Add failing integration tests to `tests/ProxyManager.API.Tests/Integration/ProxyHostEndpointsTests.cs`: `PUT /proxyhosts/{id}` with valid partial update → 200; unknown id → 404 Problem Details; malformed `destinationUri` → 400 Problem Details; no token → 401
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Implement `UpdateProxyHostHandler` in `src/ProxyManager.API/Handlers/UpdateProxyHostHandler.cs` — Wolverine handler for `UpdateProxyHostCommand` that: loads host via `FindAsync` (404 if missing); captures previous state as JSON snapshot; applies only non-null fields (`DomainNames`, `DestinationUri`, `IsEnabled`, `CertificatePath`); calls `IProxyHostRepository.UpdateAsync`; appends `AuditLogEntry` (operation `Updated` with both snapshots); publishes `ProxyHostUpdatedEvent`; returns updated `ProxyHostDto` (depends on T031)
-- [ ] T034 [US3] Add `PUT /proxyhosts/{id:guid}` endpoint to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; build `UpdateProxyHostCommand` with actor from claims; dispatch via `IMessageBus`; return `TypedResults.Ok(dto)` or Problem Details (400/404) (depends on T033, T032)
+- [x] T033 [US3] Implement `UpdateProxyHostHandler` in `src/ProxyManager.API/Handlers/UpdateProxyHostHandler.cs` — Wolverine handler for `UpdateProxyHostCommand` that: loads host via `FindAsync` (404 if missing); captures previous state as JSON snapshot; applies only non-null fields (`DomainNames`, `DestinationUri`, `IsEnabled`, `CertificatePath`); calls `IProxyHostRepository.UpdateAsync`; appends `AuditLogEntry` (operation `Updated` with both snapshots); publishes `ProxyHostUpdatedEvent`; returns updated `ProxyHostDto` (depends on T031)
+- [x] T034 [US3] Add `PUT /proxyhosts/{id:guid}` endpoint to `src/ProxyManager.API/Endpoints/ProxyHostEndpoints.cs`; build `UpdateProxyHostCommand` with actor from claims; dispatch via `IMessageBus`; return `TypedResults.Ok(dto)` or Problem Details (400/404) (depends on T033, T032)
 
 **Checkpoint**: `PUT /proxyhosts/{id}` functional; all US3 tests passing.
 

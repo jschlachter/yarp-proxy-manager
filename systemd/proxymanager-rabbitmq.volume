@@ -1,2 +1,4 @@
 [Volume]
 # Volume for Proxy Manager RabbitMQ data storage
+Label=app=proxymanager-rabbitmq
+VolumeName=proxymanager-rabbitmq-data

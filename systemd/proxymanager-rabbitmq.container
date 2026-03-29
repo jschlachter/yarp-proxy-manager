@@ -1,14 +1,22 @@
 [Unit]
 Description=Proxy Manager RabbitMQ
 After=network-online.target
+Wants=network-online.target
 
 
 [Container]
 Image=docker.io/library/rabbitmq:4-management-alpine
 ContainerName=proxy-manager-rabbitmq
+EnvironmentFile=.env
 PublishPort=15672:15672
 PublishPort=5672:5672
-Volume=proxy-manager-rabbitmq:/var/lib/rabbitmq
+Volume=proxymanager-rabbitmq.volume:/var/lib/rabbitmq
+Pod=proxymanager.pod
+
+HealthCmd=rabbitmq-diagnostics --quiet check_running && rabbitmq-diagnostics --quiet check_local_alarms
+HealthInterval=60s
+HealthTimeout=30s
+HealthRetries=3
 
 [Service]
 Restart=always

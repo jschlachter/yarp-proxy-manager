@@ -24,7 +24,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddOpenApi();
+    builder.Services.AddProxyManagerOpenApi();
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -75,7 +75,9 @@ try
                 .SortOperationsByMethod()
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
                 .WithTitle("Proxy Manager API")
-                .WithTheme(ScalarTheme.Mars);
+                .WithTheme(ScalarTheme.Mars)
+                .AddPreferredSecuritySchemes(["Bearer"])
+                .AddHttpAuthentication("Bearer", scheme => { });
         });
     }
 

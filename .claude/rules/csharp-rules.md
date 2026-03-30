@@ -1,6 +1,6 @@
 ---
-paths: 
-  - **/*.cs
+paths:
+  - "src/**/*.cs"
 ---
 
 ## C# Conventions

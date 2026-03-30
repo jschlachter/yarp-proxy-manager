@@ -1,11 +1,17 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Scalar.AspNetCore;
 
 using Serilog;
 using Serilog.Events;
 
+using Wolverine;
+using Wolverine.RabbitMQ;
+
+using West94.ProxyManager.API.Infrastructure;
+using West94.ProxyManager.API.Options;
+using West94.ProxyManager.Core.Messages.Events;
 using West94.ProxyManager.Endpoints;
+
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -14,10 +20,11 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
-try {
+try
+{
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddOpenApi();
+    builder.Services.AddProxyManagerOpenApi();
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -28,22 +35,49 @@ try {
 
     builder.Services.AddAuthorization();
 
+    builder.Services.Configure<RabbitMqOptions>(
+        builder.Configuration.GetSection(RabbitMqOptions.Section));
+
+    builder.Services.AddProxyManagerServices();
+
     builder.Host.UseSerilog((ctx, services, config) => config
         .ReadFrom.Configuration(ctx.Configuration)
         .ReadFrom.Services(services));
-        
+
+    var rabbitEnabled = builder.Configuration.GetValue<bool>("RabbitMQ:Enabled", defaultValue: true);
+
+    builder.Host.UseWolverine(opts =>
+    {
+        if (rabbitEnabled)
+        {
+            opts.AddRabbitMqTransport(builder.Configuration)
+                .AutoProvision()
+                .DeclareExchange("proxy-hosts", exchange =>
+                {
+                    exchange.ExchangeType = ExchangeType.Fanout;
+                    exchange.IsDurable = true;
+                });
+
+            opts.PublishMessage<ProxyHostCreatedEvent>().ToRabbitExchange("proxy-hosts");
+            opts.PublishMessage<ProxyHostUpdatedEvent>().ToRabbitExchange("proxy-hosts");
+            opts.PublishMessage<ProxyHostDeletedEvent>().ToRabbitExchange("proxy-hosts");
+        }
+    });
+
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
-        app.MapScalarApiReference((options) =>
+        app.MapScalarApiReference(options =>
         {
-                options
-                    .SortOperationsByMethod()
-                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
-                    .WithTitle("Proxy Manager API")
-                    .WithTheme(ScalarTheme.Mars);
+            options
+                .SortOperationsByMethod()
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
+                .WithTitle("Proxy Manager API")
+                .WithTheme(ScalarTheme.Mars)
+                .AddPreferredSecuritySchemes(["Bearer"])
+                .AddHttpAuthentication("Bearer", scheme => { });
         });
     }
 
@@ -52,7 +86,7 @@ try {
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.MapRouteEndpoints();
+    app.MapProxyHostEndpoints();
 
     Log.Information("Starting Proxy Manager API host...");
     app.Run();
@@ -65,3 +99,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Required for WebApplicationFactory<Program> in integration tests
+public partial class Program { }

@@ -112,6 +112,11 @@ Both apps use Serilog: console + rolling daily file logs in `logs/`. File size l
 ## Active Technologies
 - C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 5.22.x, WolverineFx.RabbitMQ 5.22.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x (001-proxyhost-api)
 - In-memory (ConcurrentDictionary for ProxyHosts, ConcurrentQueue for AuditLog) (001-proxyhost-api)
+- TypeScript / Node.js 20 LTS + Next.js 15 (App Router), next-auth v5 (Auth.js), postgres.js, shadcn/ui, Tailwind CSS 4 (002-proxy-route-manager)
+- PostgreSQL — maintainer assignments and audit log only; routing data sourced from ProxyManager API (002-proxy-route-manager)
+- TypeScript / Node.js 20 LTS + Next.js 15 (App Router), next-auth v5 (Auth.js), shadcn/ui, Tailwind CSS 4 (002-proxy-route-manager)
+- N/A — no local database; all data (routes, maintainer assignments, audit log) is owned by the ProxyManager API (002-proxy-route-manager)
+- TypeScript / Node.js 24 LTS + Next.js 15 (App Router), shadcn/ui, Tailwind CSS 4 (002-proxy-route-manager)
 
 ## Recent Changes
 - 001-proxyhost-api: Added C# / .NET 10.0 + ASP.NET Core Minimal APIs, WolverineFx 5.22.x, WolverineFx.RabbitMQ 5.22.x, Serilog 4.3.x, xunit 2.9.x, Microsoft.AspNetCore.Mvc.Testing 10.0.x

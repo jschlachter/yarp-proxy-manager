@@ -19,13 +19,13 @@
 
 **Purpose**: Initialize the Next.js 15 project, tooling, and supporting configuration. No user-story work can begin until this phase is complete.
 
-- [ ] T001 Create Next.js 15 app with TypeScript and Tailwind CSS 4 in `src/ProxyManager.UI` using `npx create-next-app@latest src/ProxyManager.UI --app --ts --tailwind` (Node 24 LTS, App Router, no src directory)
-- [ ] T002 Initialize shadcn/ui in `src/ProxyManager.UI` using `npx shadcn-ui@latest init` and add components: Button, Input, Label, Table, Badge, Card, Dialog, DropdownMenu, Separator, Tooltip
-- [ ] T003 [P] Configure Jest + React Testing Library: add `jest.config.ts`, `jest.setup.ts`, and update `package.json` test scripts in `src/ProxyManager.UI` (`npm test`, `npm run test:coverage`)
-- [ ] T004 [P] Configure Playwright: create `src/ProxyManager.UI/playwright.config.ts` with baseURL `http://localhost:3000`, install Chromium; add `npm run test:e2e` script to `src/ProxyManager.UI/package.json`
-- [ ] T005 [P] Create `src/ProxyManager.UI/.env.example` with `PROXY_MANAGER_API_URL` and `ADMIN_GROUP_CLAIM` (and dev-mode overrides `DEV_AUTH_SUB`, `DEV_AUTH_GROUPS`, `DEV_AUTH_TOKEN`) per research.md §6
-- [ ] T006 [P] Configure `src/ProxyManager.UI/next.config.ts`: disable `x-powered-by`, set `output: 'standalone'` for container builds, expose `ADMIN_GROUP_CLAIM` as a server-only env var (never `NEXT_PUBLIC_`)
-- [ ] T007 Remove create-next-app boilerplate: delete default `src/ProxyManager.UI/app/page.tsx` content, clear `src/ProxyManager.UI/app/globals.css` to base Tailwind 4 `@import`, update `src/ProxyManager.UI/app/layout.tsx` root metadata
+- [x] T001 Create Next.js 15 app with TypeScript and Tailwind CSS 4 in `src/ProxyManager.UI` using `npx create-next-app@latest src/ProxyManager.UI --app --ts --tailwind` (Node 24 LTS, App Router, no src directory)
+- [x] T002 Initialize shadcn/ui in `src/ProxyManager.UI` using `npx shadcn-ui@latest init` and add components: Button, Input, Label, Table, Badge, Card, Dialog, DropdownMenu, Separator, Tooltip
+- [x] T003 [P] Configure Jest + React Testing Library: add `jest.config.ts`, `jest.setup.ts`, and update `package.json` test scripts in `src/ProxyManager.UI` (`npm test`, `npm run test:coverage`)
+- [x] T004 [P] Configure Playwright: create `src/ProxyManager.UI/playwright.config.ts` with baseURL `http://localhost:3000`, install Chromium; add `npm run test:e2e` script to `src/ProxyManager.UI/package.json`
+- [x] T005 [P] Create `src/ProxyManager.UI/.env.example` with `PROXY_MANAGER_API_URL` and `ADMIN_GROUP_CLAIM` (and dev-mode overrides `DEV_AUTH_SUB`, `DEV_AUTH_GROUPS`, `DEV_AUTH_TOKEN`) per research.md §6
+- [x] T006 [P] Configure `src/ProxyManager.UI/next.config.ts`: disable `x-powered-by`, set `output: 'standalone'` for container builds, expose `ADMIN_GROUP_CLAIM` as a server-only env var (never `NEXT_PUBLIC_`)
+- [x] T007 Remove create-next-app boilerplate: delete default `src/ProxyManager.UI/app/page.tsx` content, clear `src/ProxyManager.UI/app/globals.css` to base Tailwind 4 `@import`, update `src/ProxyManager.UI/app/layout.tsx` root metadata
 
 **Checkpoint**: `npm run dev` starts without errors; `npm test` runs (no tests yet); `npm run test:e2e` runs Playwright with no spec files.
 
@@ -37,14 +37,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T008 Define TypeScript runtime types `UserSession`, `ProxyHost`, and future stubs `MaintainerAssignment`, `AuditEntry` (with JSDoc `@future` note) in `src/ProxyManager.UI/types/index.ts` — shapes must match data-model.md exactly
-- [ ] T009 Implement `src/ProxyManager.UI/lib/auth.ts`: export `getSession(headers: Headers): UserSession` that reads `X-Auth-Sub`, `X-Auth-Groups`, `Authorization` headers, derives `isAdmin` from `ADMIN_GROUP_CLAIM`, and in `NODE_ENV=development` synthesizes from `DEV_AUTH_*` env vars when `X-Auth-Sub` is absent
-- [ ] T010 Implement `src/ProxyManager.UI/middleware.ts`: use Next.js `NextResponse` to reject requests missing `X-Auth-Sub` header with `401` in production; pass through in development with missing header (dev-mode override handled by `lib/auth.ts`)
-- [ ] T011 Implement `src/ProxyManager.UI/lib/proxy-manager-client.ts`: thin fetch wrapper that accepts a `UserSession`, sets `Authorization: Bearer <accessToken>` on all outbound calls to `PROXY_MANAGER_API_URL`, and surfaces ProxyManager API errors as typed `ProblemDetails` objects
-- [ ] T012 Create `src/ProxyManager.UI/lib/modules.ts`: export `MODULE_REGISTRY: Module[]` where `Module = { label: string; href: string; icon: React.ComponentType; enabled: boolean }`. Add the Routes module entry. Sidebar must filter by `enabled: true`.
-- [ ] T013 Create `src/ProxyManager.UI/app/layout.tsx` root layout: Inter font, `<html lang="en">`, `<body>`, Tailwind 4 `@theme` tokens in `src/ProxyManager.UI/app/globals.css`
-- [ ] T014 Create `src/ProxyManager.UI/app/(dashboard)/layout.tsx`: sidebar component that iterates `MODULE_REGISTRY` (enabled only) to render navigation links; renders `{children}` in the main content area; reads `UserSession` server-side to display logged-in user identity
-- [ ] T015 Add YARP UI route and cluster to `src/ProxyManager/proxysettings.Development.json` and `src/ProxyManager/proxysettings.json` per plan.md — route `ui-route` matching `/manage/{**catch-all}`, cluster `ui-cluster` targeting `http://localhost:3000/` (dev) / `http://proxymanager-ui:3000/` (prod), with `X-Auth-Sub`, `X-Auth-Groups`, and `Authorization` header transforms and `RequireAuthenticatedUser` policy
+- [x] T008 Define TypeScript runtime types `UserSession`, `ProxyHost`, and future stubs `MaintainerAssignment`, `AuditEntry` (with JSDoc `@future` note) in `src/ProxyManager.UI/types/index.ts` — shapes must match data-model.md exactly
+- [x] T009 Implement `src/ProxyManager.UI/lib/auth.ts`: export `getSession(headers: Headers): UserSession` that reads `X-Auth-Sub`, `X-Auth-Groups`, `Authorization` headers, derives `isAdmin` from `ADMIN_GROUP_CLAIM`, and in `NODE_ENV=development` synthesizes from `DEV_AUTH_*` env vars when `X-Auth-Sub` is absent
+- [x] T010 Implement `src/ProxyManager.UI/middleware.ts`: use Next.js `NextResponse` to reject requests missing `X-Auth-Sub` header with `401` in production; pass through in development with missing header (dev-mode override handled by `lib/auth.ts`)
+- [x] T011 Implement `src/ProxyManager.UI/lib/proxy-manager-client.ts`: thin fetch wrapper that accepts a `UserSession`, sets `Authorization: Bearer <accessToken>` on all outbound calls to `PROXY_MANAGER_API_URL`, and surfaces ProxyManager API errors as typed `ProblemDetails` objects
+- [x] T012 Create `src/ProxyManager.UI/lib/modules.ts`: export `MODULE_REGISTRY: Module[]` where `Module = { label: string; href: string; icon: React.ComponentType; enabled: boolean }`. Add the Routes module entry. Sidebar must filter by `enabled: true`.
+- [x] T013 Create `src/ProxyManager.UI/app/layout.tsx` root layout: Inter font, `<html lang="en">`, `<body>`, Tailwind 4 `@theme` tokens in `src/ProxyManager.UI/app/globals.css`
+- [x] T014 Create `src/ProxyManager.UI/app/(dashboard)/layout.tsx`: sidebar component that iterates `MODULE_REGISTRY` (enabled only) to render navigation links; renders `{children}` in the main content area; reads `UserSession` server-side to display logged-in user identity
+- [x] T015 Add YARP UI route and cluster to `src/ProxyManager/proxysettings.Development.json` and `src/ProxyManager/proxysettings.json` per plan.md — route `ui-route` matching `/manage/{**catch-all}`, cluster `ui-cluster` targeting `http://localhost:3000/` (dev) / `http://proxymanager-ui:3000/` (prod), with `X-Auth-Sub`, `X-Auth-Groups`, and `Authorization` header transforms and `RequireAuthenticatedUser` policy
 
 **Checkpoint**: Foundation ready — sidebar renders, auth headers are parsed, `proxy-manager-client.ts` compiles, module registry drives navigation.
 

@@ -29,15 +29,15 @@
     "Clusters": {
       "apiCluster": {
         "Destinations": {
-          "local": {
-            "Address": "https://localhost:5001/"
+          "primary": {
+            "Address": "http://proxymanager-api:5001/"
           }
         },
         "HealthCheck": {
           "Passive": {
             "Enabled": true,
             "Policy": "TransportFailureRate",
-            "ReactivationPeriod": "00:01:00" //Reactivate after 1 minute
+            "ReactivationPeriod": "00:01:00"
           }
         },
         "Metadata": {
@@ -46,8 +46,8 @@
       },
       "ui-cluster": {
         "Destinations": {
-          "local": {
-            "Address": "http://localhost:3000/"
+          "primary": {
+            "Address": "http://proxymanager-ui:3000/"
           }
         }
       }

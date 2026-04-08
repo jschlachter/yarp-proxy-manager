@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   if (process.env.NODE_ENV !== "development") {
     const authSub = request.headers.get("X-Auth-Sub");
     if (!authSub) {

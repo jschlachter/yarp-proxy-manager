@@ -13,7 +13,7 @@ export default function NewRouteClient() {
 
   async function handleSubmit(payload: RouteFormPayload) {
     setError(undefined);
-    const response = await fetch("/api/routes", {
+    const response = await fetch("/manage/api/routes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

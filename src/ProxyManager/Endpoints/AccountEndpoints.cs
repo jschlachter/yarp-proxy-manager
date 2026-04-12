@@ -1,6 +1,7 @@
 using System.Security.Authentication;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -58,6 +59,13 @@ public static class AccountEndpoints
             }
         })
         .ExcludeFromDescription();
+
+        app.MapGet("/logout", async (HttpContext context) =>
+        {
+            await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return TypedResults.Redirect("/");
+        }).ExcludeFromDescription();
 
         return app;
     }

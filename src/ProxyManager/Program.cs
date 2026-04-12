@@ -9,6 +9,7 @@ using Serilog.Events;
 using West94.ProxyManager.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using West94.AspNetCore.Authentication;
+using System.Security.Claims;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -28,7 +29,8 @@ try
 
     services.AddReverseProxy()
         .LoadFromConfig(configuration.GetSection("ReverseProxy"))
-        .AddTransformFactory<BearerTokenTransformFactory>();
+        .AddTransformFactory<BearerTokenTransformFactory>()
+        .AddTransformFactory<ClaimHeaderTransformFactory>();
 
     services.AddHttpContextAccessor();
     services.AddHttpClient();
@@ -107,6 +109,9 @@ try
         options.CallbackPath = configuration["Authentication:CallbackPath"] ?? "/signin-oidc";
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
+        options.MapInboundClaims = false;
+        options.ClaimActions.MapJsonKey("sub", "sub");
+        options.ClaimActions.MapJsonKey("groups", "groups", ClaimValueTypes.String);
         options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("profile");

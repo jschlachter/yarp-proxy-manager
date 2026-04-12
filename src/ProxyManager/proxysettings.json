@@ -12,14 +12,33 @@
           { "RequestHeaderRemove": "Cookie" }
         ]
       },
+      "ui-api-route": {
+        "ClusterId": "ui-cluster",
+        "AuthorizationPolicy": "AuthenticatedUsersOnly",
+        "Order": 1,
+        "Match": {
+          "Path": "/manage/api/{**catch-all}"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/manage" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" },
+          { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
+          { "ClaimHeader": "X-auth-groups", "Claim": "groups" }
+        ]
+      },
       "ui-route": {
         "ClusterId": "ui-cluster",
         "AuthorizationPolicy": "AuthenticatedUsersOnly",
+        "Order": 2,
         "Match": {
           "Path": "/manage/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/manage" }
+          { "PathRemovePrefix": "/manage" },
+          { "RequestHeaderRemove": "Cookie" },
+          { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
+          { "ClaimHeader": "X-auth-groups", "Claim": "groups" }
         ]
       }
     },

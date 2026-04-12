@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { getSession } from "@/lib/auth";
-import { listRoutes } from "@/lib/proxy-manager-client";
 import RouteListClient from "./RouteListClient";
 
 interface SearchParams {
@@ -16,17 +15,7 @@ export default async function RoutesPage({
   const resolvedParams = await searchParams;
   const headersList = await headers();
   const session = getSession(headersList);
-  const page = parseInt(resolvedParams.page ?? "1", 10);
-
-  let routeData: Awaited<ReturnType<typeof listRoutes>> | null = null;
-  let fetchError: string | null = null;
-
-  try {
-    routeData = await listRoutes(session, page);
-  } catch (error) {
-    console.log("Error fetching routes:", error);
-    fetchError = "Unable to load routes. The ProxyManager API may be unavailable.";
-  }
+  const initialPage = parseInt(resolvedParams.page ?? "1", 10);
 
   return (
     <div className="p-6 space-y-6">
@@ -42,24 +31,7 @@ export default async function RoutesPage({
         )}
       </div>
 
-      {fetchError && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"
-        >
-          {fetchError}
-        </div>
-      )}
-
-      {routeData && (
-        <RouteListClient
-          routes={routeData.routes}
-          total={routeData.total}
-          page={routeData.page}
-          pageSize={routeData.pageSize}
-          isAdmin={session.isAdmin}
-        />
-      )}
+      <RouteListClient isAdmin={session.isAdmin} initialPage={initialPage} />
     </div>
   );
 }

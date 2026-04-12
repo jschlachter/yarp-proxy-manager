@@ -7,7 +7,9 @@
           "Path": "/api/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/api" }
+          { "PathRemovePrefix": "/api" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" }
         ]
       },
       "ui-route": {
@@ -17,17 +19,15 @@
           "Path": "/manage/{**catch-all}"
         },
         "Transforms": [
-          { "BearerToken": "access_token" },
-          { "RequestHeaderRemove": "Cookie" },
-          { "RequestHeader": "X-Auth-Groups", "Append": "proxy-manager admins"}
+          { "PathRemovePrefix": "/manage" }
         ]
       }
     },
     "Clusters": {
       "apiCluster": {
         "Destinations": {
-          "local": {
-            "Address": "https://localhost:5001/"
+          "primary": {
+            "Address": "http://proxymanager-api:5001/"
           }
         },
         "HealthCheck": {
@@ -43,8 +43,8 @@
       },
       "ui-cluster": {
         "Destinations": {
-          "local": {
-            "Address": "http://localhost:3000/"
+          "primary": {
+            "Address": "http://proxymanager-ui:3000/"
           }
         }
       }

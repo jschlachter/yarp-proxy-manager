@@ -17,10 +17,12 @@ export function getSession(headers: Headers): UserSession {
     accessToken = process.env.DEV_AUTH_TOKEN ?? "";
   } else {
     userId = headers.get("X-Auth-Sub") ?? "";
-    const rawGroups = headers.get("X-Auth-Groups") ?? "";
+    const rawGroups = headers.get("X-auth-groups") ?? "";
+
     groups = rawGroups
       ? rawGroups.split(",").map((g) => g.trim()).filter(Boolean)
       : [];
+
     const authHeader = headers.get("Authorization") ?? "";
     accessToken = authHeader.startsWith("Bearer ")
       ? authHeader.slice(7)

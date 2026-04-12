@@ -7,22 +7,19 @@
           "Path": "/api/{**catch-all}"
         },
         "Transforms": [
-          {
-            "PathRemovePrefix": "/api"
-          }
+          { "PathRemovePrefix": "/api" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" }
         ]
       },
       "ui-route": {
         "ClusterId": "ui-cluster",
-        "AuthorizationPolicy": "RequireAuthenticatedUser",
+        "AuthorizationPolicy": "AuthenticatedUsersOnly",
         "Match": {
           "Path": "/manage/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/manage" },
-          { "RequestHeader": "X-Auth-Sub", "Set": "{auth.sub}" },
-          { "RequestHeader": "X-Auth-Groups", "Set": "{auth.groups}" },
-          { "RequestHeader": "Authorization", "Set": "Bearer {auth.access_token}" }
+          { "PathRemovePrefix": "/manage" }
         ]
       }
     },

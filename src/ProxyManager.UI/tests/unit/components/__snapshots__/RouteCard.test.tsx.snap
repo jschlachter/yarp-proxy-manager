@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`RouteCard matches snapshot 1`] = `
+<div>
+  <div
+    class="flex items-start justify-between rounded-lg border p-4"
+  >
+    <div
+      class="min-w-0 flex-1 space-y-1"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          class="font-medium truncate"
+        >
+          My Service
+        </span>
+        <span
+          class="group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3! bg-primary text-primary-foreground [a]:hover:bg-primary/80"
+          data-slot="badge"
+          data-variant="default"
+        >
+          Enabled
+        </span>
+      </div>
+      <p
+        class="text-sm text-muted-foreground truncate"
+      >
+        http://backend:8080
+      </p>
+      <div
+        class="flex flex-wrap gap-1"
+      >
+        <span
+          class="rounded bg-muted px-1.5 py-0.5 text-xs font-mono"
+        >
+          my-service.example.com
+        </span>
+      </div>
+    </div>
+    <div
+      class="ml-4 flex shrink-0 gap-2"
+    >
+      <a
+        aria-label="Edit"
+        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground"
+        href="/routes/route-1"
+      >
+        Edit
+      </a>
+      <button
+        aria-label="Delete"
+        class="group/button inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40 h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5"
+        data-slot="button"
+        tabindex="0"
+        type="button"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+`;

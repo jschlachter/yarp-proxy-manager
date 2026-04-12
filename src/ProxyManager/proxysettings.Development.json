@@ -7,22 +7,19 @@
           "Path": "/api/{**catch-all}"
         },
         "Transforms": [
-          {
-            "PathRemovePrefix": "/api"
-          }
+          { "PathRemovePrefix": "/api" }
         ]
       },
       "ui-route": {
         "ClusterId": "ui-cluster",
-        "AuthorizationPolicy": "RequireAuthenticatedUser",
+        "AuthorizationPolicy": "AuthenticatedUsersOnly",
         "Match": {
           "Path": "/manage/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/manage" },
-          { "RequestHeader": "X-Auth-Sub", "Set": "{auth.sub}" },
-          { "RequestHeader": "X-Auth-Groups", "Set": "{auth.groups}" },
-          { "RequestHeader": "Authorization", "Set": "Bearer {auth.access_token}" }
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" },
+          { "RequestHeader": "X-Auth-Groups", "Append": "proxy-manager admins"}
         ]
       }
     },
@@ -37,7 +34,7 @@
           "Passive": {
             "Enabled": true,
             "Policy": "TransportFailureRate",
-            "ReactivationPeriod": "00:01:00" //Reactivate after 1 minute
+            "ReactivationPeriod": "00:01:00"
           }
         },
         "Metadata": {

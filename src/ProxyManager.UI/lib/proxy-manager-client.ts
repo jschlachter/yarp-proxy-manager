@@ -14,6 +14,8 @@ async function apiFetch<T>(
   init?: RequestInit
 ): Promise<T> {
   const url = `${getBaseUrl()}${path}`;
+
+
   const response = await fetch(url, {
     ...init,
     headers: {

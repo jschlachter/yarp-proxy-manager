@@ -491,3 +491,6 @@ $RECYCLE.BIN/
 
 # RabbitMQ definitions file
 definitions.json
+
+# cache files
+**/*.lscache

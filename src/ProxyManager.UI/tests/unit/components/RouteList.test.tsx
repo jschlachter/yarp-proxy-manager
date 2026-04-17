@@ -4,12 +4,9 @@ import type { ProxyHost } from "@/types";
 
 const makeRoute = (id: string): ProxyHost => ({
   id,
-  name: `Route ${id}`,
-  upstreamUrl: `http://backend-${id}:8080`,
-  hostnames: [`${id}.example.com`],
+  domainNames: [`${id}.example.com`],
+  destination: `http://backend-${id}:8080`,
   isEnabled: true,
-  createdAt: "2026-01-01T00:00:00Z",
-  updatedAt: "2026-01-01T00:00:00Z",
 });
 
 describe("RouteList", () => {
@@ -25,9 +22,9 @@ describe("RouteList", () => {
         onDelete={() => {}}
       />
     );
-    expect(screen.getByText("Route a")).toBeInTheDocument();
-    expect(screen.getByText("Route b")).toBeInTheDocument();
-    expect(screen.getByText("Route c")).toBeInTheDocument();
+    expect(screen.getAllByText("a.example.com").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("b.example.com").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("c.example.com").length).toBeGreaterThan(0);
   });
 
   it("shows empty state message when list is empty", () => {

@@ -94,20 +94,20 @@
 
 ### Tests for User Story 2 ⚠️ Write FIRST — confirm FAILING before implementing
 
-- [ ] T034 [P] [US2] Write failing component tests for role-based rendering in `RouteCard` and `RouteForm`: admin sees Delete button and all edit controls; maintainer sees edit controls but no Delete; non-maintainer sees read-only form and no action buttons in `src/ProxyManager.UI/tests/unit/components/RouteCard.test.tsx` and `RouteForm.test.tsx`
-- [ ] T035 [P] [US2] Write failing unit tests for maintainer BFF handlers: `GET /api/routes/[id]/maintainers` returns 501 Problem Details; `POST /api/routes/[id]/maintainers` returns 501; `DELETE /api/routes/[id]/maintainers/[userId]` returns 501; admin check applied before 501 in `src/ProxyManager.UI/tests/unit/api/routes-id-maintainers.test.ts`
-- [ ] T036 [P] [US2] Write failing component tests for `MaintainerPanel`: renders assigned maintainer list when data is provided; shows "Assign Maintainer" form for admin; shows nothing for non-admin; handles empty maintainer list gracefully in `src/ProxyManager.UI/tests/unit/components/MaintainerPanel.test.tsx`
-- [ ] T037 [US2] Write Playwright E2E spec for RBAC: verify admin sees Delete button on route list; verify non-admin (no matching group) sees read-only form on route detail; verify `POST /api/routes` returns 403 for non-admin in `src/ProxyManager.UI/tests/e2e/rbac.spec.ts`
+- [x] T034 [P] [US2] Write failing component tests for role-based rendering in `RouteCard` and `RouteForm`: admin sees Delete button and all edit controls; maintainer sees edit controls but no Delete; non-maintainer sees read-only form and no action buttons in `src/ProxyManager.UI/tests/unit/components/RouteCard.test.tsx` and `RouteForm.test.tsx`
+- [x] T035 [P] [US2] Write failing unit tests for maintainer BFF handlers: `GET /api/routes/[id]/maintainers` returns 501 Problem Details; `POST /api/routes/[id]/maintainers` returns 501; `DELETE /api/routes/[id]/maintainers/[userId]` returns 501; admin check applied before 501 in `src/ProxyManager.UI/tests/unit/api/routes-id-maintainers.test.ts`
+- [x] T036 [P] [US2] Write failing component tests for `MaintainerPanel`: renders assigned maintainer list when data is provided; shows "Assign Maintainer" form for admin; shows nothing for non-admin; handles empty maintainer list gracefully in `src/ProxyManager.UI/tests/unit/components/MaintainerPanel.test.tsx`
+- [x] T037 [US2] Write Playwright E2E spec for RBAC: verify admin sees Delete button on route list; verify non-admin (no matching group) sees read-only form on route detail; verify `POST /api/routes` returns 403 for non-admin in `src/ProxyManager.UI/tests/e2e/rbac.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T038 [US2] Update `src/ProxyManager.UI/components/routes/RouteCard.tsx`: accept `isAdmin: boolean` prop; hide Delete button and "Add Route" link when `!isAdmin` (admin check already derived from `UserSession` in the parent page)
-- [ ] T039 [US2] Update `src/ProxyManager.UI/components/routes/RouteForm.tsx`: when `readOnly: true` prop is set, render all fields as `<p>` display elements instead of `<input>`/`<textarea>`; hide submit button
-- [ ] T040 [US2] Update route list page `src/ProxyManager.UI/app/(dashboard)/routes/page.tsx` and route detail page `src/ProxyManager.UI/app/(dashboard)/routes/[id]/page.tsx`: pass `session.isAdmin` (and future `isMaintainer`) down to `RouteCard` and `RouteForm`; render `RouteForm` in `readOnly` mode for non-admin, non-maintainer users
-- [ ] T041 [US2] Implement BFF `GET /api/routes/[id]/maintainers` and `POST /api/routes/[id]/maintainers` route handlers returning `501 Not Implemented` Problem Details (with `detail: "Maintainer API not yet available"`) in `src/ProxyManager.UI/app/api/routes/[id]/maintainers/route.ts`
-- [ ] T042 [US2] Implement BFF `DELETE /api/routes/[id]/maintainers/[userId]` returning `501 Not Implemented` Problem Details in `src/ProxyManager.UI/app/api/routes/[id]/maintainers/[userId]/route.ts`
-- [ ] T043 [US2] Create `src/ProxyManager.UI/components/routes/MaintainerPanel.tsx`: displays list of assigned maintainers (`MaintainerAssignment[]`); renders "Assign Maintainer" input and assign button for admin; renders "Remove" button per maintainer for admin; renders nothing when data is `null` (deferred API); handles 501 stub gracefully by showing "Maintainer management coming soon" callout
-- [ ] T044 [US2] Integrate `MaintainerPanel` into `src/ProxyManager.UI/app/(dashboard)/routes/[id]/page.tsx`: attempt `GET /api/routes/[id]/maintainers`; render panel with data on success or with `null` (stub message) on 501
+- [x] T038 [US2] Update `src/ProxyManager.UI/components/routes/RouteCard.tsx`: accept `isAdmin: boolean` prop; hide Delete button and "Add Route" link when `!isAdmin` (admin check already derived from `UserSession` in the parent page)
+- [x] T039 [US2] Update `src/ProxyManager.UI/components/routes/RouteForm.tsx`: when `readOnly: true` prop is set, render all fields as `<p>` display elements instead of `<input>`/`<textarea>`; hide submit button
+- [x] T040 [US2] Update route list page `src/ProxyManager.UI/app/(dashboard)/routes/page.tsx` and route detail page `src/ProxyManager.UI/app/(dashboard)/routes/[id]/page.tsx`: pass `session.isAdmin` (and future `isMaintainer`) down to `RouteCard` and `RouteForm`; render `RouteForm` in `readOnly` mode for non-admin, non-maintainer users
+- [x] T041 [US2] Implement BFF `GET /api/routes/[id]/maintainers` and `POST /api/routes/[id]/maintainers` route handlers delegating to `listMaintainers`/`assignMaintainer` in `proxy-manager-client.ts`; passes through upstream errors (501 from ProxyManager API until deferred endpoints are implemented) in `src/ProxyManager.UI/app/api/routes/[id]/maintainers/route.ts`
+- [x] T042 [US2] Implement BFF `DELETE /api/routes/[id]/maintainers/[userId]` delegating to `removeMaintainer` in `proxy-manager-client.ts`; passes through upstream errors in `src/ProxyManager.UI/app/api/routes/[id]/maintainers/[userId]/route.ts`
+- [x] T043 [US2] Create `src/ProxyManager.UI/components/routes/MaintainerPanel.tsx`: displays list of assigned maintainers (`MaintainerAssignment[]`); renders "Assign Maintainer" input and assign button for admin; renders "Remove" button per maintainer for admin; renders nothing when data is `null` (deferred API); handles 501 stub gracefully by showing "Maintainer management coming soon" callout
+- [x] T044 [US2] Integrate `MaintainerPanel` into `src/ProxyManager.UI/app/(dashboard)/routes/[id]/page.tsx`: attempt `GET /api/routes/[id]/maintainers`; render panel with data on success or with `null` (stub message) on 501
 
 **Checkpoint**: Role enforcement is live — admins see full controls, others see appropriate read-only views. Maintainer panel renders stub message. All unit and E2E tests for US2 pass.
 
@@ -121,14 +121,14 @@
 
 ### Tests for User Story 3 ⚠️ Write FIRST — confirm FAILING before implementing
 
-- [ ] T045 [P] [US3] Write failing unit tests for `lib/modules.ts`: registry export is an array; only `enabled: true` entries render in navigation; adding a new entry does not mutate existing entries in `src/ProxyManager.UI/tests/unit/lib/modules.test.ts`
-- [ ] T046 [US3] Write Playwright E2E spec: add a second module (Health Checks placeholder) to the registry; verify it appears in sidebar alongside Routes; navigate to it; navigate back to Routes; verify Routes page behaves identically in `src/ProxyManager.UI/tests/e2e/modules.spec.ts`
+- [x] T045 [P] [US3] Write failing unit tests for `lib/modules.ts`: registry export is an array; only `enabled: true` entries render in navigation; adding a new entry does not mutate existing entries in `src/ProxyManager.UI/tests/unit/lib/modules.test.ts`
+- [x] T046 [US3] Write Playwright E2E spec: add a second module (Health Checks placeholder) to the registry; verify it appears in sidebar alongside Routes; navigate to it; navigate back to Routes; verify Routes page behaves identically in `src/ProxyManager.UI/tests/e2e/modules.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T047 [P] [US3] Add a `HealthChecks` placeholder module entry (`enabled: true`) to `src/ProxyManager.UI/lib/modules.ts` with appropriate label, href `/health-checks`, and icon
-- [ ] T048 [P] [US3] Create `src/ProxyManager.UI/app/(dashboard)/health-checks/page.tsx`: minimal page rendering "Health Checks — coming soon" content; demonstrates that a new module requires only a page + registry entry with zero changes to existing modules
-- [ ] T049 [US3] Verify sidebar in `src/ProxyManager.UI/app/(dashboard)/layout.tsx` dynamically reflects `MODULE_REGISTRY` (no hardcoded nav links); set `enabled: false` on Health Checks entry and confirm it disappears from sidebar without code changes elsewhere
+- [x] T047 [P] [US3] Add a `HealthChecks` placeholder module entry (`enabled: true`) to `src/ProxyManager.UI/lib/modules.ts` with appropriate label, href `/health-checks`, and icon
+- [x] T048 [P] [US3] Create `src/ProxyManager.UI/app/(dashboard)/health-checks/page.tsx`: minimal page rendering "Health Checks — coming soon" content; demonstrates that a new module requires only a page + registry entry with zero changes to existing modules
+- [x] T049 [US3] Verify sidebar in `src/ProxyManager.UI/app/(dashboard)/layout.tsx` dynamically reflects `MODULE_REGISTRY` (no hardcoded nav links); set `enabled: false` on Health Checks entry and confirm it disappears from sidebar without code changes elsewhere
 
 **Checkpoint**: Module system verified end-to-end. New modules add/remove cleanly via registry. Existing route and maintainer functionality unaffected.
 
@@ -138,11 +138,11 @@
 
 **Purpose**: Container image, deployment config, coverage validation, and quickstart verification.
 
-- [ ] T050 [P] Create `src/ProxyManager.UI/Dockerfile` using Node 24 Alpine multi-stage build (deps → builder → runner); `output: 'standalone'` enabled in `next.config.ts` (T006); run as non-root `nextjs` user; expose port 3000
-- [ ] T051 [P] Create `systemd/proxymanager-ui.container` Podman Quadlet unit file following the pattern of existing containers; attach to `proxymanager.network`; pass `PROXY_MANAGER_API_URL` and `ADMIN_GROUP_CLAIM` env vars; do NOT publish port 3000 externally
-- [ ] T052 Run `npm run test:coverage` in `src/ProxyManager.UI` and confirm overall coverage ≥ 80%; address any gaps in unit or component coverage
-- [ ] T053 Validate all steps in `specs/002-proxy-route-manager/quickstart.md` work from a clean checkout: install, configure `.env.local`, configure proxysettings, start dev server, run unit tests, run E2E tests
-- [ ] T054 Update `CLAUDE.md` `Active Technologies` section to reflect finalized stack: remove draft entries for `002-proxy-route-manager`, add confirmed: `TypeScript / Node.js 24 LTS + Next.js 15 (App Router), shadcn/ui, Tailwind CSS 4, Jest + RTL, Playwright`
+- [x] T050 [P] Create `src/ProxyManager.UI/Containerfile` using Node 24 Alpine multi-stage build (deps → builder → runner); `output: 'standalone'` enabled in `next.config.ts` (T006); run as non-root `nextjs` user; expose port 3000
+- [x] T051 [P] Create `systemd/proxymanager-ui.container` Podman Quadlet unit file following the pattern of existing containers; attach to `proxymanager.network`; pass `PROXY_MANAGER_API_URL` and `ADMIN_GROUP_CLAIM` env vars; do NOT publish port 3000 externally
+- [x] T052 Run `npm run test:coverage` in `src/ProxyManager.UI` and confirm overall coverage ≥ 80%; address any gaps in unit or component coverage
+- [x] T053 Validate all steps in `specs/002-proxy-route-manager/quickstart.md` work from a clean checkout: install, configure `.env.local`, configure proxysettings, start dev server, run unit tests, run E2E tests
+- [x] T054 Update `CLAUDE.md` `Active Technologies` section to reflect finalized stack: remove draft entries for `002-proxy-route-manager`, add confirmed: `TypeScript / Node.js 24 LTS + Next.js 15 (App Router), shadcn/ui, Tailwind CSS 4, Jest + RTL, Playwright`
 
 ---
 

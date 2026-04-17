@@ -1,10 +1,13 @@
-import type { UserSession, ProxyHost } from "@/types";
+import type { UserSession, ProxyHost, MaintainerAssignment } from "@/types";
 import {
   listRoutes,
   getRoute,
   createRoute,
   updateRoute,
   deleteRoute,
+  listMaintainers,
+  assignMaintainer,
+  removeMaintainer,
 } from "@/lib/proxy-manager-client";
 
 const adminSession: UserSession = {
@@ -16,12 +19,9 @@ const adminSession: UserSession = {
 
 const mockRoute: ProxyHost = {
   id: "route-1",
-  name: "My Route",
-  upstreamUrl: "http://backend:8080",
-  hostnames: ["example.com"],
+  domainNames: ["example.com"],
+  destination: "http://backend:8080",
   isEnabled: true,
-  createdAt: "2026-01-01T00:00:00Z",
-  updatedAt: "2026-01-01T00:00:00Z",
 };
 
 const originalEnv = process.env;
@@ -40,10 +40,10 @@ describe("proxy-manager-client", () => {
   describe("listRoutes", () => {
     it("fetches GET /proxyHosts with Authorization header", async () => {
       const paginatedResponse = {
-        routes: [mockRoute],
+        items: [mockRoute],
         page: 1,
         pageSize: 50,
-        total: 1,
+        totalCount: 1,
       };
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -61,8 +61,8 @@ describe("proxy-manager-client", () => {
           }),
         })
       );
-      expect(result.routes).toHaveLength(1);
-      expect(result.total).toBe(1);
+      expect(result.items).toHaveLength(1);
+      expect(result.totalCount).toBe(1);
     });
 
     it("forwards the Bearer token from session", async () => {
@@ -70,7 +70,7 @@ describe("proxy-manager-client", () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ routes: [], page: 1, pageSize: 50, total: 0 }),
+        json: () => Promise.resolve({ items: [], page: 1, pageSize: 50, totalCount: 0 }),
       });
 
       await listRoutes(sessionWithToken);
@@ -113,10 +113,8 @@ describe("proxy-manager-client", () => {
       });
 
       const body = {
-        name: "My Route",
-        upstreamUrl: "http://backend:8080",
-        hostnames: ["example.com"],
-        isEnabled: true,
+        domainNames: ["example.com"],
+        destinationUri: "http://backend:8080",
       };
       await createRoute(adminSession, body);
 
@@ -139,9 +137,8 @@ describe("proxy-manager-client", () => {
       });
 
       const body = {
-        name: "Updated",
-        upstreamUrl: "http://backend:9090",
-        hostnames: ["updated.com"],
+        domainNames: ["updated.com"],
+        destinationUri: "http://backend:9090",
         isEnabled: false,
       };
       await updateRoute(adminSession, "route-1", body);
@@ -164,6 +161,74 @@ describe("proxy-manager-client", () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://api:5001/proxyHosts/route-1",
+        expect.objectContaining({ method: "DELETE" })
+      );
+    });
+  });
+
+  describe("listMaintainers", () => {
+    it("fetches GET /proxyHosts/:id/maintainers", async () => {
+      const mockMaintainer: MaintainerAssignment = {
+        proxyHostId: "route-1",
+        userId: "user-2",
+        userName: "Jane Doe",
+        assignedBy: "admin-1",
+        assignedAt: "2026-04-01T00:00:00Z",
+      };
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve([mockMaintainer]),
+      });
+
+      const result = await listMaintainers(adminSession, "route-1");
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://api:5001/proxyHosts/route-1/maintainers",
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: "Bearer test-token" }),
+        })
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].userId).toBe("user-2");
+    });
+  });
+
+  describe("assignMaintainer", () => {
+    it("sends POST /proxyHosts/:id/maintainers with userId", async () => {
+      const mockMaintainer: MaintainerAssignment = {
+        proxyHostId: "route-1",
+        userId: "user-2",
+        userName: "Jane Doe",
+        assignedBy: "admin-1",
+        assignedAt: "2026-04-01T00:00:00Z",
+      };
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: () => Promise.resolve(mockMaintainer),
+      });
+
+      await assignMaintainer(adminSession, "route-1", "user-2");
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://api:5001/proxyHosts/route-1/maintainers",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ userId: "user-2" }),
+        })
+      );
+    });
+  });
+
+  describe("removeMaintainer", () => {
+    it("sends DELETE /proxyHosts/:id/maintainers/:userId", async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true, status: 204 });
+
+      await removeMaintainer(adminSession, "route-1", "user-2");
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://api:5001/proxyHosts/route-1/maintainers/user-2",
         expect.objectContaining({ method: "DELETE" })
       );
     });

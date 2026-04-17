@@ -1,4 +1,4 @@
-import type { ProblemDetails, ProxyHost, UserSession } from "@/types";
+import type { MaintainerAssignment, ProblemDetails, ProxyHost, UserSession } from "@/types";
 
 function getBaseUrl(): string {
   const url = process.env.PROXY_MANAGER_API_URL;
@@ -48,10 +48,25 @@ async function apiFetch<T>(
 }
 
 export interface PaginatedRoutes {
-  routes: ProxyHost[];
+  items: ProxyHost[];
   page: number;
   pageSize: number;
-  total: number;
+  totalCount: number;
+}
+
+export interface CreateRouteRequest {
+  domainNames?: string[];
+  destinationUri?: string;
+  certificatePath?: string;
+  certificateKeyPath?: string;
+}
+
+export interface UpdateRouteRequest {
+  domainNames?: string[];
+  destinationUri?: string;
+  isEnabled?: boolean;
+  certificatePath?: string;
+  certificateKeyPath?: string;
 }
 
 export function listRoutes(
@@ -71,7 +86,7 @@ export function getRoute(session: UserSession, id: string): Promise<ProxyHost> {
 
 export function createRoute(
   session: UserSession,
-  body: Omit<ProxyHost, "id" | "createdAt" | "updatedAt">
+  body: CreateRouteRequest
 ): Promise<ProxyHost> {
   return apiFetch<ProxyHost>(session, `/proxyHosts`, {
     method: "POST",
@@ -82,7 +97,7 @@ export function createRoute(
 export function updateRoute(
   session: UserSession,
   id: string,
-  body: Omit<ProxyHost, "id" | "createdAt" | "updatedAt">
+  body: UpdateRouteRequest
 ): Promise<ProxyHost> {
   return apiFetch<ProxyHost>(session, `/proxyHosts/${encodeURIComponent(id)}`, {
     method: "PUT",
@@ -94,4 +109,38 @@ export function deleteRoute(session: UserSession, id: string): Promise<void> {
   return apiFetch<void>(session, `/proxyHosts/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+}
+
+export function listMaintainers(
+  session: UserSession,
+  routeId: string
+): Promise<MaintainerAssignment[]> {
+  return apiFetch<MaintainerAssignment[]>(
+    session,
+    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers`
+  );
+}
+
+export function assignMaintainer(
+  session: UserSession,
+  routeId: string,
+  userId: string
+): Promise<MaintainerAssignment> {
+  return apiFetch<MaintainerAssignment>(
+    session,
+    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers`,
+    { method: "POST", body: JSON.stringify({ userId }) }
+  );
+}
+
+export function removeMaintainer(
+  session: UserSession,
+  routeId: string,
+  userId: string
+): Promise<void> {
+  return apiFetch<void>(
+    session,
+    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers/${encodeURIComponent(userId)}`,
+    { method: "DELETE" }
+  );
 }

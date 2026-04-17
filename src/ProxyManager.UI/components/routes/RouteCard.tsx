@@ -6,22 +6,23 @@ import type { ProxyHost } from "@/types";
 interface RouteCardProps {
   route: ProxyHost;
   isAdmin: boolean;
+  isMaintainer?: boolean;
   onDelete: (id: string) => void;
 }
 
-export default function RouteCard({ route, isAdmin, onDelete }: RouteCardProps) {
+export default function RouteCard({ route, isAdmin, isMaintainer = false, onDelete }: RouteCardProps) {
   return (
     <div className="flex items-start justify-between rounded-lg border p-4">
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium truncate">{route.name}</span>
+          <span className="font-medium truncate">{route.domainNames[0] ?? route.destination}</span>
           <Badge variant={route.isEnabled ? "default" : "secondary"}>
             {route.isEnabled ? "Enabled" : "Disabled"}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground truncate">{route.upstreamUrl}</p>
+        <p className="text-sm text-muted-foreground truncate">{route.destination}</p>
         <div className="flex flex-wrap gap-1">
-          {route.hostnames.map((hostname) => (
+          {route.domainNames.map((hostname) => (
             <span
               key={hostname}
               className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono"
@@ -31,7 +32,7 @@ export default function RouteCard({ route, isAdmin, onDelete }: RouteCardProps) 
           ))}
         </div>
       </div>
-      {isAdmin && (
+      {(isAdmin || isMaintainer) && (
         <div className="ml-4 flex shrink-0 gap-2">
           <Link
             href={`/routes/${route.id}`}
@@ -40,14 +41,16 @@ export default function RouteCard({ route, isAdmin, onDelete }: RouteCardProps) 
           >
             Edit
           </Link>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(route.id)}
-            aria-label="Delete"
-          >
-            Delete
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(route.id)}
+              aria-label="Delete"
+            >
+              Delete
+            </Button>
+          )}
         </div>
       )}
     </div>

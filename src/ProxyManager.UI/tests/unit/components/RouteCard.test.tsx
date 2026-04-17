@@ -4,21 +4,18 @@ import type { ProxyHost } from "@/types";
 
 const mockRoute: ProxyHost = {
   id: "route-1",
-  name: "My Service",
-  upstreamUrl: "http://backend:8080",
-  hostnames: ["my-service.example.com"],
+  domainNames: ["my-service.example.com"],
+  destination: "http://backend:8080",
   isEnabled: true,
-  createdAt: "2026-01-01T00:00:00Z",
-  updatedAt: "2026-01-01T00:00:00Z",
 };
 
 describe("RouteCard", () => {
-  it("renders the route name", () => {
+  it("renders the primary domain name as the title", () => {
     render(<RouteCard route={mockRoute} isAdmin={false} onDelete={() => {}} />);
-    expect(screen.getByText("My Service")).toBeInTheDocument();
+    expect(screen.getAllByText("my-service.example.com").length).toBeGreaterThan(0);
   });
 
-  it("renders the upstream URL", () => {
+  it("renders the destination URL", () => {
     render(<RouteCard route={mockRoute} isAdmin={false} onDelete={() => {}} />);
     expect(screen.getByText("http://backend:8080")).toBeInTheDocument();
   });
@@ -34,9 +31,9 @@ describe("RouteCard", () => {
     expect(screen.getByText(/disabled/i)).toBeInTheDocument();
   });
 
-  it("renders the hostnames", () => {
+  it("renders the domain names", () => {
     render(<RouteCard route={mockRoute} isAdmin={false} onDelete={() => {}} />);
-    expect(screen.getByText("my-service.example.com")).toBeInTheDocument();
+    expect(screen.getAllByText("my-service.example.com").length).toBeGreaterThan(0);
   });
 
   it("renders Edit and Delete buttons for admin users", () => {
@@ -47,6 +44,18 @@ describe("RouteCard", () => {
 
   it("does not render Delete button for non-admin users", () => {
     render(<RouteCard route={mockRoute} isAdmin={false} onDelete={() => {}} />);
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+  });
+
+  it("shows Edit button for maintainer (non-admin) but no Delete", () => {
+    render(<RouteCard route={mockRoute} isAdmin={false} isMaintainer={true} onDelete={() => {}} />);
+    expect(screen.getByRole("link", { name: /edit/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+  });
+
+  it("hides all action buttons for non-admin, non-maintainer users", () => {
+    render(<RouteCard route={mockRoute} isAdmin={false} isMaintainer={false} onDelete={() => {}} />);
+    expect(screen.queryByRole("link", { name: /edit/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
   });
 

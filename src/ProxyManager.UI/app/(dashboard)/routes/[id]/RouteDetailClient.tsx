@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import RouteForm from "@/components/routes/RouteForm";
+import MaintainerPanel from "@/components/routes/MaintainerPanel";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +14,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ProxyHost, ProblemDetails } from "@/types";
+import type { ProxyHost, MaintainerAssignment, ProblemDetails } from "@/types";
+import type { UpdateRouteRequest } from "@/lib/proxy-manager-client";
 
-type RouteFormPayload = Omit<ProxyHost, "id" | "createdAt" | "updatedAt">;
+type RouteFormPayload = UpdateRouteRequest;
 
 interface RouteDetailClientProps {
   id: string;
@@ -24,6 +27,7 @@ interface RouteDetailClientProps {
 export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProps) {
   const router = useRouter();
   const [route, setRoute] = useState<ProxyHost | null>(null);
+  const [maintainers, setMaintainers] = useState<MaintainerAssignment[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | undefined>();
@@ -49,7 +53,22 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
         setIsLoading(false);
       }
     }
+
+    async function loadMaintainers() {
+      try {
+        const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}/maintainers`);
+        if (response.ok) {
+          const data = (await response.json()) as MaintainerAssignment[];
+          setMaintainers(data);
+        }
+        // 501 = API not yet available; leave maintainers as null (shows stub message)
+      } catch {
+        // Network error — leave as null
+      }
+    }
+
     loadRoute();
+    loadMaintainers();
   }, [id, router]);
 
   async function handleSubmit(payload: RouteFormPayload) {
@@ -101,7 +120,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">{route.name}</h1>
+      <h1 className="text-xl font-semibold">{route.domainNames[0] ?? route.destination}</h1>
       <RouteForm
         initialData={route}
         onSubmit={handleSubmit}
@@ -122,12 +141,20 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
         </div>
       )}
 
+      <Separator />
+
+      <MaintainerPanel
+        routeId={id}
+        maintainers={maintainers}
+        isAdmin={isAdmin}
+      />
+
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Route</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &ldquo;{route.name}&rdquo;? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{route.domainNames[0] ?? route.destination}&rdquo;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

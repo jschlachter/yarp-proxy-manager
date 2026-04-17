@@ -17,6 +17,12 @@ const config: Config = {
     "middleware.ts",
     "!**/*.d.ts",
     "!**/node_modules/**",
+    // Generated shadcn/ui components — pre-tested by the library, excluded from project coverage
+    "!components/ui/**",
+    // Thin server-only shells: root layout, redirect page, loading skeletons
+    "!app/layout.tsx",
+    "!app/page.tsx",
+    "!app/**/loading.tsx",
   ],
   coverageThreshold: {
     global: {

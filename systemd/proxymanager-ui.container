@@ -1,0 +1,18 @@
+[Unit]
+Description=Proxy Manager UI
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=west94.com/proxymanager-ui:1.0.0-alpha
+ContainerName=proxymanager-ui
+Environment=PROXY_MANAGER_API_URL=http://proxymanager-api:5001
+Environment=ADMIN_GROUP_CLAIM=proxy-admins
+Network=proxymanager.network
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

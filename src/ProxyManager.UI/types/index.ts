@@ -5,15 +5,17 @@ export interface UserSession {
   accessToken: string;
 }
 
+export interface ProxyCertificate {
+  certificatePath: string;
+  keyPath?: string;
+}
+
 export interface ProxyHost {
   id: string;
-  name: string;
-  upstreamUrl: string;
-  hostnames: string[];
-  pathPrefix?: string;
+  domainNames: string[];
+  destination: string;
   isEnabled: boolean;
-  createdAt: string;
-  updatedAt: string;
+  certificate?: ProxyCertificate;
 }
 
 /** @future — pending ProxyManager API implementation */

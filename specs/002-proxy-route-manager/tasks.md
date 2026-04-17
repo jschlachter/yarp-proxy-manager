@@ -138,7 +138,7 @@
 
 **Purpose**: Container image, deployment config, coverage validation, and quickstart verification.
 
-- [ ] T050 [P] Create `src/ProxyManager.UI/Dockerfile` using Node 24 Alpine multi-stage build (deps → builder → runner); `output: 'standalone'` enabled in `next.config.ts` (T006); run as non-root `nextjs` user; expose port 3000
+- [ ] T050 [P] Create `src/ProxyManager.UI/Containerfile` using Node 24 Alpine multi-stage build (deps → builder → runner); `output: 'standalone'` enabled in `next.config.ts` (T006); run as non-root `nextjs` user; expose port 3000
 - [ ] T051 [P] Create `systemd/proxymanager-ui.container` Podman Quadlet unit file following the pattern of existing containers; attach to `proxymanager.network`; pass `PROXY_MANAGER_API_URL` and `ADMIN_GROUP_CLAIM` env vars; do NOT publish port 3000 externally
 - [ ] T052 Run `npm run test:coverage` in `src/ProxyManager.UI` and confirm overall coverage ≥ 80%; address any gaps in unit or component coverage
 - [ ] T053 Validate all steps in `specs/002-proxy-route-manager/quickstart.md` work from a clean checkout: install, configure `.env.local`, configure proxysettings, start dev server, run unit tests, run E2E tests

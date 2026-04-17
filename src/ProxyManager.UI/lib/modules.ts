@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { RouteIcon } from "lucide-react";
+import { RouteIcon, HeartPulseIcon } from "lucide-react";
 
 export interface Module {
   label: string;
@@ -13,6 +13,12 @@ export const MODULE_REGISTRY: Module[] = [
     label: "Routes",
     href: "/routes",
     icon: RouteIcon,
+    enabled: true,
+  },
+  {
+    label: "Health Checks",
+    href: "/health-checks",
+    icon: HeartPulseIcon,
     enabled: true,
   },
 ];

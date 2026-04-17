@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ProxyHost } from "@/types";
+import type { CreateRouteRequest, UpdateRouteRequest } from "@/lib/proxy-manager-client";
 
-type RouteFormPayload = Omit<ProxyHost, "id" | "createdAt" | "updatedAt">;
+type RouteFormPayload = CreateRouteRequest & UpdateRouteRequest;
 
 interface RouteFormProps {
   initialData?: ProxyHost;
@@ -17,9 +18,8 @@ interface RouteFormProps {
 }
 
 interface FormErrors {
-  name?: string;
-  upstreamUrl?: string;
-  hostnames?: string;
+  destinationUri?: string;
+  domainNames?: string;
 }
 
 export default function RouteForm({
@@ -29,20 +29,17 @@ export default function RouteForm({
   submitLabel = initialData ? "Save Changes" : "Create Route",
   error,
 }: RouteFormProps) {
-  const [name, setName] = useState(initialData?.name ?? "");
-  const [upstreamUrl, setUpstreamUrl] = useState(initialData?.upstreamUrl ?? "");
-  const [hostnamesRaw, setHostnamesRaw] = useState(
-    initialData?.hostnames.join(", ") ?? ""
+  const [destinationUri, setDestinationUri] = useState(initialData?.destination ?? "");
+  const [domainNamesRaw, setDomainNamesRaw] = useState(
+    initialData?.domainNames.join(", ") ?? ""
   );
-  const [pathPrefix, setPathPrefix] = useState(initialData?.pathPrefix ?? "");
   const [isEnabled, setIsEnabled] = useState(initialData?.isEnabled ?? true);
   const [errors, setErrors] = useState<FormErrors>({});
 
   function validate(): FormErrors {
     const errs: FormErrors = {};
-    if (!name.trim()) errs.name = "Name is required";
-    if (!upstreamUrl.trim()) errs.upstreamUrl = "Upstream URL is required";
-    if (!hostnamesRaw.trim()) errs.hostnames = "At least one hostname is required";
+    if (!destinationUri.trim()) errs.destinationUri = "Destination URL is required";
+    if (!domainNamesRaw.trim()) errs.domainNames = "At least one domain name is required";
     return errs;
   }
 
@@ -54,34 +51,24 @@ export default function RouteForm({
       return;
     }
     setErrors({});
-    const hostnames = hostnamesRaw
+    const domainNames = domainNamesRaw
       .split(",")
       .map((h) => h.trim())
       .filter(Boolean);
-    onSubmit({ name, upstreamUrl, hostnames, pathPrefix: pathPrefix || undefined, isEnabled });
+    onSubmit({ domainNames, destinationUri, isEnabled });
   }
 
   if (readOnly && initialData) {
     return (
       <div className="space-y-4">
         <div>
-          <Label>Name</Label>
-          <p className="mt-1 text-sm">{initialData.name}</p>
+          <Label>Destination URL</Label>
+          <p className="mt-1 text-sm">{initialData.destination}</p>
         </div>
         <div>
-          <Label>Upstream URL</Label>
-          <p className="mt-1 text-sm">{initialData.upstreamUrl}</p>
+          <Label>Domain Names</Label>
+          <p className="mt-1 text-sm">{initialData.domainNames.join(", ")}</p>
         </div>
-        <div>
-          <Label>Hostnames</Label>
-          <p className="mt-1 text-sm">{initialData.hostnames.join(", ")}</p>
-        </div>
-        {initialData.pathPrefix && (
-          <div>
-            <Label>Path Prefix</Label>
-            <p className="mt-1 text-sm">{initialData.pathPrefix}</p>
-          </div>
-        )}
         <div>
           <Label>Status</Label>
           <p className="mt-1 text-sm">{initialData.isEnabled ? "Enabled" : "Disabled"}</p>
@@ -99,64 +86,38 @@ export default function RouteForm({
       )}
 
       <div className="space-y-1.5">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="destinationUri">Destination URL</Label>
         <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? "name-error" : undefined}
-        />
-        {errors.name && (
-          <p id="name-error" role="alert" className="text-sm text-destructive">
-            {errors.name}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="upstreamUrl">Upstream URL</Label>
-        <Input
-          id="upstreamUrl"
-          value={upstreamUrl}
-          onChange={(e) => setUpstreamUrl(e.target.value)}
+          id="destinationUri"
+          value={destinationUri}
+          onChange={(e) => setDestinationUri(e.target.value)}
           placeholder="http://backend:8080"
-          aria-invalid={!!errors.upstreamUrl}
-          aria-describedby={errors.upstreamUrl ? "upstream-error" : undefined}
+          aria-invalid={!!errors.destinationUri}
+          aria-describedby={errors.destinationUri ? "destination-error" : undefined}
         />
-        {errors.upstreamUrl && (
-          <p id="upstream-error" role="alert" className="text-sm text-destructive">
-            {errors.upstreamUrl}
+        {errors.destinationUri && (
+          <p id="destination-error" role="alert" className="text-sm text-destructive">
+            {errors.destinationUri}
           </p>
         )}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="hostnames">Hostnames</Label>
+        <Label htmlFor="domainNames">Domain Names</Label>
         <Input
-          id="hostnames"
-          value={hostnamesRaw}
-          onChange={(e) => setHostnamesRaw(e.target.value)}
+          id="domainNames"
+          value={domainNamesRaw}
+          onChange={(e) => setDomainNamesRaw(e.target.value)}
           placeholder="example.com, other.example.com"
-          aria-invalid={!!errors.hostnames}
-          aria-describedby={errors.hostnames ? "hostnames-error" : undefined}
+          aria-invalid={!!errors.domainNames}
+          aria-describedby={errors.domainNames ? "domainnames-error" : undefined}
         />
-        <p className="text-xs text-muted-foreground">Comma-separated list of hostnames</p>
-        {errors.hostnames && (
-          <p id="hostnames-error" role="alert" className="text-sm text-destructive">
-            {errors.hostnames}
+        <p className="text-xs text-muted-foreground">Comma-separated list of domain names</p>
+        {errors.domainNames && (
+          <p id="domainnames-error" role="alert" className="text-sm text-destructive">
+            {errors.domainNames}
           </p>
         )}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="pathPrefix">Path Prefix (optional)</Label>
-        <Input
-          id="pathPrefix"
-          value={pathPrefix}
-          onChange={(e) => setPathPrefix(e.target.value)}
-          placeholder="/api"
-        />
       </div>
 
       <div className="flex items-center gap-2">

@@ -75,8 +75,8 @@ export default function RouteListClient({ isAdmin, initialPage = 1 }: RouteListC
 
   return (
     <RouteList
-      routes={routeData.routes}
-      total={routeData.total}
+      routes={routeData.items}
+      total={routeData.totalCount}
       page={routeData.page}
       pageSize={routeData.pageSize}
       isAdmin={isAdmin}

@@ -5,21 +5,17 @@ import type { ProxyHost } from "@/types";
 
 const mockRoute: ProxyHost = {
   id: "route-1",
-  name: "My Service",
-  upstreamUrl: "http://backend:8080",
-  hostnames: ["example.com"],
+  domainNames: ["example.com"],
+  destination: "http://backend:8080",
   isEnabled: true,
-  createdAt: "2026-01-01T00:00:00Z",
-  updatedAt: "2026-01-01T00:00:00Z",
 };
 
 describe("RouteForm", () => {
   describe("create mode (no initial data)", () => {
     it("renders required fields", () => {
       render(<RouteForm onSubmit={jest.fn()} />);
-      expect(screen.getByLabelText("Name")).toBeInTheDocument();
-      expect(screen.getByLabelText("Upstream URL")).toBeInTheDocument();
-      expect(screen.getByLabelText("Hostnames")).toBeInTheDocument();
+      expect(screen.getByLabelText("Destination URL")).toBeInTheDocument();
+      expect(screen.getByLabelText("Domain Names")).toBeInTheDocument();
     });
 
     it("shows validation errors when submitted with empty required fields", async () => {
@@ -34,17 +30,16 @@ describe("RouteForm", () => {
       const onSubmit = jest.fn();
       render(<RouteForm onSubmit={onSubmit} />);
 
-      await userEvent.type(screen.getByLabelText("Name"), "New Route");
-      await userEvent.type(screen.getByLabelText("Upstream URL"), "http://backend:8080");
-      await userEvent.type(screen.getByLabelText("Hostnames"), "example.com");
+      await userEvent.type(screen.getByLabelText("Destination URL"), "http://backend:8080");
+      await userEvent.type(screen.getByLabelText("Domain Names"), "example.com");
 
       fireEvent.click(screen.getByRole("button", { name: /save|submit|create/i }));
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: "New Route",
-            upstreamUrl: "http://backend:8080",
+            destinationUri: "http://backend:8080",
+            domainNames: ["example.com"],
           })
         );
       });
@@ -54,26 +49,38 @@ describe("RouteForm", () => {
   describe("edit mode (with initial data)", () => {
     it("pre-fills fields with existing route data", () => {
       render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} />);
-      expect(screen.getByLabelText("Name")).toHaveValue("My Service");
-      expect(screen.getByLabelText("Upstream URL")).toHaveValue("http://backend:8080");
+      expect(screen.getByLabelText("Destination URL")).toHaveValue("http://backend:8080");
     });
   });
 
   describe("readOnly mode", () => {
     it("renders fields as display-only when readOnly is true", () => {
       render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} readOnly />);
-      // In readOnly mode, inputs should be absent or disabled
-      const nameInput = screen.queryByRole("textbox", { name: /name/i });
-      if (nameInput) {
-        expect(nameInput).toHaveAttribute("disabled");
+      const urlInput = screen.queryByRole("textbox", { name: /destination url/i });
+      if (urlInput) {
+        expect(urlInput).toHaveAttribute("disabled");
       } else {
-        expect(screen.getByText("My Service")).toBeInTheDocument();
+        expect(screen.getByText("http://backend:8080")).toBeInTheDocument();
       }
     });
 
     it("hides the submit button in readOnly mode", () => {
       render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} readOnly />);
       expect(screen.queryByRole("button", { name: /save|submit|update/i })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("role-based rendering (US2 RBAC)", () => {
+    it("admin (readOnly=false) sees editable inputs and submit button", () => {
+      render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} readOnly={false} />);
+      expect(screen.getByLabelText("Destination URL")).not.toHaveAttribute("disabled");
+      expect(screen.getByRole("button", { name: /save|submit|create/i })).toBeInTheDocument();
+    });
+
+    it("non-admin non-maintainer (readOnly=true) sees display-only text and no submit", () => {
+      render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} readOnly={true} />);
+      expect(screen.queryByRole("button", { name: /save|submit|create/i })).not.toBeInTheDocument();
+      expect(screen.getByText("http://backend:8080")).toBeInTheDocument();
     });
   });
 });

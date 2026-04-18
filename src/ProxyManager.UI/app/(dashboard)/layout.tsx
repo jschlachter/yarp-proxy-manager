@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { MODULE_REGISTRY } from "@/lib/modules";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function DashboardLayout({
   children,
@@ -36,8 +37,11 @@ export default async function DashboardLayout({
             );
           })}
         </nav>
-        <div className="px-4 py-3 border-t text-xs text-muted-foreground truncate">
-          {session.userId || "Unknown user"}
+        <div className="px-4 py-3 border-t flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground truncate">
+            {session.userId || "Unknown user"}
+          </span>
+          <ThemeToggle />
         </div>
       </aside>
       <main className="flex-1 overflow-auto">{children}</main>

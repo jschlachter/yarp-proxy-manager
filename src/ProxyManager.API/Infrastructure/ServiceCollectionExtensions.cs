@@ -14,6 +14,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IProxyHostRepository, InMemoryProxyHostRepository>();
         services.AddSingleton<IAuditLogRepository, InMemoryAuditLogRepository>();
+
+        services.AddAuthorizationBuilder()
+            .AddPolicy("UserAdmin", policy => policy.RequireClaim("pm_role", "Admin"));
+
         return services;
     }
 

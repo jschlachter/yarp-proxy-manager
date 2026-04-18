@@ -22,8 +22,8 @@ All paths are relative to the repository root.
 
 **Purpose**: Wire the authorization policy, DI registration, and test helpers that every user story depends on. No user story implementation can start until these are in place.
 
-- [ ] T001 [P] Add `"UserAdmin"` authorization policy (`RequireClaim("pm_role", "Admin")`) to `AddProxyManagerServices()` in `src/ProxyManager.API/Infrastructure/ServiceCollectionExtensions.cs`
-- [ ] T002 [P] Extend `TestJwtFactory` with `CreateToken(string sub, string pmRole)` overload that adds a `pm_role` claim in `tests/ProxyManager.API.Tests/Helpers/TestJwtFactory.cs`
+- [x] T001 [P] Add `"UserAdmin"` authorization policy (`RequireClaim("pm_role", "Admin")`) to `AddProxyManagerServices()` in `src/ProxyManager.API/Infrastructure/ServiceCollectionExtensions.cs`
+- [x] T002 [P] Extend `TestJwtFactory` with `CreateToken(string sub, string pmRole)` overload that adds a `pm_role` claim in `tests/ProxyManager.API.Tests/Helpers/TestJwtFactory.cs`
 
 **Checkpoint**: Authorization policy registered; test helper supports role-differentiated tokens.
 

@@ -3,17 +3,20 @@ using Microsoft.OpenApi;
 
 using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
+using West94.ProxyManager.Core.AggregatesModel.UserAggregate;
 using West94.ProxyManager.Infrastructure.Repositories;
 
 namespace West94.ProxyManager.API.Infrastructure;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Registers in-memory repository implementations for proxy hosts and audit log.</summary>
+    /// <summary>Registers in-memory repository implementations for proxy hosts, audit log, and authorized users.</summary>
     public static IServiceCollection AddProxyManagerServices(this IServiceCollection services)
     {
         services.AddSingleton<IProxyHostRepository, InMemoryProxyHostRepository>();
         services.AddSingleton<IAuditLogRepository, InMemoryAuditLogRepository>();
+        services.AddSingleton<IAuthorizedUserRepository, InMemoryAuthorizedUserRepository>();
+        services.AddSingleton<IUserAuditRepository, InMemoryUserAuditRepository>();
 
         services.AddAuthorizationBuilder()
             .AddPolicy("UserAdmin", policy => policy.RequireClaim("pm_role", "Admin"));

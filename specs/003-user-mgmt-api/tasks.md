@@ -37,57 +37,57 @@ All paths are relative to the repository root.
 
 ### Enumerations & Exceptions
 
-- [ ] T003 [P] Create `UserAccessLevel` enum (`Admin`, `ReadOnly`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserAccessLevel.cs`
-- [ ] T004 [P] Create `UserStatus` enum (`Active`, `Deactivated`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserStatus.cs`
-- [ ] T005 [P] Create `UserOperation` enum (`Created`, `Updated`, `Deactivated`, `Reactivated`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserOperation.cs`
-- [ ] T006 [P] Create `UserNotFoundException` (message: "No active user with sub '{sub}' was found.") in `src/ProxyManager.Core/Exceptions/UserNotFoundException.cs`
-- [ ] T007 [P] Create `UserConflictException` (message: "A user with sub '{sub}' is already active.") in `src/ProxyManager.Core/Exceptions/UserConflictException.cs`
-- [ ] T008 [P] Create `UserValidationException` (message: validation detail) in `src/ProxyManager.Core/Exceptions/UserValidationException.cs`
+- [x] T003 [P] Create `UserAccessLevel` enum (`Admin`, `ReadOnly`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserAccessLevel.cs`
+- [x] T004 [P] Create `UserStatus` enum (`Active`, `Deactivated`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserStatus.cs`
+- [x] T005 [P] Create `UserOperation` enum (`Created`, `Updated`, `Deactivated`, `Reactivated`) in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserOperation.cs`
+- [x] T006 [P] Create `UserNotFoundException` (message: "No active user with sub '{sub}' was found.") in `src/ProxyManager.Core/Exceptions/UserNotFoundException.cs`
+- [x] T007 [P] Create `UserConflictException` (message: "A user with sub '{sub}' is already active.") in `src/ProxyManager.Core/Exceptions/UserConflictException.cs`
+- [x] T008 [P] Create `UserValidationException` (message: validation detail) in `src/ProxyManager.Core/Exceptions/UserValidationException.cs`
 
 ### Aggregate Unit Tests — Red Phase ⚠️
 
 > **Write these tests FIRST. Run `dotnet test` and confirm they FAIL before T010.**
 
-- [ ] T009 Write `AuthorizedUserAggregateTests` covering: Create sets all fields correctly; Deactivate sets `Status=Deactivated` and `DeactivatedAt`; Reactivate clears `DeactivatedAt` and sets `Status=Active`; `ProfileImageUrl` validation rejects non-absolute URLs; `Create` throws `UserValidationException` on blank required fields — in `tests/ProxyManager.Core.Tests/Unit/AuthorizedUserAggregateTests.cs`
+- [x] T009 Write `AuthorizedUserAggregateTests` covering: Create sets all fields correctly; Deactivate sets `Status=Deactivated` and `DeactivatedAt`; Reactivate clears `DeactivatedAt` and sets `Status=Active`; `ProfileImageUrl` validation rejects non-absolute URLs; `Create` throws `UserValidationException` on blank required fields — in `tests/ProxyManager.Core.Tests/Unit/AuthorizedUserAggregateTests.cs`
 
 ### Aggregate & Audit Entry Implementation — Green Phase
 
-- [ ] T010 Implement `AuthorizedUser` aggregate root with fields: `Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `Status`, `CreatedAt`, `LastModifiedAt`, `DeactivatedAt?`; static `Create(...)` factory; `Deactivate()`, `Reactivate(accessLevel)`, `UpdateAccessLevel(accessLevel)` methods; `ProfileImageUrl` validated as absolute `http`/`https` URI via `Uri.TryCreate`; XML doc on all public members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/AuthorizedUser.cs` (depends on T003–T008, T009)
-- [ ] T011 [P] Implement `UserAuditEntry` sealed record with static `Create(subjectSub, operation, previousAccessLevel?, newAccessLevel?, actorSub)` factory; XML doc — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserAuditEntry.cs` (depends on T003, T005)
+- [x] T010 Implement `AuthorizedUser` aggregate root with fields: `Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `Status`, `CreatedAt`, `LastModifiedAt`, `DeactivatedAt?`; static `Create(...)` factory; `Deactivate()`, `Reactivate(accessLevel)`, `UpdateAccessLevel(accessLevel)` methods; `ProfileImageUrl` validated as absolute `http`/`https` URI via `Uri.TryCreate`; XML doc on all public members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/AuthorizedUser.cs` (depends on T003–T008, T009)
+- [x] T011 [P] Implement `UserAuditEntry` sealed record with static `Create(subjectSub, operation, previousAccessLevel?, newAccessLevel?, actorSub)` factory; XML doc — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/UserAuditEntry.cs` (depends on T003, T005)
 
 ### Repository Interfaces
 
-- [ ] T012 [P] Create `IAuthorizedUserRepository` with `GetBySubAsync`, `GetAllAsync(includeDeactivated, page, pageSize)`, `AddAsync`, `UpdateAsync` — XML doc on all members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/IAuthorizedUserRepository.cs` (depends on T010)
-- [ ] T013 [P] Create `IUserAuditRepository` with `AppendAsync`, `QueryAsync(subFilter?, from?, to?, page, pageSize)` — XML doc on all members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/IUserAuditRepository.cs` (depends on T011)
+- [x] T012 [P] Create `IAuthorizedUserRepository` with `GetBySubAsync`, `GetAllAsync(includeDeactivated, page, pageSize)`, `AddAsync`, `UpdateAsync` — XML doc on all members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/IAuthorizedUserRepository.cs` (depends on T010)
+- [x] T013 [P] Create `IUserAuditRepository` with `AppendAsync`, `QueryAsync(subFilter?, from?, to?, page, pageSize)` — XML doc on all members — in `src/ProxyManager.Core/AggregatesModel/UserAggregate/IUserAuditRepository.cs` (depends on T011)
 
 ### DTOs
 
-- [ ] T014 [P] Create `AuthorizedUserDto` record (`Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `Status`, `CreatedAt`, `LastModifiedAt`, `DeactivatedAt?`) — XML doc — in `src/ProxyManager.Core/DTOs/AuthorizedUserDto.cs`
-- [ ] T015 [P] Create `UserAuditEntryDto` record (`Id`, `SubjectSub`, `Operation`, `PreviousAccessLevel?`, `NewAccessLevel?`, `ActorSub`, `OccurredAt`) — XML doc — in `src/ProxyManager.Core/DTOs/UserAuditEntryDto.cs`
+- [x] T014 [P] Create `AuthorizedUserDto` record (`Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `Status`, `CreatedAt`, `LastModifiedAt`, `DeactivatedAt?`) — XML doc — in `src/ProxyManager.Core/DTOs/AuthorizedUserDto.cs`
+- [x] T015 [P] Create `UserAuditEntryDto` record (`Id`, `SubjectSub`, `Operation`, `PreviousAccessLevel?`, `NewAccessLevel?`, `ActorSub`, `OccurredAt`) — XML doc — in `src/ProxyManager.Core/DTOs/UserAuditEntryDto.cs`
 
 ### Message Types
 
-- [ ] T016 [P] Create `CreateAuthorizedUserCommand` record (`Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/CreateAuthorizedUserCommand.cs`
-- [ ] T017 [P] Create `UpdateUserAccessLevelCommand` record (`Sub`, `NewAccessLevel`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/UpdateUserAccessLevelCommand.cs`
-- [ ] T018 [P] Create `DeactivateUserCommand` record (`Sub`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/DeactivateUserCommand.cs`
-- [ ] T019 [P] Create `GetAuthorizedUsersQuery` record (`IncludeDeactivated`, `Page`, `PageSize`) in `src/ProxyManager.Core/Messages/Queries/GetAuthorizedUsersQuery.cs`
-- [ ] T020 [P] Create `GetAuthorizedUserBySubQuery` record (`Sub`) in `src/ProxyManager.Core/Messages/Queries/GetAuthorizedUserBySubQuery.cs`
-- [ ] T021 [P] Create `GetUserAuditLogQuery` record (`SubFilter?`, `From?`, `To?`, `Page`, `PageSize`) in `src/ProxyManager.Core/Messages/Queries/GetUserAuditLogQuery.cs`
-- [ ] T022 [P] Create `UserCreatedEvent`, `UserAccessLevelUpdatedEvent`, `UserDeactivatedEvent`, `UserReactivatedEvent` records in `src/ProxyManager.Core/Messages/Events/` (one file each)
+- [x] T016 [P] Create `CreateAuthorizedUserCommand` record (`Sub`, `DisplayName`, `Nickname`, `Email`, `ProfileImageUrl?`, `AccessLevel`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/CreateAuthorizedUserCommand.cs`
+- [x] T017 [P] Create `UpdateUserAccessLevelCommand` record (`Sub`, `NewAccessLevel`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/UpdateUserAccessLevelCommand.cs`
+- [x] T018 [P] Create `DeactivateUserCommand` record (`Sub`, `ActorSub`) in `src/ProxyManager.Core/Messages/Commands/DeactivateUserCommand.cs`
+- [x] T019 [P] Create `GetAuthorizedUsersQuery` record (`IncludeDeactivated`, `Page`, `PageSize`) in `src/ProxyManager.Core/Messages/Queries/GetAuthorizedUsersQuery.cs`
+- [x] T020 [P] Create `GetAuthorizedUserBySubQuery` record (`Sub`) in `src/ProxyManager.Core/Messages/Queries/GetAuthorizedUserBySubQuery.cs`
+- [x] T021 [P] Create `GetUserAuditLogQuery` record (`SubFilter?`, `From?`, `To?`, `Page`, `PageSize`) in `src/ProxyManager.Core/Messages/Queries/GetUserAuditLogQuery.cs`
+- [x] T022 [P] Create `UserCreatedEvent`, `UserAccessLevelUpdatedEvent`, `UserDeactivatedEvent`, `UserReactivatedEvent` records in `src/ProxyManager.Core/Messages/Events/` (one file each)
 
 ### In-Memory Repository Implementations
 
-- [ ] T023 Implement `InMemoryAuthorizedUserRepository` using `ConcurrentDictionary<string, AuthorizedUser>` keyed by `Sub`; `GetAllAsync` filters by `Status` when `includeDeactivated=false`; returns `PagedResult<AuthorizedUser>` — in `src/ProxyManager.Infrastructure/Repositories/InMemoryAuthorizedUserRepository.cs` (depends on T010, T012)
-- [ ] T024 Implement `InMemoryUserAuditRepository` using `ConcurrentQueue<UserAuditEntry>`; `QueryAsync` filters by `SubjectSub`, `OccurredAt` range, and paginates — in `src/ProxyManager.Infrastructure/Repositories/InMemoryUserAuditRepository.cs` (depends on T011, T013)
+- [x] T023 Implement `InMemoryAuthorizedUserRepository` using `ConcurrentDictionary<string, AuthorizedUser>` keyed by `Sub`; `GetAllAsync` filters by `Status` when `includeDeactivated=false`; returns `PagedResult<AuthorizedUser>` — in `src/ProxyManager.Infrastructure/Repositories/InMemoryAuthorizedUserRepository.cs` (depends on T010, T012)
+- [x] T024 Implement `InMemoryUserAuditRepository` using `ConcurrentQueue<UserAuditEntry>`; `QueryAsync` filters by `SubjectSub`, `OccurredAt` range, and paginates — in `src/ProxyManager.Infrastructure/Repositories/InMemoryUserAuditRepository.cs` (depends on T011, T013)
 
 ### Test Fakes
 
-- [ ] T025 [P] Implement `FakeAuthorizedUserRepository` (in-memory, implements `IAuthorizedUserRepository`) in `tests/ProxyManager.API.Tests/Unit/Fakes/FakeAuthorizedUserRepository.cs` (depends on T012)
-- [ ] T026 [P] Implement `FakeUserAuditRepository` (in-memory, implements `IUserAuditRepository`; exposes `Entries` for assertion) in `tests/ProxyManager.API.Tests/Unit/Fakes/FakeUserAuditRepository.cs` (depends on T013)
+- [x] T025 [P] Implement `FakeAuthorizedUserRepository` (in-memory, implements `IAuthorizedUserRepository`) in `tests/ProxyManager.API.Tests/Unit/Fakes/FakeAuthorizedUserRepository.cs` (depends on T012)
+- [x] T026 [P] Implement `FakeUserAuditRepository` (in-memory, implements `IUserAuditRepository`; exposes `Entries` for assertion) in `tests/ProxyManager.API.Tests/Unit/Fakes/FakeUserAuditRepository.cs` (depends on T013)
 
 ### DI Registration
 
-- [ ] T027 Register `IAuthorizedUserRepository → InMemoryAuthorizedUserRepository` and `IUserAuditRepository → InMemoryUserAuditRepository` as singletons in `AddProxyManagerServices()` in `src/ProxyManager.API/Infrastructure/ServiceCollectionExtensions.cs` (depends on T023, T024)
+- [x] T027 Register `IAuthorizedUserRepository → InMemoryAuthorizedUserRepository` and `IUserAuditRepository → InMemoryUserAuditRepository` as singletons in `AddProxyManagerServices()` in `src/ProxyManager.API/Infrastructure/ServiceCollectionExtensions.cs` (depends on T023, T024)
 
 **Checkpoint**: Domain model complete; repositories and fakes ready; DI wired; all tests in T009 now PASS.
 
@@ -103,19 +103,19 @@ All paths are relative to the repository root.
 
 > **Write these tests FIRST. Confirm they FAIL before T030–T031.**
 
-- [ ] T028 [P] [US1] Write `GetAuthorizedUsersHandlerTests`: returns `PagedResult<AuthorizedUserDto>` for active users; excludes deactivated by default; includes deactivated when flag set; maps all DTO fields including `Nickname` and `ProfileImageUrl` — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetAuthorizedUsersHandlerTests.cs`
-- [ ] T029 [P] [US1] Write `GetAuthorizedUserBySubHandlerTests`: returns `AuthorizedUserDto` for known `sub`; returns `null` for unknown `sub` — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetAuthorizedUserBySubHandlerTests.cs`
+- [x] T028 [P] [US1] Write `GetAuthorizedUsersHandlerTests`: returns `PagedResult<AuthorizedUserDto>` for active users; excludes deactivated by default; includes deactivated when flag set; maps all DTO fields including `Nickname` and `ProfileImageUrl` — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetAuthorizedUsersHandlerTests.cs`
+- [x] T029 [P] [US1] Write `GetAuthorizedUserBySubHandlerTests`: returns `AuthorizedUserDto` for known `sub`; returns `null` for unknown `sub` — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetAuthorizedUserBySubHandlerTests.cs`
 
 ### Handler Implementation — Green Phase
 
-- [ ] T030 [P] [US1] Implement `GetAuthorizedUsersHandler` handling `GetAuthorizedUsersQuery` → `PagedResult<AuthorizedUserDto>` — in `src/ProxyManager.API/Handlers/GetAuthorizedUsersHandler.cs` (depends on T028)
-- [ ] T031 [P] [US1] Implement `GetAuthorizedUserBySubHandler` handling `GetAuthorizedUserBySubQuery` → `AuthorizedUserDto?` — in `src/ProxyManager.API/Handlers/GetAuthorizedUserBySubHandler.cs` (depends on T029)
+- [x] T030 [P] [US1] Implement `GetAuthorizedUsersHandler` handling `GetAuthorizedUsersQuery` → `PagedResult<AuthorizedUserDto>` — in `src/ProxyManager.API/Handlers/GetAuthorizedUsersHandler.cs` (depends on T028)
+- [x] T031 [P] [US1] Implement `GetAuthorizedUserBySubHandler` handling `GetAuthorizedUserBySubQuery` → `AuthorizedUserDto?` — in `src/ProxyManager.API/Handlers/GetAuthorizedUserBySubHandler.cs` (depends on T029)
 
 ### Endpoint & Integration
 
-- [ ] T032 [US1] Create `UserEndpoints.cs`: declare `MapGroup("/v1/users")` with `RequireAuthorization()`; add `GET /` (list) and `GET /audit` (literal — declared BEFORE `GET /{sub}` to prevent route ambiguity) and `GET /{sub}` endpoints; wire to message bus; return `TypedResults.Problem(...)` for 404; XML doc on request/response records — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T030, T031)
-- [ ] T033 [US1] Register `app.MapUserEndpoints()` in `src/ProxyManager.API/Program.cs`
-- [ ] T034 [US1] Write integration tests for `GET /v1/users` (200 with valid token, 401 without) and `GET /v1/users/{sub}` (200 found, 404 not found, 401 without token) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T032, T002)
+- [x] T032 [US1] Create `UserEndpoints.cs`: declare `MapGroup("/v1/users")` with `RequireAuthorization()`; add `GET /` (list) and `GET /audit` (literal — declared BEFORE `GET /{sub}` to prevent route ambiguity) and `GET /{sub}` endpoints; wire to message bus; return `TypedResults.Problem(...)` for 404; XML doc on request/response records — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T030, T031)
+- [x] T033 [US1] Register `app.MapUserEndpoints()` in `src/ProxyManager.API/Program.cs`
+- [x] T034 [US1] Write integration tests for `GET /v1/users` (200 with valid token, 401 without) and `GET /v1/users/{sub}` (200 found, 404 not found, 401 without token) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T032, T002)
 
 **Checkpoint**: `GET /v1/users` and `GET /v1/users/{sub}` fully functional and tested independently. MVP deliverable.
 
@@ -131,18 +131,18 @@ All paths are relative to the repository root.
 
 > **Write these tests FIRST. Confirm they FAIL before T037–T038.**
 
-- [ ] T035 [P] [US2] Write `CreateAuthorizedUserHandlerTests` covering: new user → returns `AuthorizedUserDto` and appends `UserAuditEntry(Created)`; deactivated user → reactivates and appends `UserAuditEntry(Reactivated)`; active user → throws `UserConflictException`; blank `Sub` → throws `UserValidationException`; invalid `ProfileImageUrl` → throws `UserValidationException`; audit failure → propagates exception — in `tests/ProxyManager.API.Tests/Unit/Handlers/CreateAuthorizedUserHandlerTests.cs`
-- [ ] T036 [P] [US2] Write `UpdateUserAccessLevelHandlerTests` covering: known active user → updates `AccessLevel`, updates `LastModifiedAt`, appends `UserAuditEntry(Updated)` with previous and new level; unknown sub → throws `UserNotFoundException`; same level → still writes audit entry — in `tests/ProxyManager.API.Tests/Unit/Handlers/UpdateUserAccessLevelHandlerTests.cs`
+- [x] T035 [P] [US2] Write `CreateAuthorizedUserHandlerTests` covering: new user → returns `AuthorizedUserDto` and appends `UserAuditEntry(Created)`; deactivated user → reactivates and appends `UserAuditEntry(Reactivated)`; active user → throws `UserConflictException`; blank `Sub` → throws `UserValidationException`; invalid `ProfileImageUrl` → throws `UserValidationException`; audit failure → propagates exception — in `tests/ProxyManager.API.Tests/Unit/Handlers/CreateAuthorizedUserHandlerTests.cs`
+- [x] T036 [P] [US2] Write `UpdateUserAccessLevelHandlerTests` covering: known active user → updates `AccessLevel`, updates `LastModifiedAt`, appends `UserAuditEntry(Updated)` with previous and new level; unknown sub → throws `UserNotFoundException`; same level → still writes audit entry — in `tests/ProxyManager.API.Tests/Unit/Handlers/UpdateUserAccessLevelHandlerTests.cs`
 
 ### Handler Implementation — Green Phase
 
-- [ ] T037 [P] [US2] Implement `CreateAuthorizedUserHandler`: check for existing record; if deactivated → call `user.Reactivate(accessLevel)` + `UpdateAsync` + append `UserAuditEntry(Reactivated)`; if active → throw `UserConflictException`; if not found → `AuthorizedUser.Create(...)` + `AddAsync` + append `UserAuditEntry(Created)`; return dto — in `src/ProxyManager.API/Handlers/CreateAuthorizedUserHandler.cs` (depends on T035)
-- [ ] T038 [P] [US2] Implement `UpdateUserAccessLevelHandler`: get user by sub; throw `UserNotFoundException` if not found or deactivated; call `user.UpdateAccessLevel(newLevel)` + `UpdateAsync`; append `UserAuditEntry(Updated)` with previous/new levels; return dto — in `src/ProxyManager.API/Handlers/UpdateUserAccessLevelHandler.cs` (depends on T036)
+- [x] T037 [P] [US2] Implement `CreateAuthorizedUserHandler`: check for existing record; if deactivated → call `user.Reactivate(accessLevel)` + `UpdateAsync` + append `UserAuditEntry(Reactivated)`; if active → throw `UserConflictException`; if not found → `AuthorizedUser.Create(...)` + `AddAsync` + append `UserAuditEntry(Created)`; return dto — in `src/ProxyManager.API/Handlers/CreateAuthorizedUserHandler.cs` (depends on T035)
+- [x] T038 [P] [US2] Implement `UpdateUserAccessLevelHandler`: get user by sub; throw `UserNotFoundException` if not found or deactivated; call `user.UpdateAccessLevel(newLevel)` + `UpdateAsync`; append `UserAuditEntry(Updated)` with previous/new levels; return dto — in `src/ProxyManager.API/Handlers/UpdateUserAccessLevelHandler.cs` (depends on T036)
 
 ### Endpoint & Integration
 
-- [ ] T039 [US2] Add `POST /` and `PATCH /{sub}` endpoints to `UserEndpoints.cs`: `POST` requires `"UserAdmin"` policy; on `UserConflictException` → 409; on `UserValidationException` → 400; reactivation path → 200 with `X-User-Reactivated: true` header; new user → 201 with `Location: /v1/users/{sub}`; `PATCH` requires `"UserAdmin"` policy; on `UserNotFoundException` → 404 — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T037, T038)
-- [ ] T040 [US2] Write integration tests for `POST /v1/users` (201 new user, 200 reactivation, 409 conflict, 400 bad body, 401 no token, 403 ReadOnly token) and `PATCH /v1/users/{sub}` (200 updated, 404 not found, 403 ReadOnly token, 401 no token) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T039, T002)
+- [x] T039 [US2] Add `POST /` and `PATCH /{sub}` endpoints to `UserEndpoints.cs`: `POST` requires `"UserAdmin"` policy; on `UserConflictException` → 409; on `UserValidationException` → 400; reactivation path → 200 with `X-User-Reactivated: true` header; new user → 201 with `Location: /v1/users/{sub}`; `PATCH` requires `"UserAdmin"` policy; on `UserNotFoundException` → 404 — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T037, T038)
+- [x] T040 [US2] Write integration tests for `POST /v1/users` (201 new user, 200 reactivation, 409 conflict, 400 bad body, 401 no token, 403 ReadOnly token) and `PATCH /v1/users/{sub}` (200 updated, 404 not found, 403 ReadOnly token, 401 no token) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T039, T002)
 
 **Checkpoint**: Create and update endpoints functional; audit entries written; reactivation path works; role enforcement verified.
 
@@ -158,16 +158,16 @@ All paths are relative to the repository root.
 
 > **Write this test FIRST. Confirm it FAILS before T043.**
 
-- [ ] T041 [US3] Write `DeactivateUserHandlerTests` covering: active user → sets `Status=Deactivated`, sets `DeactivatedAt`, appends `UserAuditEntry(Deactivated)`, returns void; unknown or already-deactivated sub → throws `UserNotFoundException`; audit failure → propagates exception — in `tests/ProxyManager.API.Tests/Unit/Handlers/DeactivateUserHandlerTests.cs`
+- [x] T041 [US3] Write `DeactivateUserHandlerTests` covering: active user → sets `Status=Deactivated`, sets `DeactivatedAt`, appends `UserAuditEntry(Deactivated)`, returns void; unknown or already-deactivated sub → throws `UserNotFoundException`; audit failure → propagates exception — in `tests/ProxyManager.API.Tests/Unit/Handlers/DeactivateUserHandlerTests.cs`
 
 ### Handler Implementation — Green Phase
 
-- [ ] T042 [US3] Implement `DeactivateUserHandler`: get user by sub; throw `UserNotFoundException` if not found or `Status == Deactivated`; call `user.Deactivate()` + `UpdateAsync`; append `UserAuditEntry(Deactivated)` with previous access level — in `src/ProxyManager.API/Handlers/DeactivateUserHandler.cs` (depends on T041)
+- [x] T042 [US3] Implement `DeactivateUserHandler`: get user by sub; throw `UserNotFoundException` if not found or `Status == Deactivated`; call `user.Deactivate()` + `UpdateAsync`; append `UserAuditEntry(Deactivated)` with previous access level — in `src/ProxyManager.API/Handlers/DeactivateUserHandler.cs` (depends on T041)
 
 ### Endpoint & Integration
 
-- [ ] T043 [US3] Add `DELETE /{sub}` endpoint to `UserEndpoints.cs` requiring `"UserAdmin"` policy; on success → 204 No Content; on `UserNotFoundException` → 404 Problem Details — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T042)
-- [ ] T044 [US3] Write integration tests for `DELETE /v1/users/{sub}` (204 on active user, 404 on missing or already-deactivated user, 403 with ReadOnly token, 401 with no token); verify deactivated user no longer appears in default list but appears with `includeDeactivated=true` — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T043, T002)
+- [x] T043 [US3] Add `DELETE /{sub}` endpoint to `UserEndpoints.cs` requiring `"UserAdmin"` policy; on success → 204 No Content; on `UserNotFoundException` → 404 Problem Details — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T042)
+- [x] T044 [US3] Write integration tests for `DELETE /v1/users/{sub}` (204 on active user, 404 on missing or already-deactivated user, 403 with ReadOnly token, 401 with no token); verify deactivated user no longer appears in default list but appears with `includeDeactivated=true` — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T043, T002)
 
 **Checkpoint**: Deactivation endpoint functional; soft-delete verified; audit entry written; already-deactivated returns 404.
 
@@ -183,16 +183,16 @@ All paths are relative to the repository root.
 
 > **Write this test FIRST. Confirm it FAILS before T047.**
 
-- [ ] T045 [US4] Write `GetUserAuditLogHandlerTests` covering: returns paginated `PagedResult<UserAuditEntryDto>`; filters by `SubFilter` (only matching `SubjectSub`); filters by `From` and `To` date range; returns empty result when no entries match; maps all DTO fields — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetUserAuditLogHandlerTests.cs`
+- [x] T045 [US4] Write `GetUserAuditLogHandlerTests` covering: returns paginated `PagedResult<UserAuditEntryDto>`; filters by `SubFilter` (only matching `SubjectSub`); filters by `From` and `To` date range; returns empty result when no entries match; maps all DTO fields — in `tests/ProxyManager.API.Tests/Unit/Handlers/GetUserAuditLogHandlerTests.cs`
 
 ### Handler Implementation — Green Phase
 
-- [ ] T046 [US4] Implement `GetUserAuditLogHandler` handling `GetUserAuditLogQuery` → `PagedResult<UserAuditEntryDto>`; delegates filtering to `IUserAuditRepository.QueryAsync` — in `src/ProxyManager.API/Handlers/GetUserAuditLogHandler.cs` (depends on T045)
+- [x] T046 [US4] Implement `GetUserAuditLogHandler` handling `GetUserAuditLogQuery` → `PagedResult<UserAuditEntryDto>`; delegates filtering to `IUserAuditRepository.QueryAsync` — in `src/ProxyManager.API/Handlers/GetUserAuditLogHandler.cs` (depends on T045)
 
 ### Endpoint & Integration
 
-- [ ] T047 [US4] `GET /audit` endpoint already declared in `UserEndpoints.cs` (T032); complete its handler wiring to `GetUserAuditLogQuery`; accept query parameters `sub`, `from`, `to`, `page`, `pageSize` — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T046)
-- [ ] T048 [US4] Write integration tests for `GET /v1/users/audit` (200 all entries, filter by sub, filter by date range, 401 no token); verify ReadOnly token receives 200 (not 403) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T047, T002)
+- [x] T047 [US4] `GET /audit` endpoint already declared in `UserEndpoints.cs` (T032); complete its handler wiring to `GetUserAuditLogQuery`; accept query parameters `sub`, `from`, `to`, `page`, `pageSize` — in `src/ProxyManager.API/Endpoints/UserEndpoints.cs` (depends on T046)
+- [x] T048 [US4] Write integration tests for `GET /v1/users/audit` (200 all entries, filter by sub, filter by date range, 401 no token); verify ReadOnly token receives 200 (not 403) — in `tests/ProxyManager.API.Tests/Integration/UserEndpointsTests.cs` (depends on T047, T002)
 
 **Checkpoint**: All four user stories complete. Full feature functional end-to-end.
 
@@ -200,9 +200,9 @@ All paths are relative to the repository root.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T049 [P] Add structured Serilog log events (using `Log.Information(...)` with named properties) for each user management operation (created, updated, deactivated, reactivated) in each handler in `src/ProxyManager.API/Handlers/`
-- [ ] T050 [P] Verify XML documentation is present and complete on all public types: `AuthorizedUser`, `UserAuditEntry`, `IAuthorizedUserRepository`, `IUserAuditRepository`, `AuthorizedUserDto`, `UserAuditEntryDto`, all endpoint request records in `src/ProxyManager.API/Endpoints/UserEndpoints.cs`
-- [ ] T051 Run `dotnet test --collect:"XPlat Code Coverage"` and confirm ≥ 80% line coverage for all new files in `src/ProxyManager.Core/AggregatesModel/UserAggregate/`, `src/ProxyManager.Infrastructure/Repositories/`, and `src/ProxyManager.API/Handlers/`
+- [x] T049 [P] Add structured Serilog log events (using `Log.Information(...)` with named properties) for each user management operation (created, updated, deactivated, reactivated) in each handler in `src/ProxyManager.API/Handlers/`
+- [x] T050 [P] Verify XML documentation is present and complete on all public types: `AuthorizedUser`, `UserAuditEntry`, `IAuthorizedUserRepository`, `IUserAuditRepository`, `AuthorizedUserDto`, `UserAuditEntryDto`, all endpoint request records in `src/ProxyManager.API/Endpoints/UserEndpoints.cs`
+- [x] T051 Run `dotnet test --collect:"XPlat Code Coverage"` and confirm ≥ 80% line coverage for all new files in `src/ProxyManager.Core/AggregatesModel/UserAggregate/`, `src/ProxyManager.Infrastructure/Repositories/`, and `src/ProxyManager.API/Handlers/`
 - [ ] T052 [P] Validate `specs/003-user-mgmt-api/quickstart.md` curl examples against a locally running API; confirm all expected status codes
 
 ---

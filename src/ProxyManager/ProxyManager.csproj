@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ProxyManager.Infrastructure\ProxyManager.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="proxysettings*.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
@@ -17,6 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="WolverineFx" Version="5.22.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="5.22.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.13" />

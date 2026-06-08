@@ -3,41 +3,70 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Testcontainers.PostgreSql;
+using West94.ProxyManager.Infrastructure.Data;
 
 namespace West94.ProxyManager.API.Tests.Helpers;
 
 /// <summary>
 /// Integration test host that:
-/// - Disables RabbitMQ transport (uses Wolverine in-process only)
+/// - Starts a disposable PostgreSQL TestContainer for each test class
+/// - Runs EF Core migrations before tests
+/// - Disables RabbitMQ transport
 /// - Replaces Authentik JWT validation with a test signing key
 /// </summary>
 public sealed class TestWebAppFactory : WebApplicationFactory<Program>
 {
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithDatabase("proxymanager_test")
+        .WithUsername("test")
+        .WithPassword("test")
+        .Build();
+
+    private bool _containerStarted;
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        if (!_containerStarted)
+        {
+            _postgres.StartAsync().GetAwaiter().GetResult();
+            _containerStarted = true;
+        }
+
+        return base.CreateHost(builder);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await _postgres.DisposeAsync();
+        await base.DisposeAsync();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
 
-        // Override configuration: disable RabbitMQ and point auth at test issuer/audience
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["RabbitMQ:Enabled"] = "false",
                 ["Authentication:Authority"] = TestJwtFactory.TestIssuer,
-                ["Authentication:Audience"] = TestJwtFactory.TestAudience
+                ["Authentication:Audience"] = TestJwtFactory.TestAudience,
+                ["Database:ConnectionString"] = _postgres.GetConnectionString()
             });
         });
 
-        // Override JWT Bearer to validate test tokens with the known test signing key
         builder.ConfigureServices(services =>
         {
             services.PostConfigure<JwtBearerOptions>(
                 JwtBearerDefaults.AuthenticationScheme,
                 options =>
                 {
-                    options.Authority = null;
-                    options.MetadataAddress = null;
+                    options.Authority = null!;
+                    options.MetadataAddress = null!;
                     options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {

@@ -1,19 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
-
-using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
-using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
-using West94.ProxyManager.Infrastructure.Repositories;
+using West94.ProxyManager.Infrastructure.Extensions;
+using West94.ProxyManager.Infrastructure.Options;
 
 namespace West94.ProxyManager.API.Infrastructure;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Registers in-memory repository implementations for proxy hosts and audit log.</summary>
-    public static IServiceCollection AddProxyManagerServices(this IServiceCollection services)
+    /// <summary>Registers PostgreSQL-backed repository implementations and the migration hosted service.</summary>
+    public static IServiceCollection AddProxyManagerServices(
+        this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IProxyHostRepository, InMemoryProxyHostRepository>();
-        services.AddSingleton<IAuditLogRepository, InMemoryAuditLogRepository>();
+        services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Section));
+        services.AddProxyManagerInfrastructure();
         return services;
     }
 

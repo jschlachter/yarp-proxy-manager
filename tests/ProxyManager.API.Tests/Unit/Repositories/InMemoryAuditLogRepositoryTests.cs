@@ -3,6 +3,7 @@ using West94.ProxyManager.Infrastructure.Repositories;
 
 namespace West94.ProxyManager.API.Tests.Unit.Repositories;
 
+[Trait("Category", "Unit")]
 public class InMemoryAuditLogRepositoryTests
 {
     private static AuditLogEntry MakeEntry(Guid proxyHostId, AuditOperation op = AuditOperation.Created) =>

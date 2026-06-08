@@ -9,6 +9,7 @@ using West94.ProxyManager.Infrastructure.Options;
 
 namespace West94.ProxyManager.API.Tests.Integration.Repositories;
 
+[Trait("Category", "Integration")]
 public sealed class PostgresAuditLogRepositoryTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()

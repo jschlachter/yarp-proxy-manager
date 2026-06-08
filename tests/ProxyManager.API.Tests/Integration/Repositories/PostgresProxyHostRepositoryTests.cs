@@ -11,6 +11,7 @@ using West94.ProxyManager.Infrastructure.Repositories;
 
 namespace West94.ProxyManager.API.Tests.Integration.Repositories;
 
+[Trait("Category", "Integration")]
 public sealed class PostgresProxyHostRepositoryTests : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()

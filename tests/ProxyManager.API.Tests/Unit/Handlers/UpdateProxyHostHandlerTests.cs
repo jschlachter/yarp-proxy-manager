@@ -8,6 +8,7 @@ using West94.ProxyManager.Core.Messages.Events;
 
 namespace West94.ProxyManager.API.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class UpdateProxyHostHandlerTests
 {
     private static ProxyHost SeedHost(FakeProxyHostRepository repo, string domain = "update-test.example.com")

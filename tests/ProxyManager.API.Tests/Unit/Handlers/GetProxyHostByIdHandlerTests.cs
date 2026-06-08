@@ -5,6 +5,7 @@ using West94.ProxyManager.Core.Messages.Queries;
 
 namespace West94.ProxyManager.API.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class GetProxyHostByIdHandlerTests
 {
     [Fact]

@@ -10,6 +10,7 @@ using West94.ProxyManager.Core.DTOs;
 
 namespace West94.ProxyManager.API.Tests.Integration;
 
+[Trait("Category", "Integration")]
 public sealed class ProxyHostEndpointsTests : IAsyncDisposable
 {
     private readonly TestWebAppFactory _factory;

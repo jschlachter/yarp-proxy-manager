@@ -87,6 +87,7 @@ try
     app.UseAuthorization();
 
     app.MapProxyHostEndpoints();
+    app.MapUserEndpoints();
 
     Log.Information("Starting Proxy Manager API host...");
     app.Run();

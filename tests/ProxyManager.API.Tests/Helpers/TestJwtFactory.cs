@@ -39,4 +39,26 @@ public static class TestJwtFactory
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    /// <summary>Creates a signed JWT with the given subject and Proxy Manager role claim.</summary>
+    /// <param name="sub">The subject identifier (Authentik sub claim value).</param>
+    /// <param name="pmRole">The Proxy Manager role claim value: "Admin" or "ReadOnly".</param>
+    public static string CreateToken(string sub, string pmRole)
+    {
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, sub),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("pm_role", pmRole)
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: TestIssuer,
+            audience: TestAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256));
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }

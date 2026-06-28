@@ -2,6 +2,7 @@ using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 
 namespace West94.ProxyManager.Core.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public class ProxyHostAggregateTests
 {
     [Fact]

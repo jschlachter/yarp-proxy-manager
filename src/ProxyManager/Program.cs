@@ -1,15 +1,23 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using West94.ProxyManager.Yarp;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Scalar.AspNetCore;
 
 using Serilog;
 using Serilog.Events;
+using Wolverine;
+using Wolverine.RabbitMQ;
+
 using West94.ProxyManager.Endpoints;
+using West94.ProxyManager.Handlers;
+using West94.ProxyManager.Infrastructure.Extensions;
+using West94.ProxyManager.Infrastructure.Options;
+using West94.ProxyManager.Services;
+using West94.ProxyManager.Yarp;
 using Microsoft.AspNetCore.Authentication;
 using West94.AspNetCore.Authentication;
 using System.Security.Claims;
+using Yarp.ReverseProxy.Configuration;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -28,9 +36,18 @@ try
     configuration.AddJsonFile(proxySettingsFile, optional: true, reloadOnChange: true);
 
     services.AddReverseProxy()
-        .LoadFromConfig(configuration.GetSection("ReverseProxy"))
+        .LoadFromConfig(configuration.GetSection("ReverseProxy"))   // system routes (apiRoute, ui-route)
         .AddTransformFactory<BearerTokenTransformFactory>()
         .AddTransformFactory<ClaimHeaderTransformFactory>();
+
+    // Database-backed YARP config provider for user-managed ProxyHost routes.
+    // Registered as an additional IProxyConfigProvider alongside the file-based one above.
+    services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Section));
+    services.AddProxyManagerInfrastructure();
+    services.AddSingleton<DatabaseProxyConfigProvider>();
+    services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<DatabaseProxyConfigProvider>());
+    services.AddSingleton<IProxyConfigReloader>(sp => sp.GetRequiredService<DatabaseProxyConfigProvider>());
+    services.AddHostedService<ProxyConfigSeedService>();
 
     services.AddHttpContextAccessor();
     services.AddHttpClient();
@@ -131,6 +148,37 @@ try
     builder.Host.UseSerilog((ctx, services, config) => config
         .ReadFrom.Configuration(ctx.Configuration)
         .ReadFrom.Services(services));
+
+    var rabbitEnabled = configuration.GetValue<bool>("RabbitMQ:Enabled", defaultValue: true);
+
+    builder.Host.UseWolverine(opts =>
+    {
+        if (rabbitEnabled)
+        {
+            var rabbitHost = configuration["RabbitMQ:Host"] ?? "localhost";
+            var rabbitUser = configuration["RabbitMQ:UserName"];
+            var rabbitPass = configuration["RabbitMQ:Password"];
+
+            var transport = opts.UseRabbitMq(rabbit =>
+            {
+                rabbit.HostName = rabbitHost;
+                if (rabbitUser is not null) rabbit.UserName = rabbitUser;
+                if (rabbitPass is not null) rabbit.Password = rabbitPass;
+            })
+            .AutoProvision()
+            .DeclareExchange("proxy-hosts", exchange =>
+            {
+                exchange.ExchangeType = ExchangeType.Fanout;
+                exchange.IsDurable = true;
+            });
+
+            transport
+                .BindExchange("proxy-hosts", ExchangeType.Fanout)
+                .ToQueue("proxy-manager-config-reload");
+
+            opts.ListenToRabbitQueue("proxy-manager-config-reload");
+        }
+    });
 
     var app = builder.Build();
 

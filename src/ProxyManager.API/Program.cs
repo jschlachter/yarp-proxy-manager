@@ -9,6 +9,7 @@ using Wolverine.RabbitMQ;
 
 using West94.ProxyManager.API.Infrastructure;
 using West94.ProxyManager.API.Options;
+using West94.ProxyManager.API.Services;
 using West94.ProxyManager.Core.Messages.Events;
 using West94.ProxyManager.Endpoints;
 
@@ -38,7 +39,8 @@ try
     builder.Services.Configure<RabbitMqOptions>(
         builder.Configuration.GetSection(RabbitMqOptions.Section));
 
-    builder.Services.AddProxyManagerServices();
+    builder.Services.AddProxyManagerServices(builder.Configuration);
+    builder.Services.AddHostedService<DatabaseMigrationService>();
 
     builder.Host.UseSerilog((ctx, services, config) => config
         .ReadFrom.Configuration(ctx.Configuration)

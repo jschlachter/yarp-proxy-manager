@@ -20,6 +20,10 @@ public class ProxyHost : Entity
     public bool IsEnabled { get; private set; }
     public ProxyCertificate? Certificate { get; private set; }
 
+    /// <summary>Reconstitutes a ProxyHost from its persisted state. For Infrastructure layer use only.</summary>
+    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, ProxyCertificate? certificate) =>
+        new(id, domainNames.ToList(), destination, isEnabled, certificate);
+
     public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, ProxyCertificate? certificate = null)
     {
         ArgumentNullException.ThrowIfNull(domainNames);

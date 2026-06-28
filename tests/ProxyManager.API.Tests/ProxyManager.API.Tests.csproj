@@ -31,6 +31,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ProxyManager.API\ProxyManager.API.csproj" />
+    <ProjectReference Include="..\..\src\ProxyManager\ProxyManager.csproj">
+      <Aliases>ProxyManagerApp</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

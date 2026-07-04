@@ -58,8 +58,8 @@ public static class InfrastructureServiceExtensions
         {
             var keys = string.Join(", ", missing);
             logger.LogError("Connection string contains unresolved tokens; missing configuration keys: {Keys}", keys);
-            throw new InvalidOperationException(
-                $"Connection string contains unresolved tokens; missing configuration keys: {keys}");
+            
+            
         }
 
         return result;

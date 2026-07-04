@@ -60,7 +60,7 @@
       "ui-cluster": {
         "Destinations": {
           "local": {
-            "Address": "http://localhost:3000/"
+            "Address": "http://localhost:3001/"
           }
         }
       }

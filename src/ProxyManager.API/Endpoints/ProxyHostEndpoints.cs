@@ -15,17 +15,13 @@ namespace West94.ProxyManager.Endpoints;
 /// <summary>Request body for POST /proxyhosts.</summary>
 public sealed record CreateProxyHostRequest(
     IEnumerable<string>? DomainNames,
-    string? DestinationUri,
-    string? CertificatePath,
-    string? CertificateKeyPath);
+    string? DestinationUri);
 
 /// <summary>Request body for PUT /proxyhosts/{id}.</summary>
 public sealed record UpdateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
-    bool? IsEnabled,
-    string? CertificatePath,
-    string? CertificateKeyPath);
+    bool? IsEnabled);
 
 public static class ProxyHostEndpoints
 {
@@ -72,8 +68,6 @@ public static class ProxyHostEndpoints
             var command = new CreateProxyHostCommand(
                 request.DomainNames ?? [],
                 request.DestinationUri,
-                request.CertificatePath,
-                request.CertificateKeyPath,
                 actorId);
 
             try
@@ -137,8 +131,6 @@ public static class ProxyHostEndpoints
                 request.DomainNames,
                 request.DestinationUri,
                 request.IsEnabled,
-                request.CertificatePath,
-                request.CertificateKeyPath,
                 actorId);
 
             try

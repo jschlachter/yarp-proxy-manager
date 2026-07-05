@@ -9,6 +9,4 @@ public sealed record UpdateProxyHostCommand(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
     bool? IsEnabled,
-    string? CertificatePath,
-    string? CertificateKeyPath,
     string ActorId);

@@ -27,8 +27,9 @@ public enum CertificateFormat { Pfx, Pem }
   - Guards: non-empty `name`, non-empty `certPath`
   - If `format == Pfx && keyFilePath is not null` → throw `CertificateValidationException`
   - Sets `CreatedAt = UpdatedAt = DateTimeOffset.UtcNow`
-- Public `Update(name?, certPath?, keyFilePath?, passPhrase?)` — applies non-null args, refreshes `UpdatedAt`
-- Format is immutable (delete + re-create to change format)
+- `Rename(string name)` — updates `Name` and `UpdatedAt`; validates non-empty
+- `UpdatePassPhrase(string? passPhrase)` — updates `PassPhrase` (null clears it) and `UpdatedAt`
+- `CertificatePath`, `KeyFilePath`, and `Format` are immutable after creation — changing what a cert *points to* is a new aggregate. Delete + recreate + re-assign proxy hosts.
 - Properties: `Name`, `Format`, `CertificatePath`, `KeyFilePath?`, `PassPhrase?`, `CreatedAt`, `UpdatedAt`
 
 **`ICertificateRepository.cs`**
@@ -54,7 +55,7 @@ Remove after all references are updated (compile-driven).
 
 ### New commands in `src/ProxyManager.Core/Messages/Commands/`
 - **`CreateCertificateCommand`**: `Name`, `Format` (string, parsed to enum in handler), `CertificatePath`, `KeyFilePath?`, `PassPhrase?`, `ActorId`
-- **`UpdateCertificateCommand`**: `Id`, `Name?`, `CertificatePath?`, `KeyFilePath?`, `PassPhrase?`, `ActorId`
+- **`UpdateCertificateCommand`**: `Id`, `Name?`, `PassPhrase?`, `ActorId` — paths are immutable; omit from command
 - **`DeleteCertificateCommand`**: `Id`, `ActorId`
 - **`AssignCertificateCommand`**: `ProxyHostId`, `CertificateId?` (null = unassign), `ActorId`
 
@@ -150,7 +151,7 @@ All handlers follow the existing Wolverine convention: `Handle(Command/Query, Ca
 
 **`CreateCertificateHandler`**: parses `Format` string → `CertificateFormat` enum (throw `CertificateValidationException` if invalid), calls `Certificate.Create`, returns `(CertificateDto, CertificateCreatedEvent)`.
 
-**`UpdateCertificateHandler`**: finds cert or throws `CertificateNotFoundException`, calls `cert.Update(...)`, returns `(CertificateDto, CertificateUpdatedEvent)`.
+**`UpdateCertificateHandler`**: finds cert or throws `CertificateNotFoundException`, calls `cert.Rename(...)` and/or `cert.UpdatePassPhrase(...)` for whichever fields are non-null, returns `(CertificateDto, CertificateUpdatedEvent)`.
 
 **`DeleteCertificateHandler`**: finds cert or throws `CertificateNotFoundException`, removes it from the repository, deletes associated files from disk (see Addendum), returns `CertificateDeletedEvent`. No referential check (orphaned `CertificateId` on hosts is allowed).
 
@@ -184,7 +185,7 @@ Extension method `MapCertificateEndpoints(this WebApplication app)`, group prefi
 
 Request records defined at top of file (matching `ProxyHostEndpoints` pattern):
 - `CreateCertificateRequest`: `Name?`, `Format?`, `CertificatePath?`, `KeyFilePath?`, `PassPhrase?`
-- `UpdateCertificateRequest`: `Name?`, `CertificatePath?`, `KeyFilePath?`, `PassPhrase?`
+- `UpdateCertificateRequest`: `Name?`, `PassPhrase?` — paths and format are not accepted; changing them requires delete + recreate
 
 ### Modify `Program.cs`
 ```csharp

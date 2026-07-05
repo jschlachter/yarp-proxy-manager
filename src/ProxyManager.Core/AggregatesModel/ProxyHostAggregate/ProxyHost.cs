@@ -6,25 +6,25 @@ public class ProxyHost : Entity
 {
     private List<string> _domainNames;
 
-    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, ProxyCertificate? certificate)
+    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId)
     {
         Id = id;
         _domainNames = domainNames;
         Destination = destination;
         IsEnabled = isEnabled;
-        Certificate = certificate;
+        CertificateId = certificateId;
     }
 
     public IReadOnlyList<string> DomainNames => _domainNames;
     public DestinationUri Destination { get; private set; }
     public bool IsEnabled { get; private set; }
-    public ProxyCertificate? Certificate { get; private set; }
+    public Guid? CertificateId { get; private set; }
 
     /// <summary>Reconstitutes a ProxyHost from its persisted state. For Infrastructure layer use only.</summary>
-    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, ProxyCertificate? certificate) =>
-        new(id, domainNames.ToList(), destination, isEnabled, certificate);
+    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId) =>
+        new(id, domainNames.ToList(), destination, isEnabled, certificateId);
 
-    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, ProxyCertificate? certificate = null)
+    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, Guid? certificateId = null)
     {
         ArgumentNullException.ThrowIfNull(domainNames);
         ArgumentNullException.ThrowIfNull(destination);
@@ -33,7 +33,7 @@ public class ProxyHost : Entity
         if (domains.Count == 0)
             throw new ArgumentException("At least one domain name is required.", nameof(domainNames));
 
-        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificate);
+        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificateId);
     }
 
     public void Enable() => IsEnabled = true;
@@ -57,5 +57,5 @@ public class ProxyHost : Entity
         _domainNames = domains;
     }
 
-    public void SetCertificate(ProxyCertificate? certificate) => Certificate = certificate;
+    public void AssignCertificate(Guid? certificateId) => CertificateId = certificateId;
 }

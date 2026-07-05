@@ -14,7 +14,7 @@ public class ProxyHostAggregateTests
         Assert.Single(host.DomainNames);
         Assert.Equal("example.com", host.DomainNames[0]);
         Assert.True(host.IsEnabled);
-        Assert.Null(host.Certificate);
+        Assert.Null(host.CertificateId);
     }
 
     [Fact]

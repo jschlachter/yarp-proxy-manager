@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
+using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 using West94.ProxyManager.Infrastructure.Data;
 using West94.ProxyManager.Infrastructure.Options;
@@ -34,6 +35,7 @@ public static class InfrastructureServiceExtensions
 
         services.AddScoped<IProxyHostRepository, PostgresProxyHostRepository>();
         services.AddScoped<IAuditLogRepository, PostgresAuditLogRepository>();
+        services.AddScoped<ICertificateRepository, PostgresCertificateRepository>();
 
         return services;
     }

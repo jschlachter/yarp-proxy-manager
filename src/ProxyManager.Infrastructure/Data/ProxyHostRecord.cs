@@ -9,7 +9,5 @@ internal sealed class ProxyHostRecord
     public string DestinationHost { get; set; } = string.Empty;
     public int DestinationPort { get; set; }
     public bool IsEnabled { get; set; }
-    public string? CertificatePath { get; set; }
-    public string? CertificateKeyPath { get; set; }
-    public string? CertificatePassword { get; set; }
+    public Guid? CertificateId { get; set; }
 }

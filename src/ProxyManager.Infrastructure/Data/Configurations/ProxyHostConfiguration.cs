@@ -34,13 +34,7 @@ internal sealed class ProxyHostConfiguration : IEntityTypeConfiguration<ProxyHos
             .IsRequired()
             .HasDefaultValue(true);
 
-        builder.Property(x => x.CertificatePath)
-            .HasColumnName("certificate_path");
-
-        builder.Property(x => x.CertificateKeyPath)
-            .HasColumnName("certificate_key_path");
-
-        builder.Property(x => x.CertificatePassword)
-            .HasColumnName("certificate_password");
+        builder.Property(x => x.CertificateId)
+            .HasColumnName("certificate_id");
     }
 }

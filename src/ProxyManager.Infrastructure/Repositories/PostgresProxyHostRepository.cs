@@ -38,9 +38,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         existing.DestinationHost = host.Destination.Host;
         existing.DestinationPort = host.Destination.Port;
         existing.IsEnabled = host.IsEnabled;
-        existing.CertificatePath = host.Certificate?.CertificatePath;
-        existing.CertificateKeyPath = host.Certificate?.KeyPath;
-        existing.CertificatePassword = host.Certificate?.Password;
+        existing.CertificateId = host.CertificateId;
 
         await db.SaveChangesAsync(ct);
     }
@@ -57,10 +55,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
     private static ProxyHost ToDomain(ProxyHostRecord r)
     {
         var destination = new DestinationUri(r.DestinationScheme, r.DestinationHost, r.DestinationPort);
-        ProxyCertificate? cert = r.CertificatePath is not null
-            ? new ProxyCertificate(r.CertificatePath, r.CertificateKeyPath, r.CertificatePassword)
-            : null;
-        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, cert);
+        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, r.CertificateId);
     }
 
     private static ProxyHostRecord ToRecord(ProxyHost h) => new()
@@ -71,8 +66,6 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         DestinationHost = h.Destination.Host,
         DestinationPort = h.Destination.Port,
         IsEnabled = h.IsEnabled,
-        CertificatePath = h.Certificate?.CertificatePath,
-        CertificateKeyPath = h.Certificate?.KeyPath,
-        CertificatePassword = h.Certificate?.Password
+        CertificateId = h.CertificateId
     };
 }

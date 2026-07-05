@@ -7,6 +7,7 @@ public sealed class ProxyManagerDbContext(DbContextOptions<ProxyManagerDbContext
     : DbContext(options)
 {
     internal DbSet<ProxyHostRecord> ProxyHosts => Set<ProxyHostRecord>();
+    internal DbSet<CertificateRecord> Certificates => Set<CertificateRecord>();
     public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

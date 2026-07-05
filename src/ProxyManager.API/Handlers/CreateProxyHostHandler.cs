@@ -30,11 +30,7 @@ public sealed class CreateProxyHostHandler(IProxyHostRepository repository, IAud
             throw new ProxyHostConflictException(conflicting);
 
         var destination = DestinationUri.Parse(command.DestinationUri);
-        ProxyCertificate? cert = command.CertificatePath is not null
-            ? new ProxyCertificate(command.CertificatePath, command.CertificateKeyPath)
-            : null;
-
-        var host = ProxyHost.Create(domains, destination, cert);
+        var host = ProxyHost.Create(domains, destination);
         await repository.AddAsync(host, ct);
 
         await auditLog.AppendAsync(

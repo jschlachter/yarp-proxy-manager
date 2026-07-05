@@ -15,17 +15,16 @@ namespace West94.ProxyManager.Endpoints;
 /// <summary>Request body for POST /proxyhosts.</summary>
 public sealed record CreateProxyHostRequest(
     IEnumerable<string>? DomainNames,
-    string? DestinationUri,
-    string? CertificatePath,
-    string? CertificateKeyPath);
+    string? DestinationUri);
 
 /// <summary>Request body for PUT /proxyhosts/{id}.</summary>
 public sealed record UpdateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
-    bool? IsEnabled,
-    string? CertificatePath,
-    string? CertificateKeyPath);
+    bool? IsEnabled);
+
+/// <summary>Request body for PUT /proxyhosts/{id}/certificate.</summary>
+public sealed record AssignCertificateRequest(Guid? CertificateId);
 
 public static class ProxyHostEndpoints
 {
@@ -72,8 +71,6 @@ public static class ProxyHostEndpoints
             var command = new CreateProxyHostCommand(
                 request.DomainNames ?? [],
                 request.DestinationUri,
-                request.CertificatePath,
-                request.CertificateKeyPath,
                 actorId);
 
             try
@@ -137,8 +134,6 @@ public static class ProxyHostEndpoints
                 request.DomainNames,
                 request.DestinationUri,
                 request.IsEnabled,
-                request.CertificatePath,
-                request.CertificateKeyPath,
                 actorId);
 
             try
@@ -158,6 +153,40 @@ public static class ProxyHostEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Validation error",
+                    detail: ex.Message);
+            }
+        });
+
+        group.MapPut("/{id:guid}/certificate", async Task<Results<Ok<ProxyHostDto>, ProblemHttpResult>> (
+            Guid id,
+            [FromBody] AssignCertificateRequest request,
+            ClaimsPrincipal user,
+            IMessageBus bus,
+            CancellationToken ct) =>
+        {
+            var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub")
+                ?? "unknown";
+
+            var command = new AssignCertificateCommand(id, request.CertificateId, actorId);
+
+            try
+            {
+                var dto = await bus.InvokeAsync<ProxyHostDto>(command, ct);
+                return TypedResults.Ok(dto);
+            }
+            catch (ProxyHostNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Proxy host not found",
+                    detail: ex.Message);
+            }
+            catch (CertificateNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid certificate reference",
                     detail: ex.Message);
             }
         });

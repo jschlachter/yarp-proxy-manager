@@ -14,8 +14,6 @@ public class CreateProxyHostHandlerTests
     private static CreateProxyHostCommand ValidCommand(string domain = "new.example.com") => new(
         DomainNames: [domain],
         DestinationUri: "https://backend:8443",
-        CertificatePath: null,
-        CertificateKeyPath: null,
         ActorId: "user-123");
 
     [Fact]

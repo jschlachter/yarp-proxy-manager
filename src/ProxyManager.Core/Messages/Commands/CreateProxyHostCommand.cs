@@ -4,6 +4,4 @@ namespace West94.ProxyManager.Core.Messages.Commands;
 public sealed record CreateProxyHostCommand(
     IEnumerable<string> DomainNames,
     string DestinationUri,
-    string? CertificatePath,
-    string? CertificateKeyPath,
     string ActorId);

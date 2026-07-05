@@ -26,7 +26,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(host.Id, null, null, false, null, null, "actor-1");
+        var command = new UpdateProxyHostCommand(host.Id, null, null, false, "actor-1");
 
         var (dto, _) = await handler.Handle(command, CancellationToken.None);
 
@@ -43,7 +43,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(Guid.NewGuid(), null, null, false, null, null, "actor-1");
+        var command = new UpdateProxyHostCommand(Guid.NewGuid(), null, null, false, "actor-1");
 
         await Assert.ThrowsAsync<ProxyHostNotFoundException>(() =>
             handler.Handle(command, CancellationToken.None));
@@ -57,7 +57,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(host.Id, null, "not-a-uri", null, null, null, "actor-1");
+        var command = new UpdateProxyHostCommand(host.Id, null, "not-a-uri", null, "actor-1");
 
         await Assert.ThrowsAsync<ProxyHostValidationException>(() =>
             handler.Handle(command, CancellationToken.None));
@@ -71,7 +71,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(host.Id, null, null, false, null, null, "actor-99");
+        var command = new UpdateProxyHostCommand(host.Id, null, null, false, "actor-99");
 
         await handler.Handle(command, CancellationToken.None);
 
@@ -92,7 +92,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(host.Id, null, null, false, null, null, "actor-1");
+        var command = new UpdateProxyHostCommand(host.Id, null, null, false, "actor-1");
 
         var (dto, @event) = await handler.Handle(command, CancellationToken.None);
 
@@ -110,7 +110,7 @@ public class UpdateProxyHostHandlerTests
         var auditLog = new FakeAuditLogRepository();
         var handler = new UpdateProxyHostHandler(repo, auditLog);
 
-        var command = new UpdateProxyHostCommand(host.Id, null, "https://new-backend:9000", null, null, null, "actor-1");
+        var command = new UpdateProxyHostCommand(host.Id, null, "https://new-backend:9000", null, "actor-1");
 
         var (dto, _) = await handler.Handle(command, CancellationToken.None);
 

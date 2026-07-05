@@ -37,14 +37,6 @@ public sealed class UpdateProxyHostHandler(IProxyHostRepository repository, IAud
             else host.Disable();
         }
 
-        if (command.CertificatePath is not null || command.CertificateKeyPath is not null)
-        {
-            var cert = command.CertificatePath is not null
-                ? new ProxyCertificate(command.CertificatePath, command.CertificateKeyPath)
-                : null;
-            host.SetCertificate(cert);
-        }
-
         await repository.UpdateAsync(host, ct);
 
         var dto = GetProxyHostsHandler.MapToDto(host);

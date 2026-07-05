@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Testcontainers.PostgreSql;
@@ -28,6 +29,8 @@ public sealed class PostgresAuditLogRepositoryTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddSingleton<IOptions<DatabaseOptions>>(
             new OptionsWrapper<DatabaseOptions>(new DatabaseOptions { ConnectionString = _postgres.GetConnectionString() }));
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        services.AddLogging();
         services.AddProxyManagerInfrastructure();
 
         var provider = services.BuildServiceProvider();

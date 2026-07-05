@@ -58,11 +58,20 @@ try
                 {
                     exchange.ExchangeType = ExchangeType.Fanout;
                     exchange.IsDurable = true;
+                })
+                .DeclareExchange("certificates", exchange =>
+                {
+                    exchange.ExchangeType = ExchangeType.Fanout;
+                    exchange.IsDurable = true;
                 });
 
             opts.PublishMessage<ProxyHostCreatedEvent>().ToRabbitExchange("proxy-hosts");
             opts.PublishMessage<ProxyHostUpdatedEvent>().ToRabbitExchange("proxy-hosts");
             opts.PublishMessage<ProxyHostDeletedEvent>().ToRabbitExchange("proxy-hosts");
+
+            opts.PublishMessage<CertificateCreatedEvent>().ToRabbitExchange("certificates");
+            opts.PublishMessage<CertificateUpdatedEvent>().ToRabbitExchange("certificates");
+            opts.PublishMessage<CertificateDeletedEvent>().ToRabbitExchange("certificates");
         }
     });
 
@@ -89,6 +98,7 @@ try
     app.UseAuthorization();
 
     app.MapProxyHostEndpoints();
+    app.MapCertificateEndpoints();
 
     Log.Information("Starting Proxy Manager API host...");
     app.Run();

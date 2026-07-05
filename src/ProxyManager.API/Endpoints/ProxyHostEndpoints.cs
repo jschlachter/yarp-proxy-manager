@@ -23,6 +23,9 @@ public sealed record UpdateProxyHostRequest(
     string? DestinationUri,
     bool? IsEnabled);
 
+/// <summary>Request body for PUT /proxyhosts/{id}/certificate.</summary>
+public sealed record AssignCertificateRequest(Guid? CertificateId);
+
 public static class ProxyHostEndpoints
 {
     public static IEndpointRouteBuilder MapProxyHostEndpoints(this IEndpointRouteBuilder app)
@@ -150,6 +153,40 @@ public static class ProxyHostEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Validation error",
+                    detail: ex.Message);
+            }
+        });
+
+        group.MapPut("/{id:guid}/certificate", async Task<Results<Ok<ProxyHostDto>, ProblemHttpResult>> (
+            Guid id,
+            [FromBody] AssignCertificateRequest request,
+            ClaimsPrincipal user,
+            IMessageBus bus,
+            CancellationToken ct) =>
+        {
+            var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub")
+                ?? "unknown";
+
+            var command = new AssignCertificateCommand(id, request.CertificateId, actorId);
+
+            try
+            {
+                var dto = await bus.InvokeAsync<ProxyHostDto>(command, ct);
+                return TypedResults.Ok(dto);
+            }
+            catch (ProxyHostNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Proxy host not found",
+                    detail: ex.Message);
+            }
+            catch (CertificateNotFoundException ex)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid certificate reference",
                     detail: ex.Message);
             }
         });

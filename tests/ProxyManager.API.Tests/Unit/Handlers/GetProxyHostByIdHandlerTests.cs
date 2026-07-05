@@ -23,7 +23,7 @@ public class GetProxyHostByIdHandlerTests
         Assert.Contains("example.com", result.DomainNames);
         Assert.Equal("https://backend:8443", result.Destination);
         Assert.True(result.IsEnabled);
-        Assert.Null(result.Certificate);
+        Assert.Null(result.CertificateId);
     }
 
     [Fact]

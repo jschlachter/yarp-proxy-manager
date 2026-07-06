@@ -22,7 +22,7 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
     private IServiceScope _scope = null!;
     private ICertificateRepository _repo = null!;
 
-    async Task IAsyncLifetime.InitializeAsync()
+    async ValueTask IAsyncLifetime.InitializeAsync()
     {
         await _postgres.StartAsync();
 
@@ -42,7 +42,7 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
         _repo = _scope.ServiceProvider.GetRequiredService<ICertificateRepository>();
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         _scope.Dispose();
         await _postgres.DisposeAsync();

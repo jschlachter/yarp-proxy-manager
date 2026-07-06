@@ -24,7 +24,7 @@ public sealed class PostgresProxyHostRepositoryTests : IAsyncLifetime
     private IServiceScope _scope = null!;
     private IProxyHostRepository _repo = null!;
 
-    async Task IAsyncLifetime.InitializeAsync()
+    async ValueTask IAsyncLifetime.InitializeAsync()
     {
         await _postgres.StartAsync();
 
@@ -44,7 +44,7 @@ public sealed class PostgresProxyHostRepositoryTests : IAsyncLifetime
         _repo = _scope.ServiceProvider.GetRequiredService<IProxyHostRepository>();
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         _scope.Dispose();
         await _postgres.DisposeAsync();

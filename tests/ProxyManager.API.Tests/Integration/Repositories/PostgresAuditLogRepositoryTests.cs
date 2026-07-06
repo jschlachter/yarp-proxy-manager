@@ -22,7 +22,7 @@ public sealed class PostgresAuditLogRepositoryTests : IAsyncLifetime
     private IServiceScope _scope = null!;
     private IAuditLogRepository _repo = null!;
 
-    async Task IAsyncLifetime.InitializeAsync()
+    async ValueTask IAsyncLifetime.InitializeAsync()
     {
         await _postgres.StartAsync();
 
@@ -42,7 +42,7 @@ public sealed class PostgresAuditLogRepositoryTests : IAsyncLifetime
         _repo = _scope.ServiceProvider.GetRequiredService<IAuditLogRepository>();
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         _scope.Dispose();
         await _postgres.DisposeAsync();

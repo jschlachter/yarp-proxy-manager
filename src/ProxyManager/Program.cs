@@ -9,7 +9,6 @@ using Wolverine;
 using Wolverine.RabbitMQ;
 
 using West94.ProxyManager.Endpoints;
-using West94.ProxyManager.Handlers;
 using West94.ProxyManager.Infrastructure.Extensions;
 using West94.ProxyManager.Infrastructure.Options;
 using West94.ProxyManager.Services;
@@ -209,7 +208,7 @@ try
     Log.Information("Starting Proxy Manager host...");
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not Microsoft.Extensions.Hosting.HostAbortedException)
 {
     Log.Fatal(ex, "Host terminated unexpectedly");
     throw;

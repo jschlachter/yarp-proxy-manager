@@ -5,7 +5,9 @@ using Microsoft.Extensions.Options;
 using West94.ProxyManager.Files.Data;
 using West94.ProxyManager.Files.Options;
 using West94.ProxyManager.Files.Repositories;
+using West94.ProxyManager.Files.Services;
 using West94.ProxyManager.Files.Storage;
+using West94.ProxyManager.Files.Validation;
 
 namespace West94.ProxyManager.Files.Infrastructure;
 
@@ -47,6 +49,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IFileAssetRepository, PostgresFileAssetRepository>();
+
+        services.Configure<UploadOptions>(configuration.GetSection(UploadOptions.Section));
+        services.AddSingleton<UploadContentValidator>();
+        services.AddScoped<IFileAssetService, FileAssetService>();
 
         return services;
     }

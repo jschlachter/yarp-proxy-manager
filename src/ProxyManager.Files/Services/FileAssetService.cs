@@ -89,4 +89,15 @@ public sealed class FileAssetService(
         await repository.UpdateAsync(asset, ct);
         return true;
     }
+
+    public async Task DeleteByOwnerAsync(string ownerType, Guid ownerId, CancellationToken ct)
+    {
+        var assets = await repository.GetByOwnerAsync(ownerType, ownerId, ct);
+        foreach (var asset in assets)
+        {
+            await objectStore.DeleteAsync(asset.StorageKey, ct);
+            asset.MarkDeleted();
+            await repository.UpdateAsync(asset, ct);
+        }
+    }
 }

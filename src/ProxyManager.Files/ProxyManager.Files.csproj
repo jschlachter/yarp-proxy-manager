@@ -22,6 +22,13 @@
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="WolverineFx" Version="6.22.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.22.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Deliberate exception to "Files is domain-agnostic", confined to Integrations/ — see CertificateAssetCleanupHandler. -->
+    <ProjectReference Include="..\ProxyManager.Core\ProxyManager.Core.csproj" />
   </ItemGroup>
 
 </Project>

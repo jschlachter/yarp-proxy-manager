@@ -22,4 +22,7 @@ public interface IFileAssetService
 
     /// <summary>Returns <see langword="false"/> when no such asset exists.</summary>
     Task<bool> DeleteAsync(Guid id, CancellationToken ct);
+
+    /// <summary>Deletes every committed asset owned by (<paramref name="ownerType"/>, <paramref name="ownerId"/>) — the event-driven cleanup path.</summary>
+    Task DeleteByOwnerAsync(string ownerType, Guid ownerId, CancellationToken ct);
 }

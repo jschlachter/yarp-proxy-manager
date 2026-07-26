@@ -12,12 +12,12 @@ using West94.ProxyManager.Core.Messages.Queries;
 
 namespace West94.ProxyManager.Endpoints;
 
-/// <summary>Request body for POST /certificates.</summary>
+/// <summary>Request body for POST /certificates. Assets must already be Staged in ProxyManager.Files.</summary>
 public sealed record CreateCertificateRequest(
     string? Name,
     string? Format,
-    string? CertificatePath,
-    string? KeyFilePath,
+    Guid? CertificateAssetId,
+    Guid? KeyAssetId,
     string? PassPhrase);
 
 /// <summary>Request body for PUT /certificates/{id}. Paths and format are immutable after creation.</summary>
@@ -56,11 +56,11 @@ public static class CertificateEndpoints
             IMessageBus bus,
             CancellationToken ct) =>
         {
-            if (string.IsNullOrEmpty(request.CertificatePath))
+            if (request.CertificateAssetId is null || request.CertificateAssetId == Guid.Empty)
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Validation error",
-                    detail: "'certificatePath' is required.");
+                    detail: "'certificateAssetId' is required.");
 
             var actorId = user.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? user.FindFirstValue("sub")
@@ -69,8 +69,8 @@ public static class CertificateEndpoints
             var command = new CreateCertificateCommand(
                 request.Name ?? string.Empty,
                 request.Format ?? string.Empty,
-                request.CertificatePath,
-                request.KeyFilePath,
+                request.CertificateAssetId!.Value,
+                request.KeyAssetId,
                 request.PassPhrase,
                 actorId);
 

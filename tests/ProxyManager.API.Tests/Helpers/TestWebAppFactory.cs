@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Testcontainers.PostgreSql;
+using West94.ProxyManager.API.Infrastructure.Files;
+using West94.ProxyManager.API.Tests.Unit.Fakes;
 using West94.ProxyManager.Infrastructure.Data;
 
 namespace West94.ProxyManager.API.Tests.Helpers;
@@ -26,6 +28,9 @@ public sealed class TestWebAppFactory : WebApplicationFactory<Program>
         .Build();
 
     private bool _containerStarted;
+
+    /// <summary>Shared fake substituted for the real Files service HTTP client — no live ProxyManager.Files needed in tests.</summary>
+    public FakeFileAssetClient FilesClient { get; } = new();
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
@@ -79,6 +84,8 @@ public sealed class TestWebAppFactory : WebApplicationFactory<Program>
                         ValidateIssuerSigningKey = true
                     };
                 });
+
+            services.AddSingleton<IFileAssetClient>(FilesClient);
         });
     }
 }

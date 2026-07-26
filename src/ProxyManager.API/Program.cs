@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 using Serilog;
@@ -8,6 +9,7 @@ using Wolverine;
 using Wolverine.RabbitMQ;
 
 using West94.ProxyManager.API.Infrastructure;
+using West94.ProxyManager.API.Infrastructure.Files;
 using West94.ProxyManager.API.Options;
 using West94.ProxyManager.API.Services;
 using West94.ProxyManager.Core.Messages.Events;
@@ -42,6 +44,15 @@ try
 
     builder.Services.AddProxyManagerServices(builder.Configuration);
     builder.Services.AddHostedService<DatabaseMigrationService>();
+
+    builder.Services.Configure<FilesServiceOptions>(builder.Configuration.GetSection(FilesServiceOptions.Section));
+    builder.Services.AddHttpClient<IFileAssetClient, FileAssetClient>((sp, client) =>
+    {
+        var options = sp.GetRequiredService<IOptions<FilesServiceOptions>>().Value;
+        client.BaseAddress = new Uri(options.BaseUrl);
+        client.DefaultRequestHeaders.Add("X-Files-Service-Token", options.ServiceToken);
+    });
+    builder.Services.AddHostedService<CertificateAssetReconciliationService>();
 
     builder.Host.UseSerilog((ctx, services, config) => config
         .ReadFrom.Configuration(ctx.Configuration)

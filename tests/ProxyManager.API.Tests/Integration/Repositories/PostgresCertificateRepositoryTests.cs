@@ -48,11 +48,14 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
+    private static readonly CertificateSubjectInfo Subject =
+        new("CN=test", ["test.example.com"], DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1), "ABCDEF0123456789");
+
     private static Certificate MakePemCert(string name = "test-pem") =>
-        Certificate.Create(name, CertificateFormat.Pem, $"/certs/{name}.pem", $"/certs/{name}.key", "pass");
+        Certificate.Create(name, CertificateFormat.Pem, Guid.NewGuid(), Guid.NewGuid(), $"{name}.pem", $"{name}.key", "pass", Subject);
 
     private static Certificate MakePfxCert(string name = "test-pfx") =>
-        Certificate.Create(name, CertificateFormat.Pfx, $"/certs/{name}.pfx");
+        Certificate.Create(name, CertificateFormat.Pfx, Guid.NewGuid(), null, $"{name}.pfx", null, null, Subject);
 
     [Fact]
     public async Task AddAsync_And_FindAsync_RoundTrip_Pem()
@@ -66,8 +69,8 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
         Assert.Equal(cert.Id, loaded.Id);
         Assert.Equal("roundtrip-pem", loaded.Name);
         Assert.Equal(CertificateFormat.Pem, loaded.Format);
-        Assert.Equal("/certs/roundtrip-pem.pem", loaded.CertificatePath);
-        Assert.Equal("/certs/roundtrip-pem.key", loaded.KeyFilePath);
+        Assert.Equal("roundtrip-pem.pem", loaded.CertificateFileName);
+        Assert.Equal("roundtrip-pem.key", loaded.KeyFileName);
     }
 
     [Fact]
@@ -80,7 +83,7 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
 
         Assert.NotNull(loaded);
         Assert.Equal(CertificateFormat.Pfx, loaded.Format);
-        Assert.Null(loaded.KeyFilePath);
+        Assert.Null(loaded.KeyFileName);
     }
 
     [Fact]

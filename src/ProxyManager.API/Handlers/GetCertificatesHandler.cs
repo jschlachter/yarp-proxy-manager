@@ -20,5 +20,8 @@ public sealed class GetCertificatesHandler(ICertificateRepository repository)
     }
 
     internal static CertificateDto MapToDto(Certificate c) => new(
-        c.Id, c.Name, c.Format.ToString(), c.CertificatePath, c.KeyFilePath, c.CreatedAt, c.UpdatedAt);
+        c.Id, c.Name, c.Format.ToString(),
+        c.CertificateAssetId, c.KeyAssetId, c.CertificateFileName, c.KeyFileName,
+        c.Subject.Subject, c.Subject.SubjectAlternativeNames, c.Subject.NotBefore, c.Subject.NotAfter, c.Subject.Thumbprint,
+        c.CreatedAt, c.UpdatedAt);
 }

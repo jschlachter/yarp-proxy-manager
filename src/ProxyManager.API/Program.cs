@@ -12,6 +12,7 @@ using West94.ProxyManager.API.Options;
 using West94.ProxyManager.API.Services;
 using West94.ProxyManager.Core.Messages.Events;
 using West94.ProxyManager.Endpoints;
+using West94.ProxyManager.Infrastructure.Data;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -50,6 +51,10 @@ try
 
     builder.Host.UseWolverine(opts =>
     {
+        // TODO: https://wolverinefx.net/guide/migration#:~:text=the%20using%20directive.-,ServiceLocationPolicy,-.NotAllowed%20is%20the
+        // This is required to allow Wolverine to resolve the DbContext from DI when publishing messages.
+        opts.CodeGeneration.AlwaysUseServiceLocationFor<ProxyManagerDbContext>();
+        
         if (rabbitEnabled)
         {
             opts.AddRabbitMqTransport(builder.Configuration)

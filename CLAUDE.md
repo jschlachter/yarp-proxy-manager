@@ -23,9 +23,30 @@ dotnet publish src/ProxyManager.API/ProxyManager.API.csproj -c Release
 
 # Deploy to VM via Quadlet/systemd
 ./scripts/deploy-vm.sh
+
+# Run .NET tests (all)
+dotnet test ProxyManager.sln
+
+# Run a single test project
+dotnet test tests/ProxyManager.API.Tests/ProxyManager.API.Tests.csproj
+dotnet test tests/ProxyManager.Core.Tests/ProxyManager.Core.Tests.csproj
+
+# Run a single test by name
+dotnet test --filter "FullyQualifiedName~ClassName.MethodName"
 ```
 
 VSCode provides compound launch config "Launch Both" to run both services simultaneously.
+
+### UI (src/ProxyManager.UI)
+
+```bash
+cd src/ProxyManager.UI
+npm run dev            # Next.js dev server, http://localhost:3000
+npm run build
+npm test                # Jest unit tests
+npm run test:coverage
+npm run test:e2e        # Playwright e2e tests
+```
 
 ## Architecture
 
@@ -68,8 +89,11 @@ Four projects in `src/`:
 - **ProxyManager.API** – ASP.NET Core 10 management REST API. Minimal API endpoints under `/routes` for CRUD on proxy configuration. Validates JWT Bearer tokens from the same Authentik authority.
 - **ProxyManager.Core** – Class library for domain models and business logic (currently scaffolding only).
 - **ProxyManager.Infrastructure** – Class library for data access and external services (currently scaffolding only).
+- **ProxyManager.UI** – Next.js 15 (App Router) frontend for managing routes and certificates (see `src/ProxyManager.UI/CLAUDE.md`). Talks to ProxyManager.API; in production it is built/served behind the proxy.
 
 The proxy routes `/api/{**catch-all}` to the API (via YARP configuration), so in production all traffic enters through ProxyManager.
+
+Tests live in `tests/ProxyManager.API.Tests` and `tests/ProxyManager.Core.Tests` (xunit).
 
 Publish/subscribe messaging used for inter-service communicatation and data integration
 

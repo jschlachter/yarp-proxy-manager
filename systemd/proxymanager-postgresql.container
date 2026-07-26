@@ -6,7 +6,7 @@ After=network-online.target
 Image=docker.io/library/postgres:18-alpine
 ContainerName=proxymanager-postgresql
 EnvironmentFile=.env
-Volume=proxymanager-database.volume:/var/lib/postgresql/data
+Volume=proxymanager-database.volume:/var/lib/postgresql
 Pod=proxymanager.pod
 
 # Health check (runs inside container)

@@ -4,13 +4,13 @@ WORKDIR /app
 COPY . ./
 
 # Restore as distinct layers
-RUN dotnet restore src/ProxyManager.API/ProxyManager.API.csproj
+RUN dotnet restore src/ProxyManager.Files/ProxyManager.Files.csproj
 
 # Build and publish a release
-RUN dotnet publish src/ProxyManager.API/ProxyManager.API.csproj -c Release -o out
+RUN dotnet publish src/ProxyManager.Files/ProxyManager.Files.csproj -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
 COPY --from=builder /app/out .
-ENTRYPOINT [ "dotnet", "West94.ProxyManager.API.dll" ]
+ENTRYPOINT [ "dotnet", "West94.ProxyManager.Files.dll" ]

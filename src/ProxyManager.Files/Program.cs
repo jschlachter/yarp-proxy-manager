@@ -16,6 +16,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddFilesServices(builder.Configuration);
+    builder.Services.AddHostedService<FilesDatabaseMigrationService>();
     builder.Services.AddHostedService<BucketBootstrapHostedService>();
 
     builder.Host.UseSerilog((ctx, services, config) => config

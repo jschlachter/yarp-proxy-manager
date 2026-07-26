@@ -23,7 +23,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="h-6 w-16" />;
+  if (!mounted) return <div className="h-8 w-8" />;
 
   const current: Theme = (themes.includes(theme as Theme) ? theme : "system") as Theme;
   const next = themes[(themes.indexOf(current) + 1) % themes.length];
@@ -33,14 +33,14 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(next)}
       title={`Theme: ${labels[current]} — click for ${labels[next]}`}
-      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs
-                 text-sidebar-foreground/60 hover:text-sidebar-foreground
-                 hover:bg-sidebar-accent transition-colors cursor-pointer"
+      aria-label={`Theme: ${labels[current]} — click for ${labels[next]}`}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sidebar-border
+                 text-sidebar-foreground/70 hover:text-sidebar-foreground
+                 hover:bg-sidebar-accent hover:border-primary/40 transition-colors cursor-pointer"
     >
       <span key={current} className="animate-theme-spin inline-flex">
-        <Icon size={13} />
+        <Icon size={15} />
       </span>
-      <span>{labels[current]}</span>
     </button>
   );
 }

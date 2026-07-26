@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { RouteIcon } from "lucide-react";
 import RouteCard from "./RouteCard";
 import type { ProxyHost } from "@/types";
 
@@ -26,12 +27,20 @@ export default function RouteList({
 
   if (routes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <p className="text-muted-foreground">No routes configured yet.</p>
+      <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+          <RouteIcon className="h-6 w-6" />
+        </span>
+        <div className="space-y-1">
+          <p className="font-medium">No routes configured yet</p>
+          <p className="text-sm text-muted-foreground">
+            Create your first route to start proxying traffic.
+          </p>
+        </div>
         {isAdmin && (
           <Link
             href="/routes/new"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-lg brand-gradient px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5"
             aria-label="Add Route"
           >
             Add Route

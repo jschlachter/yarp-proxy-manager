@@ -126,7 +126,7 @@ export default function RouteForm({
           type="checkbox"
           checked={isEnabled}
           onChange={(e) => setIsEnabled(e.target.checked)}
-          className="h-4 w-4 rounded border-input"
+          className="h-4 w-4 rounded border-input accent-primary"
         />
         <Label htmlFor="isEnabled">Enabled</Label>
       </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeftIcon } from "lucide-react";
 import RouteForm from "@/components/routes/RouteForm";
 import MaintainerPanel from "@/components/routes/MaintainerPanel";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -120,28 +121,41 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">{route.domainNames[0] ?? route.destination}</h1>
-      <RouteForm
-        initialData={route}
-        onSubmit={handleSubmit}
-        readOnly={!isAdmin}
-        submitLabel="Save Changes"
-        error={error}
-      />
+      <Link
+        href="/routes"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeftIcon className="h-4 w-4" />
+        Back to routes
+      </Link>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-gradient">
+          {route.domainNames[0] ?? route.destination}
+        </h1>
+        <p className="text-sm text-muted-foreground font-mono">{route.destination}</p>
+      </div>
 
-      {isAdmin && (
-        <div className="border-t pt-4">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            Delete Route
-          </Button>
-        </div>
-      )}
+      <div className="rounded-xl border border-border bg-card/80 p-6 backdrop-blur-sm">
+        <RouteForm
+          initialData={route}
+          onSubmit={handleSubmit}
+          readOnly={!isAdmin}
+          submitLabel="Save Changes"
+          error={error}
+        />
 
-      <Separator />
+        {isAdmin && (
+          <div className="mt-6 border-t border-border pt-4">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              Delete Route
+            </Button>
+          </div>
+        )}
+      </div>
 
       <MaintainerPanel
         routeId={id}

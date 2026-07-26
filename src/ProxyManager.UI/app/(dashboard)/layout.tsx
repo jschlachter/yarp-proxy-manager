@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { getSession } from "@/lib/auth";
-import { MODULE_REGISTRY } from "@/lib/modules";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SidebarNav } from "@/components/SidebarNav";
+import { WaypointsIcon } from "lucide-react";
 
 export default async function DashboardLayout({
   children,
@@ -11,36 +11,43 @@ export default async function DashboardLayout({
 }) {
   const headersList = await headers();
   const session = getSession(headersList);
-
-  const enabledModules = MODULE_REGISTRY.filter((m) => m.enabled);
+  const userName = session.name || "Unknown user";
+  const initials = userName
+    .split(/\s+/)
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="flex h-full min-h-screen">
-      <aside className="w-60 shrink-0 border-r bg-sidebar flex flex-col">
-        <div className="px-4 py-4 border-b">
-          <span className="font-semibold text-sm text-sidebar-foreground">
-            Proxy Manager
+      <aside className="w-64 shrink-0 border-r border-sidebar-border bg-sidebar/70 backdrop-blur-xl flex flex-col">
+        <div className="px-4 py-5 flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl brand-gradient shadow-lg shadow-primary/25">
+            <WaypointsIcon className="h-5 w-5 text-primary-foreground" />
           </span>
+          <div className="flex flex-col leading-tight">
+            <span className="font-semibold text-sm text-sidebar-foreground">
+              Proxy Manager
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              Route control
+            </span>
+          </div>
         </div>
-        <nav className="flex-1 px-2 py-4 space-y-1">
-          {enabledModules.map((mod) => {
-            const Icon = mod.icon;
-            return (
-              <Link
-                key={mod.href}
-                href={mod.href}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {mod.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="px-4 py-3 border-t flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground truncate">
-            {session.name || "Unknown user"}
-          </span>
+
+        <SidebarNav />
+
+        <div className="mx-3 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/40 px-3 py-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg brand-gradient text-xs font-semibold text-primary-foreground">
+              {initials || "?"}
+            </span>
+            <span className="text-xs font-medium text-sidebar-foreground truncate">
+              {userName}
+            </span>
+          </div>
           <ThemeToggle />
         </div>
       </aside>

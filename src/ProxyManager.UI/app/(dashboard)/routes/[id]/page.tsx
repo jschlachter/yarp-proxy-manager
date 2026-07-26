@@ -12,7 +12,7 @@ export default async function RouteDetailPage({
   const session = getSession(headersList);
 
   return (
-    <div className="p-6 max-w-xl space-y-6">
+    <div className="mx-auto max-w-2xl p-6 sm:p-8">
       <RouteDetailClient id={id} isAdmin={session.isAdmin} />
     </div>
   );

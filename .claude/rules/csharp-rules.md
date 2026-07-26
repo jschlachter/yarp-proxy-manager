@@ -3,9 +3,20 @@ paths:
   - "src/**/*.cs"
 ---
 
-## C# Conventions
+This document provides guidance for working with code in the Yarp Proxy Manager project.
 
-Follow [Microsoft's C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and the [.NET Runtime coding style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).
+if you are not sure do not guess, just ask for clarification.
+Don't just copy code that follow the same pattern in a difference context.
+Don't rely just on names to guess its function, evaluate the code based on the implementation and usage.
+
+## Code Style
+
+- Follow [Microsoft's C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and the [.NET Runtime coding style](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).
+- Use the rules defined in the .editorconfig file in the root of the repository for any ambiguous cases
+- Write code that is clean, maintainable, and easy to understand
+- Favor readability over brevity, but keep methods focused and concise
+- **Prefer minimal comments** - The code should be self-explanatory. Add comments sparingly and only to explain *why* a non-intuitive solution was necessary, not *what* the code does. Comments are appropriate for complex logic, public APIs, or domain-specific implementations where context would otherwise be unclear. Use `Check.DebugAssert` instead of a comment if possible.
+
 
 ### Naming
 - `PascalCase` for types, methods, properties, events, constants, and public fields

@@ -1,5 +1,6 @@
 export interface UserSession {
   userId: string;
+  name: string;
   groups: string[];
   isAdmin: boolean;
   accessToken: string;

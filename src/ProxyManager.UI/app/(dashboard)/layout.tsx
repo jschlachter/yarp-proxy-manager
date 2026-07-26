@@ -39,7 +39,7 @@ export default async function DashboardLayout({
         </nav>
         <div className="px-4 py-3 border-t flex items-center justify-between gap-2">
           <span className="text-xs text-muted-foreground truncate">
-            {session.userId || "Unknown user"}
+            {session.name || "Unknown user"}
           </span>
           <ThemeToggle />
         </div>

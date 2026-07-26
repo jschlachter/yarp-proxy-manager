@@ -22,7 +22,8 @@
           { "BearerToken": "access_token" },
           { "RequestHeaderRemove": "Cookie" },
           { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
-          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" }
+          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" },
+          { "ClaimHeader": "X-Auth-Name", "Claim": "name" }
         ]
       },
       "ui-route": {
@@ -35,7 +36,8 @@
         "Transforms": [
           { "RequestHeaderRemove": "Cookie" },
           { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
-          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" }
+          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" },
+          { "ClaimHeader": "X-Auth-Name", "Claim": "name" }
         ]
       }
     },

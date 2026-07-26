@@ -19,6 +19,18 @@ export interface ProxyHost {
   certificate?: ProxyCertificate;
 }
 
+export type CertificateFormat = "PFX" | "PEM";
+
+export interface Certificate {
+  id: string;
+  friendlyName: string;
+  format: CertificateFormat;
+  certificateFileName: string;
+  keyFileName?: string;
+  hasPassphrase: boolean;
+  uploadedAt: string;
+}
+
 /** @future — pending ProxyManager API implementation */
 export interface MaintainerAssignment {
   proxyHostId: string;

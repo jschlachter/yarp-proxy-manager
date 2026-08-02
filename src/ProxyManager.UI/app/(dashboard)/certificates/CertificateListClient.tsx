@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { TriangleAlertIcon } from "lucide-react";
-import { certificateStore } from "@/lib/certificate-store";
 import CertificateList from "@/components/certificates/CertificateList";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,30 +12,66 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { Certificate } from "@/types";
 
 interface CertificateListClientProps {
   isAdmin: boolean;
 }
 
 export default function CertificateListClient({ isAdmin }: CertificateListClientProps) {
-  const certificates = useSyncExternalStore(
-    certificateStore.subscribe,
-    certificateStore.getSnapshot,
-    certificateStore.getSnapshot
-  );
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  const pendingCertificate = pendingDeleteId
-    ? certificateStore.getById(pendingDeleteId)
-    : undefined;
-
-  function handleConfirmDelete() {
-    if (pendingDeleteId) certificateStore.remove(pendingDeleteId);
-    setPendingDeleteId(null);
+  async function refresh() {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/manage/api/certificates");
+      if (response.ok) {
+        const data = (await response.json()) as { items: Certificate[] };
+        setCertificates(data.items);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const pendingCertificate = pendingDeleteId
+    ? certificates.find((cert) => cert.id === pendingDeleteId)
+    : undefined;
+  const [deleteError, setDeleteError] = useState<string | undefined>();
+
+  async function handleConfirmDelete() {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    setDeleteError(undefined);
+    const response = await fetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      setDeleteError("Failed to delete certificate");
+      return;
+    }
+    await refresh();
+  }
+
+  if (isLoading) return null;
 
   return (
     <>
+      {deleteError && (
+        <div
+          role="alert"
+          className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          {deleteError}
+        </div>
+      )}
       <CertificateList
         certificates={certificates}
         isAdmin={isAdmin}
@@ -53,7 +88,7 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
               <DialogTitle>Delete Certificate</DialogTitle>
             </div>
             <DialogDescription>
-              Are you sure you want to delete &ldquo;{pendingCertificate?.friendlyName}&rdquo;? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{pendingCertificate?.name}&rdquo;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

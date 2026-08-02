@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import type { ProxyHost } from "@/types";
 import type { CreateRouteRequest, UpdateRouteRequest } from "@/lib/proxy-manager-client";
 
-type RouteFormPayload = CreateRouteRequest & UpdateRouteRequest;
+export type RouteFormPayload = CreateRouteRequest & UpdateRouteRequest;
 
 interface RouteFormProps {
   initialData?: ProxyHost;

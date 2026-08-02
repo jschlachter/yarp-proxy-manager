@@ -2,7 +2,7 @@
 
 - **Template loaded from:** `implement-plan/assets/progress-tracker-template.md`
 - **Plan:** `docs/files-service-plan.md`
-- **Status:** In progress (Phase 0-2 complete; Phase 3 next)
+- **Status:** In progress (Phase 0-5 complete; Phase 6 in progress — see `docs/files-service-phase6-progress.md`)
 - **Updated:** 2026-07-26
 
 `Complete` = all rows `Verified` or user-approved `Descoped` + validation passed + final review `Clear` + nothing material open.
@@ -31,10 +31,10 @@ This file is the running checklist across sessions for the full 7-phase plan in 
 | T13 | Key-scheme helpers (`staging/{uploadId}/{filename}`, `{assetType}/{assetId}/{filename}`), filename sanitization, assetType allowlist | T10 | Verified | 14 unit tests pass | src/ProxyManager.Files/Assets/AssetKeyBuilder.cs; tests/.../Unit/AssetKeyBuilderTests.cs |
 | T14 | EF migration generated in `files` schema; DB bootstrap hosted service (mirrors `DatabaseMigrationService`) | T09,T11 | Verified | applied live to shared dev Postgres | Data/Migrations/20260726202028_InitialCreate.cs; Services/FilesDatabaseMigrationService.cs |
 | T15 | Unit tests for sanitization/key scheme; migration apply test | T12,T13,T14 | Verified | 19 unit + 2 integration tests pass | tests/ProxyManager.Files.Tests (Unit/, Integration/FilesDbContextMigrationTests.cs) |
-| **Phase 3 — HTTP contract** | plan lines 152–208 | Phase 2 | Pending | Integration test uploads/commits/downloads against RustFS | |
-| **Phase 4 — Certificate integration** | plan lines 212–281 | Phase 3 | Pending | Cert create/delete round-trips end to end | |
-| **Phase 5 — Deployment** | plan lines 285–294 | Phase 4 | Pending | `deploy-vm.sh` brings the full stack up | |
-| **Phase 6 — UI** | plan lines 298–306 | Phase 5 | Pending | Real upload works in the browser | |
+| **Phase 3 — HTTP contract** | plan lines 152–208 | Phase 2 | Verified | Integration test uploads/commits/downloads against RustFS | see `docs/files-service-phase3-progress.md` |
+| **Phase 4 — Certificate integration** | plan lines 212–281 | Phase 3 | Verified | Cert create/delete round-trips end to end | see `docs/files-service-phase4-progress.md` |
+| **Phase 5 — Deployment** | plan lines 285–294 | Phase 4 | Verified | `deploy-vm.sh` brings the full stack up | see `docs/files-service-phase5-progress.md` |
+| **Phase 6 — UI** | plan lines 298–306 | Phase 5 | Partial | Real upload works in the browser | see `docs/files-service-phase6-progress.md` — implementation/review done; e2e execution and full `npm run build` blocked on a user decision |
 | **Phase 7 — Tests** (lands with the phase it covers, not standalone) | plan lines 310–315 | rolling | Pending | | |
 
 ## Loop log

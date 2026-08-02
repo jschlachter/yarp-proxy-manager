@@ -65,6 +65,7 @@ try
         // TODO: https://wolverinefx.net/guide/migration#:~:text=the%20using%20directive.-,ServiceLocationPolicy,-.NotAllowed%20is%20the
         // This is required to allow Wolverine to resolve the DbContext from DI when publishing messages.
         opts.CodeGeneration.AlwaysUseServiceLocationFor<ProxyManagerDbContext>();
+        opts.CodeGeneration.AlwaysUseServiceLocationFor<IFileAssetClient>();
         
         if (rabbitEnabled)
         {

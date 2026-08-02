@@ -13,6 +13,7 @@ using West94.ProxyManager.Files.Endpoints;
 using West94.ProxyManager.Files.Infrastructure;
 using West94.ProxyManager.Files.Options;
 using West94.ProxyManager.Files.Services;
+using West94.ProxyManager.Files.Data;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -60,6 +61,9 @@ try
 
     builder.Host.UseWolverine(opts =>
     {
+        opts.CodeGeneration.AlwaysUseServiceLocationFor<FilesDbContext>();
+
+
         if (rabbitEnabled)
         {
             opts.AddRabbitMqTransport(builder.Configuration)

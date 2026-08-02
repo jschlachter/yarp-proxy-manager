@@ -6,29 +6,49 @@ export interface UserSession {
   accessToken: string;
 }
 
-export interface ProxyCertificate {
-  certificatePath: string;
-  keyPath?: string;
-}
-
 export interface ProxyHost {
   id: string;
   domainNames: string[];
   destination: string;
   isEnabled: boolean;
-  certificate?: ProxyCertificate;
+  certificateId?: string;
 }
 
-export type CertificateFormat = "PFX" | "PEM";
+/** Server round-trips `Enum.ToString()` — "Pfx" | "Pem", not "PFX" | "PEM". */
+export type CertificateFormat = "Pfx" | "Pem";
 
 export interface Certificate {
   id: string;
-  friendlyName: string;
+  name: string;
   format: CertificateFormat;
+  certificateAssetId: string;
+  keyAssetId?: string;
   certificateFileName: string;
   keyFileName?: string;
-  hasPassphrase: boolean;
-  uploadedAt: string;
+  subject: string;
+  subjectAlternativeNames: string[];
+  notBefore: string;
+  notAfter: string;
+  thumbprint: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FileAssetStatus = "Staged" | "Committed" | "Deleted";
+
+export interface FileAsset {
+  id: string;
+  assetType: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  sha256: string;
+  status: FileAssetStatus;
+  ownerType?: string;
+  ownerId?: string;
+  uploadedBy: string;
+  createdAt: string;
+  committedAt?: string;
 }
 
 /** @future — pending ProxyManager API implementation */

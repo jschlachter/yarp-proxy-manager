@@ -11,6 +11,8 @@ public static class WolverineOptionsExtensions
 {
     public static RabbitMqTransportExpression AddRabbitMqTransport(this WolverineOptions opts, IConfiguration configuration)
     {
+        
+
         var section = configuration.GetSection(RabbitMqOptions.Section);
         var options = section.Get<RabbitMqOptions>()
             ?? throw new InvalidOperationException(

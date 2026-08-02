@@ -5,25 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Certificate, CertificateFormat } from "@/types";
-import type { CertificateInput } from "@/lib/certificate-store";
+
+export interface CreateCertificatePayload {
+  name: string;
+  format: CertificateFormat;
+  certificateFile: File;
+  keyFile?: File;
+  passPhrase?: string;
+}
+
+export interface UpdateCertificatePayload {
+  name: string;
+  passPhrase?: string;
+}
 
 interface CertificateFormProps {
   initialData?: Certificate;
-  onSubmit: (payload: CertificateInput) => void;
+  onSubmit: (payload: CreateCertificatePayload | UpdateCertificatePayload) => void;
   readOnly?: boolean;
   submitLabel?: string;
   error?: string;
+  isSubmitting?: boolean;
+  submittingLabel?: string;
 }
 
 interface FormErrors {
-  friendlyName?: string;
+  name?: string;
   certificateFile?: string;
 }
 
 const ACCEPT_BY_FORMAT: Record<CertificateFormat, string> = {
-  PFX: ".pfx,.p12",
-  PEM: ".pem,.crt,.cer",
+  Pfx: ".pfx,.p12",
+  Pem: ".pem,.crt,.cer",
 };
+
+const FORMAT_LABEL: Record<CertificateFormat, string> = {
+  Pfx: "PFX (PKCS#12, bundled certificate + key)",
+  Pem: "PEM (separate certificate and key files)",
+};
+
+function isExpired(certificate: Certificate): boolean {
+  return new Date(certificate.notAfter).getTime() < Date.now();
+}
 
 export default function CertificateForm({
   initialData,
@@ -31,19 +54,22 @@ export default function CertificateForm({
   readOnly = false,
   submitLabel = initialData ? "Save Changes" : "Upload Certificate",
   error,
+  isSubmitting = false,
+  submittingLabel,
 }: CertificateFormProps) {
-  const [friendlyName, setFriendlyName] = useState(initialData?.friendlyName ?? "");
-  const [format, setFormat] = useState<CertificateFormat>(initialData?.format ?? "PFX");
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [format, setFormat] = useState<CertificateFormat>(initialData?.format ?? "Pfx");
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [passphrase, setPassphrase] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isReplacingFiles, setIsReplacingFiles] = useState(!initialData);
+
+  const isEdit = !!initialData;
 
   function validate(): FormErrors {
     const errs: FormErrors = {};
-    if (!friendlyName.trim()) errs.friendlyName = "Friendly name is required";
-    if (!certificateFile && !initialData?.certificateFileName) {
+    if (!name.trim()) errs.name = "Name is required";
+    if (!isEdit && !certificateFile) {
       errs.certificateFile = "A certificate file is required";
     }
     return errs;
@@ -57,38 +83,52 @@ export default function CertificateForm({
       return;
     }
     setErrors({});
+
+    if (isEdit) {
+      onSubmit({
+        name: name.trim(),
+        passPhrase: passphrase.trim() || undefined,
+      });
+      return;
+    }
+
     onSubmit({
-      friendlyName: friendlyName.trim(),
+      name: name.trim(),
       format,
-      certificateFileName: certificateFile?.name ?? initialData?.certificateFileName ?? "",
-      keyFileName: format === "PEM" ? keyFile?.name ?? initialData?.keyFileName : undefined,
-      hasPassphrase: passphrase.trim().length > 0 || (initialData?.hasPassphrase ?? false),
+      certificateFile: certificateFile!,
+      keyFile: format === "Pem" ? keyFile ?? undefined : undefined,
+      passPhrase: passphrase.trim() || undefined,
     });
   }
 
   function handleFormatChange(next: CertificateFormat) {
     setFormat(next);
-    if (next === "PFX") setKeyFile(null);
-  }
-
-  function handleCancelReplaceFiles() {
-    setCertificateFile(null);
-    setKeyFile(null);
-    setErrors((prev) => ({ ...prev, certificateFile: undefined }));
-    setIsReplacingFiles(false);
+    if (next === "Pfx") setKeyFile(null);
   }
 
   if (readOnly && initialData) {
     return (
       <div className="space-y-4">
         <div>
-          <Label>Friendly Name</Label>
-          <p className="mt-1 text-sm">{initialData.friendlyName}</p>
+          <Label>Name</Label>
+          <p className="mt-1 text-sm">{initialData.name}</p>
         </div>
         <div>
           <Label>Format</Label>
-          <p className="mt-1 text-sm">{initialData.format}</p>
+          <p className="mt-1 text-sm">{initialData.format === "Pfx" ? "PFX" : "PEM"}</p>
         </div>
+        <div>
+          <Label>Subject</Label>
+          <p className="mt-1 text-sm font-mono">{initialData.subject}</p>
+        </div>
+        {initialData.subjectAlternativeNames.length > 0 && (
+          <div>
+            <Label>Subject Alternative Names</Label>
+            <p className="mt-1 text-sm font-mono">
+              {initialData.subjectAlternativeNames.join(", ")}
+            </p>
+          </div>
+        )}
         <div>
           <Label>Certificate File</Label>
           <p className="mt-1 text-sm font-mono">{initialData.certificateFileName}</p>
@@ -100,8 +140,12 @@ export default function CertificateForm({
           </div>
         )}
         <div>
-          <Label>Passphrase</Label>
-          <p className="mt-1 text-sm">{initialData.hasPassphrase ? "Protected" : "None"}</p>
+          <Label>Valid</Label>
+          <p className={`mt-1 text-sm ${isExpired(initialData) ? "text-destructive" : ""}`}>
+            {new Date(initialData.notBefore).toLocaleDateString()} –{" "}
+            {new Date(initialData.notAfter).toLocaleDateString()}
+            {isExpired(initialData) && " (expired)"}
+          </p>
         </div>
       </div>
     );
@@ -115,64 +159,47 @@ export default function CertificateForm({
         </div>
       )}
 
+      {isEdit && initialData && isExpired(initialData) && (
+        <div role="alert" className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
+          This certificate expired on {new Date(initialData.notAfter).toLocaleDateString()}.
+        </div>
+      )}
+
       <div className="space-y-1.5">
-        <Label htmlFor="friendlyName">Friendly Name</Label>
+        <Label htmlFor="name">Name</Label>
         <Input
-          id="friendlyName"
-          value={friendlyName}
-          onChange={(e) => setFriendlyName(e.target.value)}
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Wildcard – *.example.com"
-          aria-invalid={!!errors.friendlyName}
-          aria-describedby={errors.friendlyName ? "friendlyname-error" : undefined}
+          aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? "name-error" : undefined}
         />
         <p className="text-xs text-muted-foreground">
           A short description to help identify this certificate&apos;s purpose
         </p>
-        {errors.friendlyName && (
-          <p id="friendlyname-error" role="alert" className="text-sm text-destructive">
-            {errors.friendlyName}
+        {errors.name && (
+          <p id="name-error" role="alert" className="text-sm text-destructive">
+            {errors.name}
           </p>
         )}
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="format">Format</Label>
-        <select
-          id="format"
-          value={format}
-          onChange={(e) => handleFormatChange(e.target.value as CertificateFormat)}
-          className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-        >
-          <option value="PFX">PFX (PKCS#12, bundled certificate + key)</option>
-          <option value="PEM">PEM (separate certificate and key files)</option>
-        </select>
-      </div>
-
-      {initialData && !isReplacingFiles ? (
-        <div className="space-y-1.5">
-          <Label>Certificate Files</Label>
-          <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-input bg-muted/30 px-2.5 py-2">
-            <span className="rounded-md border border-border/60 bg-muted/60 px-2 py-0.5 text-xs font-mono text-foreground/80">
-              {initialData.certificateFileName}
-            </span>
-            {initialData.keyFileName && (
-              <span className="rounded-md border border-border/60 bg-muted/60 px-2 py-0.5 text-xs font-mono text-foreground/80">
-                {initialData.keyFileName}
-              </span>
-            )}
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="ml-auto h-auto p-0 text-xs"
-              onClick={() => setIsReplacingFiles(true)}
-            >
-              Replace files
-            </Button>
-          </div>
-        </div>
-      ) : (
+      {!isEdit && (
         <>
+          <div className="space-y-1.5">
+            <Label htmlFor="format">Format</Label>
+            <select
+              id="format"
+              value={format}
+              onChange={(e) => handleFormatChange(e.target.value as CertificateFormat)}
+              className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            >
+              <option value="Pfx">{FORMAT_LABEL.Pfx}</option>
+              <option value="Pem">{FORMAT_LABEL.Pem}</option>
+            </select>
+          </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="certificateFile">Certificate File</Label>
             <Input
@@ -190,7 +217,7 @@ export default function CertificateForm({
             )}
           </div>
 
-          {format === "PEM" && (
+          {format === "Pem" && (
             <div className="space-y-1.5">
               <Label htmlFor="keyFile">Key File (optional)</Label>
               <Input
@@ -200,18 +227,6 @@ export default function CertificateForm({
                 onChange={(e) => setKeyFile(e.target.files?.[0] ?? null)}
               />
             </div>
-          )}
-
-          {initialData && (
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto p-0 text-xs"
-              onClick={handleCancelReplaceFiles}
-            >
-              Cancel
-            </Button>
           )}
         </>
       )}
@@ -223,7 +238,7 @@ export default function CertificateForm({
           type="password"
           value={passphrase}
           onChange={(e) => setPassphrase(e.target.value)}
-          placeholder={initialData?.hasPassphrase ? "Leave blank to keep existing passphrase" : ""}
+          placeholder={isEdit ? "Leave blank to keep existing passphrase" : ""}
           autoComplete="new-password"
         />
         <p className="text-xs text-muted-foreground">
@@ -231,7 +246,9 @@ export default function CertificateForm({
         </p>
       </div>
 
-      <Button type="submit">{submitLabel}</Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? submittingLabel ?? "Working…" : submitLabel}
+      </Button>
     </form>
   );
 }

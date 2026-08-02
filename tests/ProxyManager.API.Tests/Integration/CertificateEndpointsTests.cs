@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 using West94.ProxyManager.API.Tests.Helpers;
+using West94.ProxyManager.API.Tests.Unit.Fakes;
 using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 using West94.ProxyManager.Core.DTOs;
@@ -28,7 +29,8 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     private async Task<Guid> SeedCertAsync(string name = "integration-cert")
     {
         var repo = _factory.Services.GetRequiredService<ICertificateRepository>();
-        var cert = Certificate.Create(name, CertificateFormat.Pem, $"/certs/{name}.pem");
+        var subject = new CertificateSubjectInfo("CN=test", ["test.example.com"], DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1), "ABCDEF0123456789");
+        var cert = Certificate.Create(name, CertificateFormat.Pem, Guid.NewGuid(), null, $"{name}.pem", null, null, subject);
         await repo.AddAsync(cert);
         return cert.Id;
     }
@@ -87,15 +89,34 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
 
     // --- POST /certificates ---
 
+    private (Guid CertAssetId, Guid KeyAssetId) SeedPemAssets()
+    {
+        var (certPem, keyPem) = TestCertificateGenerator.CreatePemPair();
+        var certAssetId = Guid.NewGuid();
+        var keyAssetId = Guid.NewGuid();
+        _factory.FilesClient.Seed(certAssetId, "new.pem", certPem);
+        _factory.FilesClient.Seed(keyAssetId, "new.key", keyPem);
+        return (certAssetId, keyAssetId);
+    }
+
+    private Guid SeedPfxAsset(string? passPhrase = null)
+    {
+        var pfxBytes = TestCertificateGenerator.CreatePfx(password: passPhrase);
+        var certAssetId = Guid.NewGuid();
+        _factory.FilesClient.Seed(certAssetId, "new.pfx", pfxBytes);
+        return certAssetId;
+    }
+
     [Fact]
     public async Task CreateCertificate_ValidPemBody_Returns201WithLocationHeader()
     {
+        var (certAssetId, keyAssetId) = SeedPemAssets();
         var body = new
         {
             name = "new-pem-cert",
             format = "Pem",
-            certificatePath = "/certs/new.pem",
-            keyFilePath = "/certs/new.key"
+            certificateAssetId = certAssetId,
+            keyAssetId
         };
 
         var response = await _client.PostAsJsonAsync("/certificates", body);
@@ -113,11 +134,12 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task CreateCertificate_ValidPfxBody_Returns201()
     {
+        var certAssetId = SeedPfxAsset("secret");
         var body = new
         {
             name = "new-pfx-cert",
             format = "Pfx",
-            certificatePath = "/certs/new.pfx",
+            certificateAssetId = certAssetId,
             passPhrase = "secret"
         };
 
@@ -127,14 +149,15 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task CreateCertificate_PfxWithKeyFilePath_Returns400()
+    public async Task CreateCertificate_PfxWithKeyAssetId_Returns400()
     {
+        var (certAssetId, keyAssetId) = SeedPemAssets();
         var body = new
         {
             name = "bad-pfx",
             format = "Pfx",
-            certificatePath = "/certs/bad.pfx",
-            keyFilePath = "/certs/bad.key"
+            certificateAssetId = certAssetId,
+            keyAssetId
         };
 
         var response = await _client.PostAsJsonAsync("/certificates", body);
@@ -143,9 +166,9 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task CreateCertificate_MissingCertificatePath_Returns400()
+    public async Task CreateCertificate_MissingCertificateAssetId_Returns400()
     {
-        var body = new { name = "no-path", format = "Pem" };
+        var body = new { name = "no-asset", format = "Pem" };
 
         var response = await _client.PostAsJsonAsync("/certificates", body);
 
@@ -155,7 +178,8 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task CreateCertificate_InvalidFormat_Returns400()
     {
-        var body = new { name = "bad-format", format = "DER", certificatePath = "/certs/cert.der" };
+        var certAssetId = SeedPfxAsset();
+        var body = new { name = "bad-format", format = "DER", certificateAssetId = certAssetId };
 
         var response = await _client.PostAsJsonAsync("/certificates", body);
 
@@ -166,7 +190,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     public async Task CreateCertificate_WithoutToken_Returns401()
     {
         using var anonClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var body = new { name = "noauth", format = "Pem", certificatePath = "/certs/cert.pem" };
+        var body = new { name = "noauth", format = "Pem", certificateAssetId = Guid.NewGuid() };
         var response = await anonClient.PostAsJsonAsync("/certificates", body);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

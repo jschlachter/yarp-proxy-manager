@@ -22,7 +22,7 @@ public class AssignCertificateHandlerTests
     }
 
     private static Certificate MakeCert() =>
-        Certificate.Create("test-cert", CertificateFormat.Pem, "/certs/cert.pem");
+        TestCertificates.Create("test-cert", CertificateFormat.Pem);
 
     [Fact]
     public async Task Handle_AssignValidCert_UpdatesHostCertificateId()

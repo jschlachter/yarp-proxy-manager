@@ -19,15 +19,46 @@ internal sealed class CertificateConfiguration : IEntityTypeConfiguration<Certif
             .HasColumnName("format")
             .IsRequired();
 
-        builder.Property(x => x.CertificatePath)
-            .HasColumnName("certificate_path")
+        builder.Property(x => x.CertificateAssetId)
+            .HasColumnName("certificate_asset_id")
             .IsRequired();
 
-        builder.Property(x => x.KeyFilePath)
-            .HasColumnName("key_file_path");
+        builder.Property(x => x.KeyAssetId)
+            .HasColumnName("key_asset_id");
+
+        builder.Property(x => x.CertificateFileName)
+            .HasColumnName("certificate_file_name")
+            .HasMaxLength(256)
+            .IsRequired();
+
+        builder.Property(x => x.KeyFileName)
+            .HasColumnName("key_file_name")
+            .HasMaxLength(256);
 
         builder.Property(x => x.PassPhrase)
             .HasColumnName("pass_phrase");
+
+        builder.Property(x => x.Subject)
+            .HasColumnName("subject")
+            .IsRequired();
+
+        builder.Property(x => x.SubjectAlternativeNames)
+            .HasColumnName("subject_alternative_names")
+            .HasColumnType("jsonb")
+            .IsRequired();
+
+        builder.Property(x => x.NotBefore)
+            .HasColumnName("not_before")
+            .IsRequired();
+
+        builder.Property(x => x.NotAfter)
+            .HasColumnName("not_after")
+            .IsRequired();
+
+        builder.Property(x => x.Thumbprint)
+            .HasColumnName("thumbprint")
+            .HasMaxLength(64)
+            .IsRequired();
 
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")

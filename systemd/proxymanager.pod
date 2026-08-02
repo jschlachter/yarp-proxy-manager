@@ -1,14 +1,15 @@
 [Unit]
-Description=Proxy Manager Pod (PostgreSQL, Proxy, API)
+Description=Proxy Manager Pod (PostgreSQL, RabbitMQ, RustFS, Proxy, API, Files)
 After=network-online.target
-
-[Container]
-Environment=PORT=${PROXY_MANAGER_PORT:-8443}
 
 [Pod]
 PodName=proxymanager
-PublishPort=$PORT:8443
 Network=proxymanager.network
+PublishPort=8443:8443
+PublishPort=15672:15672
+PublishPort=5672:5672
+PublishPort=9000:9000
+PublishPort=9001:9001
 
 [Install]
 WantedBy=default.target

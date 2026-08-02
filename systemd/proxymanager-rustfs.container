@@ -1,0 +1,24 @@
+[Unit]
+Description=Proxy Manager RustFS Container
+After=network-online.target
+
+[Container]
+Environment=RUSTFS_ADDRESS=:9000
+Environment=RUSTFS_VOLUMES=/data
+Environment=RUSTFS_CONSOLE_ENABLE=true
+Secret=rfs-access-key,type=env,target=RUSTFS_ACCESS_KEY
+Secret=rfs-secret-key,type=env,target=RUSTFS_SECRET_KEY
+
+Image=docker.io/rustfs/rustfs:latest
+ContainerName=proxymanager-rustfs
+Pod=proxymanager.pod
+Volume=%h/proxymanager-rustfs/data:/data:U,z,rw
+
+[Service]
+ExecStartPre=mkdir -p %h/proxymanager-rustfs/data
+Restart=always
+RestartSec=10sec
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

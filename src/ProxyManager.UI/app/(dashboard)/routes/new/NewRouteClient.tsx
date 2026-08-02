@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import RouteForm from "@/components/routes/RouteForm";
-import type { ProxyHost } from "@/types";
-
-type RouteFormPayload = Omit<ProxyHost, "id" | "createdAt" | "updatedAt">;
+import RouteForm, { type RouteFormPayload } from "@/components/routes/RouteForm";
 
 export default function NewRouteClient() {
   const router = useRouter();

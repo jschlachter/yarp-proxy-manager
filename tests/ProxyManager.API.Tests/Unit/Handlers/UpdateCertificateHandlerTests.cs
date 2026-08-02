@@ -12,7 +12,7 @@ public class UpdateCertificateHandlerTests
 {
     private static Certificate SeedCert(FakeCertificateRepository repo, string name = "original-name")
     {
-        var cert = Certificate.Create(name, CertificateFormat.Pem, "/certs/cert.pem");
+        var cert = TestCertificates.Create(name, CertificateFormat.Pem);
         repo.Seed(cert);
         return cert;
     }

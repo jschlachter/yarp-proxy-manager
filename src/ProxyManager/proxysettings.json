@@ -1,6 +1,20 @@
 {
   "ReverseProxy": {
     "Routes": {
+      "filesRoute": {
+        "ClusterId": "filesCluster",
+        "Match": {
+          "Path": "/api/files/{**catch-all}",
+          "Headers": [
+            { "Name": "X-Requested-With", "Values": [ "proxymanager-ui" ], "Mode": "ExactHeader" }
+          ]
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/api" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" }
+        ]
+      },
       "apiRoute": {
         "ClusterId": "apiCluster",
         "Match": {
@@ -67,6 +81,23 @@
           "primary": {
             "Address": "http://proxymanager-ui:3000/"
           }
+        }
+      },
+      "filesCluster": {
+        "Destinations": {
+          "primary": {
+            "Address": "http://proxymanager-files:8080/"
+          }
+        },
+        "HealthCheck": {
+          "Passive": {
+            "Enabled": true,
+            "Policy": "TransportFailureRate",
+            "ReactivationPeriod": "00:01:00"
+          }
+        },
+        "Metadata": {
+          "TransportFailureRateHealthPolicy.RateLimit": "0.5"
         }
       }
     }

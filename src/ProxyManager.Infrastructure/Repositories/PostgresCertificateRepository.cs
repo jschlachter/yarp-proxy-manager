@@ -50,16 +50,25 @@ public sealed class PostgresCertificateRepository(ProxyManagerDbContext db) : IC
 
     private static Certificate ToDomain(CertificateRecord r) =>
         Certificate.Reconstitute(r.Id, r.Name, (CertificateFormat)r.Format,
-            r.CertificatePath, r.KeyFilePath, r.PassPhrase, r.CreatedAt, r.UpdatedAt);
+            r.CertificateAssetId, r.KeyAssetId, r.CertificateFileName, r.KeyFileName, r.PassPhrase,
+            new CertificateSubjectInfo(r.Subject, r.SubjectAlternativeNames, r.NotBefore, r.NotAfter, r.Thumbprint),
+            r.CreatedAt, r.UpdatedAt);
 
     private static CertificateRecord ToRecord(Certificate c) => new()
     {
         Id = c.Id,
         Name = c.Name,
         Format = (int)c.Format,
-        CertificatePath = c.CertificatePath,
-        KeyFilePath = c.KeyFilePath,
+        CertificateAssetId = c.CertificateAssetId,
+        KeyAssetId = c.KeyAssetId,
+        CertificateFileName = c.CertificateFileName,
+        KeyFileName = c.KeyFileName,
         PassPhrase = c.PassPhrase,
+        Subject = c.Subject.Subject,
+        SubjectAlternativeNames = c.Subject.SubjectAlternativeNames.ToList(),
+        NotBefore = c.Subject.NotBefore,
+        NotAfter = c.Subject.NotAfter,
+        Thumbprint = c.Subject.Thumbprint,
         CreatedAt = c.CreatedAt,
         UpdatedAt = c.UpdatedAt
     };

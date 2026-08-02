@@ -1,13 +1,29 @@
 {
   "ReverseProxy": {
     "Routes": {
+      "filesRoute": {
+        "ClusterId": "filesCluster",
+        "Match": {
+          "Path": "/api/files/{**catch-all}",
+          "Headers": [
+            { "Name": "X-Requested-With", "Values": [ "proxymanager-ui" ], "Mode": "ExactHeader" }
+          ]
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/api" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" }
+        ]
+      },
       "apiRoute": {
         "ClusterId": "apiCluster",
         "Match": {
           "Path": "/api/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/api" }
+          { "PathRemovePrefix": "/api" },
+          { "BearerToken": "access_token" },
+          { "RequestHeaderRemove": "Cookie" }
         ]
       },
       "ui-api-route": {
@@ -62,8 +78,25 @@
       "ui-cluster": {
         "Destinations": {
           "local": {
-            "Address": "http://localhost:3001/"
+            "Address": "http://localhost:3000/"
           }
+        }
+      },
+      "filesCluster": {
+        "Destinations": {
+          "local": {
+            "Address": "https://localhost:5002/"
+          }
+        },
+        "HealthCheck": {
+          "Passive": {
+            "Enabled": true,
+            "Policy": "TransportFailureRate",
+            "ReactivationPeriod": "00:01:00"
+          }
+        },
+        "Metadata": {
+          "TransportFailureRateHealthPolicy.RateLimit": "0.5"
         }
       }
     }

@@ -18,7 +18,7 @@ namespace ProxyManager.Infrastructure.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.4")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -69,10 +69,15 @@ namespace ProxyManager.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CertificatePath")
+                    b.Property<Guid>("CertificateAssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certificate_asset_id");
+
+                    b.Property<string>("CertificateFileName")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("certificate_path");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("certificate_file_name");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -82,9 +87,14 @@ namespace ProxyManager.Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("format");
 
-                    b.Property<string>("KeyFilePath")
-                        .HasColumnType("text")
-                        .HasColumnName("key_file_path");
+                    b.Property<Guid?>("KeyAssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("key_asset_id");
+
+                    b.Property<string>("KeyFileName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("key_file_name");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -92,9 +102,33 @@ namespace ProxyManager.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("name");
 
+                    b.Property<DateTimeOffset>("NotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_after");
+
+                    b.Property<DateTimeOffset>("NotBefore")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_before");
+
                     b.Property<string>("PassPhrase")
                         .HasColumnType("text")
                         .HasColumnName("pass_phrase");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("subject");
+
+                    b.PrimitiveCollection<string>("SubjectAlternativeNames")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("subject_alternative_names");
+
+                    b.Property<string>("Thumbprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("thumbprint");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")

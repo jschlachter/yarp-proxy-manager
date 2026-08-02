@@ -79,12 +79,13 @@ fi
 
 echo "==> Copying config files..."
 ssh_exec mkdir -p "$REMOTE_CONFIG_DIR"
-if compgen -G "$REPO_ROOT/proxysettings.*.json" > /dev/null 2>&1; then
-    for f in "$REPO_ROOT/proxysettings.*.json"; do
+PROXYSETTINGS_DIR="$REPO_ROOT/src/ProxyManager"
+if compgen -G "$PROXYSETTINGS_DIR"/proxysettings.*.json > /dev/null 2>&1; then
+    for f in "$PROXYSETTINGS_DIR"/proxysettings.*.json; do
         [ -f "$f" ] && copy_file "$f" "$REMOTE_CONFIG_DIR"
     done
 else
-    echo "    No config files found in config/ — skipping."
+    echo "    No config files found in src/ProxyManager/ — skipping."
 fi
 
 echo
@@ -96,5 +97,5 @@ echo "==> Units available in the VM:"
 ssh_exec systemctl --user list-unit-files "proxymanager*" --no-legend 2>/dev/null || true
 
 echo
-echo "==> Done! To start the pod, run:"
-echo "    podman pod start pod-proxymanager.service"
+echo "==> Done! To start the pod (and its member services) plus the UI, run:"
+echo "    systemctl --user start proxymanager-pod.service proxymanager-ui.service"

@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
-import CertificateForm from "@/components/certificates/CertificateForm";
-import { certificateStore, type CertificateInput } from "@/lib/certificate-store";
+import CertificateForm, {
+  type CreateCertificatePayload,
+  type UpdateCertificatePayload,
+} from "@/components/certificates/CertificateForm";
+import type { Certificate, ProblemDetails } from "@/types";
 
 interface CertificateDetailClientProps {
   id: string;
@@ -14,25 +17,58 @@ interface CertificateDetailClientProps {
 
 export default function CertificateDetailClient({ id, isAdmin }: CertificateDetailClientProps) {
   const router = useRouter();
-  const certificates = useSyncExternalStore(
-    certificateStore.subscribe,
-    certificateStore.getSnapshot,
-    certificateStore.getSnapshot
-  );
-  const certificate = certificates.find((cert) => cert.id === id);
+  const [certificate, setCertificate] = useState<Certificate | null | undefined>(undefined);
   const [error, setError] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!certificate) {
+    let cancelled = false;
+    fetch(`/manage/api/certificates/${encodeURIComponent(id)}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          if (!cancelled) setCertificate(null);
+          return;
+        }
+        const data = (await response.json()) as Certificate;
+        if (!cancelled) setCertificate(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCertificate(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (certificate === null) {
       router.replace("/certificates");
     }
   }, [certificate, router]);
 
-  function handleSubmit(payload: CertificateInput) {
+  async function handleSubmit(payload: CreateCertificatePayload | UpdateCertificatePayload) {
+    if ("certificateFile" in payload) return;
+
     setError(undefined);
-    const updated = certificateStore.update(id, payload);
-    if (!updated) {
-      setError("Failed to update certificate");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const problem = (await response.json()) as ProblemDetails;
+        throw new Error(problem.detail || "Failed to update certificate");
+      }
+
+      const updated = (await response.json()) as Certificate;
+      setCertificate(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update certificate");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -48,9 +84,7 @@ export default function CertificateDetailClient({ id, isAdmin }: CertificateDeta
         Back to certificates
       </Link>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-gradient">
-          {certificate.friendlyName}
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight text-gradient">{certificate.name}</h1>
         <p className="text-sm text-muted-foreground font-mono">
           {certificate.certificateFileName}
         </p>
@@ -63,6 +97,7 @@ export default function CertificateDetailClient({ id, isAdmin }: CertificateDeta
           readOnly={!isAdmin}
           submitLabel="Save Changes"
           error={error}
+          isSubmitting={isSubmitting}
         />
       </div>
     </div>

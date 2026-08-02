@@ -11,20 +11,22 @@ interface CertificateCardProps {
 }
 
 export default function CertificateCard({ certificate, isAdmin, onDelete }: CertificateCardProps) {
+  const expired = new Date(certificate.notAfter).getTime() < Date.now();
+
   return (
     <div className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card/80 p-4 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
       <span className="absolute inset-y-0 left-0 w-1 brand-gradient opacity-100" />
       <div className="min-w-0 flex-1 space-y-2 pl-2">
         <div className="flex items-center gap-2.5">
           <span className="font-semibold tracking-tight truncate">
-            {certificate.friendlyName}
+            {certificate.name}
           </span>
           <Badge variant="outline" className="gap-1.5 border-transparent bg-primary/10 text-primary">
-            {certificate.format}
+            {certificate.format === "Pfx" ? "PFX" : "PEM"}
           </Badge>
-          {certificate.hasPassphrase && (
-            <Badge variant="outline" className="border-transparent bg-muted text-muted-foreground">
-              Passphrase protected
+          {expired && (
+            <Badge variant="outline" className="border-transparent bg-destructive/10 text-destructive">
+              Expired
             </Badge>
           )}
         </div>
@@ -39,7 +41,7 @@ export default function CertificateCard({ certificate, isAdmin, onDelete }: Cert
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Uploaded {new Date(certificate.uploadedAt).toLocaleDateString()}
+          Valid until {new Date(certificate.notAfter).toLocaleDateString()}
         </p>
       </div>
       {isAdmin && (

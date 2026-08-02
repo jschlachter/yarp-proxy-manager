@@ -6,6 +6,7 @@ using West94.ProxyManager.Files.Validation;
 
 namespace West94.ProxyManager.Files.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public sealed class FileAssetServiceDeleteByOwnerTests
 {
     private static FileAssetService CreateService(FakeFileAssetRepository repo, FakeObjectStore store) =>

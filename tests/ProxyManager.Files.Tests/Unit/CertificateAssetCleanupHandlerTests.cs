@@ -11,6 +11,7 @@ namespace West94.ProxyManager.Files.Tests.Unit;
 /// verifies the handler translates the event into the right service call, which is the part
 /// that's actually ours to get right.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class CertificateAssetCleanupHandlerTests
 {
     private sealed class SpyFileAssetService : IFileAssetService

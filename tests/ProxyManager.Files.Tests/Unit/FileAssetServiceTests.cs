@@ -6,6 +6,7 @@ using West94.ProxyManager.Files.Validation;
 
 namespace West94.ProxyManager.Files.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public sealed class FileAssetServiceTests
 {
     private static readonly byte[] PemBytes = "-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----\n"u8.ToArray();

@@ -2,6 +2,7 @@ using West94.ProxyManager.Files.Assets;
 
 namespace West94.ProxyManager.Files.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public sealed class FileAssetTests
 {
     [Fact]

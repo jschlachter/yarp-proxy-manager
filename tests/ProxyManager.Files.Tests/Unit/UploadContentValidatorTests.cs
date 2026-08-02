@@ -3,6 +3,7 @@ using West94.ProxyManager.Files.Validation;
 
 namespace West94.ProxyManager.Files.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public sealed class UploadContentValidatorTests
 {
     private static readonly byte[] PemHeader = "-----BEGIN CERTIFICATE-----"u8.ToArray();

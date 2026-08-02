@@ -4,6 +4,7 @@ using West94.ProxyManager.Files.Tests.Unit.Fakes;
 
 namespace West94.ProxyManager.Files.Tests.Unit;
 
+[Trait("Category", "Unit")]
 public sealed class StagedAssetSweepRunnerTests
 {
     [Fact]

@@ -7,7 +7,6 @@ Wants=network-online.target
 [Container]
 Image=docker.io/library/rabbitmq:4-management-alpine
 ContainerName=proxy-manager-rabbitmq
-EnvironmentFile=.env
 Volume=proxymanager-rabbitmq.volume:/var/lib/rabbitmq
 Pod=proxymanager.pod
 

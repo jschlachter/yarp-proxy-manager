@@ -6,7 +6,6 @@ Requires=proxymanager-rustfs.service proxymanager-postgresql.service
 [Container]
 Image=west94.com/proxymanager-files:1.0.0-alpha
 ContainerName=proxymanager-files
-EnvironmentFile=.env
 Environment=ObjectStorage__ServiceUrl=http://proxymanager-rustfs:9000
 Environment=ObjectStorage__Bucket=proxymanager
 Secret=rfs-access-key,type=env,target=ObjectStorage__AccessKey

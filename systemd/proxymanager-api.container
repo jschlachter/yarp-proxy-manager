@@ -4,7 +4,6 @@ After=network-online.target proxymanager-postgresql.service
 Requires=proxymanager-postgresql.service
 
 [Container]
-Environment=ASPNETCORE_HTTP_PORTS=5001
 Image=west94.com/proxymanager-api:1.0.0-alpha
 ContainerName=proxymanager-api
 EnvironmentFile=.env

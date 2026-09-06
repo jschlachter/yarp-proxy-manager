@@ -6,6 +6,7 @@ After=network-online.target
 PodName=proxymanager
 Network=proxymanager.network
 PublishPort=8443:8443
+PublishPort=5432:5432
 PublishPort=15672:15672
 PublishPort=5672:5672
 PublishPort=9000:9000

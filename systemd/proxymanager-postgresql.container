@@ -1,13 +1,19 @@
 [Unit]
 Description=Proxy Manager PostgreSQL Database
 After=network-online.target
+Wants=network-online.target
 
 [Container]
+Environment=POSTGRES_USER=proxymanager_admin
+Environment=POSTGRES_DB=proxymanager
+Secret=pm-db-pass,type=env,target=POSTGRES_PASSWORD
+
 Image=docker.io/library/postgres:18-alpine
 ContainerName=proxymanager-postgresql
-EnvironmentFile=.env
 Volume=proxymanager-database.volume:/var/lib/postgresql
 Pod=proxymanager.pod
+
+ShmSize=128mb
 
 # Health check (runs inside container)
 HealthCmd=pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}

@@ -15,6 +15,7 @@ using West94.ProxyManager.API.Services;
 using West94.ProxyManager.Core.Messages.Events;
 using West94.ProxyManager.Endpoints;
 using West94.ProxyManager.Infrastructure.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -27,6 +28,16 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                                   ForwardedHeaders.XForwardedProto |
+                                   ForwardedHeaders.XForwardedHost;
+
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
 
     builder.Services.AddProxyManagerOpenApi();
 
@@ -93,6 +104,8 @@ try
     });
 
     var app = builder.Build();
+
+    app.UseForwardedHeaders();
 
     if (app.Environment.IsDevelopment())
     {

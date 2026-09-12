@@ -18,12 +18,18 @@
       "apiRoute": {
         "ClusterId": "apiCluster",
         "Match": {
-          "Path": "/api/{**catch-all}"
+          "Path": "/api/{**catch-all}",
+          "Hosts": ["proxy-manager.west94.io"]
         },
         "Transforms": [
           { "PathRemovePrefix": "/api" },
           { "BearerToken": "access_token" },
-          { "RequestHeaderRemove": "Cookie" }
+          { "RequestHeaderOriginalHost": "true" },
+          {
+            "X-Forwarded": "Append",
+            "Proto": "Append",
+            "HeaderPrefix": "X-Forwarded-"
+          }
         ]
       },
       "ui-api-route": {
@@ -61,7 +67,7 @@
       "apiCluster": {
         "Destinations": {
           "local": {
-            "Address": "https://localhost:5001/"
+            "Address": "http://localhost:5001/"
           }
         },
         "HealthCheck": {
@@ -85,7 +91,7 @@
       "filesCluster": {
         "Destinations": {
           "local": {
-            "Address": "https://localhost:5002/"
+            "Address": "http://localhost:5002/"
           }
         },
         "HealthCheck": {

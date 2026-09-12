@@ -28,7 +28,7 @@
           "stopAtEntry": false,
           "env": {
             "ASPNETCORE_ENVIRONMENT": "Development",
-            "ASPNETCORE_URLS": "https://localhost:5001"
+            "ASPNETCORE_HTTP_PORTS": "5001"
           }
         },
         {
@@ -42,7 +42,7 @@
           "stopAtEntry": false,
           "env": {
             "ASPNETCORE_ENVIRONMENT": "Development",
-            "ASPNETCORE_URLS": "https://localhost:5002"
+            "ASPNETCORE_HTTP_PORTS": "5002"
           }
         }
     ],

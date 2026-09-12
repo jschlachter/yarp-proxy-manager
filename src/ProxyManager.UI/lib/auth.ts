@@ -18,7 +18,6 @@ export function getSession(headers: Headers): UserSession {
       : [];
     accessToken = process.env.DEV_AUTH_TOKEN ?? "";
   } else {
-    console.log(headers.get("X-Auth-Sub"), headers.get("X-auth-groups"), headers.get("X-Auth-Name"));
     userId = headers.get("X-Auth-Sub") ?? "";
     name = headers.get("X-Auth-Name") ?? "";
     const rawGroups = headers.get("X-auth-groups") ?? "";

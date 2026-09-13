@@ -118,7 +118,7 @@ describe("certificate CRUD", () => {
     const result = await listCertificates(adminSession);
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://api:5001/certificates?page=1&pageSize=50",
+      "http://api:5001/api/certificates?page=1&pageSize=50",
       expect.any(Object)
     );
     expect(result.items).toHaveLength(1);
@@ -139,7 +139,7 @@ describe("certificate CRUD", () => {
     await createCertificate(adminSession, body);
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://api:5001/certificates",
+      "http://api:5001/api/certificates",
       expect.objectContaining({ method: "POST", body: JSON.stringify(body) })
     );
   });
@@ -154,7 +154,7 @@ describe("certificate CRUD", () => {
     await updateCertificate(adminSession, "cert-1", { name: "Renamed" });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://api:5001/certificates/cert-1",
+      "http://api:5001/api/certificates/cert-1",
       expect.objectContaining({ method: "PUT" })
     );
   });
@@ -165,7 +165,7 @@ describe("certificate CRUD", () => {
     await deleteCertificate(adminSession, "cert-1");
 
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://api:5001/certificates/cert-1",
+      "http://api:5001/api/certificates/cert-1",
       expect.objectContaining({ method: "DELETE" })
     );
   });

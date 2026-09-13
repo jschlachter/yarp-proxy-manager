@@ -94,7 +94,7 @@ if [[ "$VERBOSE" == true ]]; then
   echo "$access_token"
   echo >&2
   echo "Example usage:" >&2
-  echo "  curl -H \"Authorization: Bearer $access_token\" https://localhost:5001/proxyhosts" >&2
+  echo "  curl -H \"Authorization: Bearer $access_token\" https://localhost:5001/api/proxyhosts" >&2
 else
   echo "$access_token"
 fi

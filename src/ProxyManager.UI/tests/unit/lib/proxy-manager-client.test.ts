@@ -54,7 +54,7 @@ describe("proxy-manager-client", () => {
       const result = await listRoutes(adminSession);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts?page=1&pageSize=50",
+        "http://api:5001/api/proxyHosts?page=1&pageSize=50",
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: "Bearer test-token",
@@ -97,7 +97,7 @@ describe("proxy-manager-client", () => {
       const result = await getRoute(adminSession, "route-1");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1",
+        "http://api:5001/api/proxyHosts/route-1",
         expect.any(Object)
       );
       expect(result.id).toBe("route-1");
@@ -119,7 +119,7 @@ describe("proxy-manager-client", () => {
       await createRoute(adminSession, body);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts",
+        "http://api:5001/api/proxyHosts",
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify(body),
@@ -144,7 +144,7 @@ describe("proxy-manager-client", () => {
       await updateRoute(adminSession, "route-1", body);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1",
+        "http://api:5001/api/proxyHosts/route-1",
         expect.objectContaining({ method: "PUT" })
       );
     });
@@ -160,7 +160,7 @@ describe("proxy-manager-client", () => {
       await deleteRoute(adminSession, "route-1");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1",
+        "http://api:5001/api/proxyHosts/route-1",
         expect.objectContaining({ method: "DELETE" })
       );
     });
@@ -184,7 +184,7 @@ describe("proxy-manager-client", () => {
       const result = await listMaintainers(adminSession, "route-1");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1/maintainers",
+        "http://api:5001/api/proxyHosts/route-1/maintainers",
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: "Bearer test-token" }),
         })
@@ -212,7 +212,7 @@ describe("proxy-manager-client", () => {
       await assignMaintainer(adminSession, "route-1", "user-2");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1/maintainers",
+        "http://api:5001/api/proxyHosts/route-1/maintainers",
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ userId: "user-2" }),
@@ -228,7 +228,7 @@ describe("proxy-manager-client", () => {
       await removeMaintainer(adminSession, "route-1", "user-2");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://api:5001/proxyHosts/route-1/maintainers/user-2",
+        "http://api:5001/api/proxyHosts/route-1/maintainers/user-2",
         expect.objectContaining({ method: "DELETE" })
       );
     });

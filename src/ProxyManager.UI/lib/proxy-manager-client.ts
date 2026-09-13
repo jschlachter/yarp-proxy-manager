@@ -118,19 +118,19 @@ export function listRoutes(
 ): Promise<PaginatedRoutes> {
   return apiFetch<PaginatedRoutes>(
     session,
-    `/proxyHosts?page=${page}&pageSize=${pageSize}`
+    `/api/proxyHosts?page=${page}&pageSize=${pageSize}`
   );
 }
 
 export function getRoute(session: UserSession, id: string): Promise<ProxyHost> {
-  return apiFetch<ProxyHost>(session, `/proxyHosts/${encodeURIComponent(id)}`);
+  return apiFetch<ProxyHost>(session, `/api/proxyHosts/${encodeURIComponent(id)}`);
 }
 
 export function createRoute(
   session: UserSession,
   body: CreateRouteRequest
 ): Promise<ProxyHost> {
-  return apiFetch<ProxyHost>(session, `/proxyHosts`, {
+  return apiFetch<ProxyHost>(session, `/api/proxyHosts`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -141,14 +141,14 @@ export function updateRoute(
   id: string,
   body: UpdateRouteRequest
 ): Promise<ProxyHost> {
-  return apiFetch<ProxyHost>(session, `/proxyHosts/${encodeURIComponent(id)}`, {
+  return apiFetch<ProxyHost>(session, `/api/proxyHosts/${encodeURIComponent(id)}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
 }
 
 export function deleteRoute(session: UserSession, id: string): Promise<void> {
-  return apiFetch<void>(session, `/proxyHosts/${encodeURIComponent(id)}`, {
+  return apiFetch<void>(session, `/api/proxyHosts/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
 }
@@ -159,7 +159,7 @@ export function listMaintainers(
 ): Promise<MaintainerAssignment[]> {
   return apiFetch<MaintainerAssignment[]>(
     session,
-    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers`
+    `/api/proxyHosts/${encodeURIComponent(routeId)}/maintainers`
   );
 }
 
@@ -170,7 +170,7 @@ export function assignMaintainer(
 ): Promise<MaintainerAssignment> {
   return apiFetch<MaintainerAssignment>(
     session,
-    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers`,
+    `/api/proxyHosts/${encodeURIComponent(routeId)}/maintainers`,
     { method: "POST", body: JSON.stringify({ userId }) }
   );
 }
@@ -182,7 +182,7 @@ export function removeMaintainer(
 ): Promise<void> {
   return apiFetch<void>(
     session,
-    `/proxyHosts/${encodeURIComponent(routeId)}/maintainers/${encodeURIComponent(userId)}`,
+    `/api/proxyHosts/${encodeURIComponent(routeId)}/maintainers/${encodeURIComponent(userId)}`,
     { method: "DELETE" }
   );
 }
@@ -214,19 +214,19 @@ export function listCertificates(
 ): Promise<PaginatedCertificates> {
   return apiFetch<PaginatedCertificates>(
     session,
-    `/certificates?page=${page}&pageSize=${pageSize}`
+    `/api/certificates?page=${page}&pageSize=${pageSize}`
   );
 }
 
 export function getCertificate(session: UserSession, id: string): Promise<Certificate> {
-  return apiFetch<Certificate>(session, `/certificates/${encodeURIComponent(id)}`);
+  return apiFetch<Certificate>(session, `/api/certificates/${encodeURIComponent(id)}`);
 }
 
 export function createCertificate(
   session: UserSession,
   body: CreateCertificateRequest
 ): Promise<Certificate> {
-  return apiFetch<Certificate>(session, `/certificates`, {
+  return apiFetch<Certificate>(session, `/api/certificates`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -237,14 +237,14 @@ export function updateCertificate(
   id: string,
   body: UpdateCertificateRequest
 ): Promise<Certificate> {
-  return apiFetch<Certificate>(session, `/certificates/${encodeURIComponent(id)}`, {
+  return apiFetch<Certificate>(session, `/api/certificates/${encodeURIComponent(id)}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
 }
 
 export function deleteCertificate(session: UserSession, id: string): Promise<void> {
-  return apiFetch<void>(session, `/certificates/${encodeURIComponent(id)}`, {
+  return apiFetch<void>(session, `/api/certificates/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
 }

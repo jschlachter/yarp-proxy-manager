@@ -12,7 +12,7 @@ using West94.ProxyManager.Core.Messages.Queries;
 
 namespace West94.ProxyManager.Endpoints;
 
-/// <summary>Request body for POST /certificates. Assets must already be Staged in ProxyManager.Files.</summary>
+/// <summary>Request body for POST /api/certificates. Assets must already be Staged in ProxyManager.Files.</summary>
 public sealed record CreateCertificateRequest(
     string? Name,
     string? Format,
@@ -20,14 +20,14 @@ public sealed record CreateCertificateRequest(
     Guid? KeyAssetId,
     string? PassPhrase);
 
-/// <summary>Request body for PUT /certificates/{id}. Paths and format are immutable after creation.</summary>
+/// <summary>Request body for PUT /api/certificates/{id}. Paths and format are immutable after creation.</summary>
 public sealed record UpdateCertificateRequest(string? Name, string? PassPhrase);
 
 public static class CertificateEndpoints
 {
     public static IEndpointRouteBuilder MapCertificateEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/certificates")
+        var group = app.MapGroup("/api/certificates")
             .WithTags("Certificates")
             .RequireAuthorization();
 
@@ -77,7 +77,7 @@ public static class CertificateEndpoints
             try
             {
                 var dto = await bus.InvokeAsync<CertificateDto>(command, ct);
-                return TypedResults.Created($"/certificates/{dto.Id}", dto);
+                return TypedResults.Created($"/api/certificates/{dto.Id}", dto);
             }
             catch (CertificateValidationException ex)
             {

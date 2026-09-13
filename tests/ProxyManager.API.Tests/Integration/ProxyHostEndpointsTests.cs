@@ -36,7 +36,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
 
-        var response = await _client.GetAsync("/proxyhosts");
+        var response = await _client.GetAsync("/api/proxyhosts");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<PagedResult<ProxyHostDto>>();
@@ -47,7 +47,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task GetProxyHosts_WithoutToken_Returns401()
     {
-        var response = await _client.GetAsync("/proxyhosts");
+        var response = await _client.GetAsync("/api/proxyhosts");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -59,7 +59,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
 
-        var response = await _client.GetAsync($"/proxyhosts/{seededId}");
+        var response = await _client.GetAsync($"/api/proxyhosts/{seededId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
@@ -73,12 +73,12 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
 
-        var response = await _client.GetAsync($"/proxyhosts/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/proxyhosts/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    // --- US2: POST /proxyhosts ---
+    // --- US2: POST /api/proxyhosts ---
 
     [Fact]
     public async Task CreateProxyHost_WithValidBody_Returns201WithLocationHeader()
@@ -87,7 +87,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
         var body = new { domainNames = new[] { "create-test.example.com" }, destinationUri = "http://backend:8080" };
 
-        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(response.Headers.Location);
@@ -95,7 +95,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         Assert.NotNull(dto);
         Assert.NotEqual(Guid.Empty, dto.Id);
         Assert.Contains("create-test.example.com", dto.DomainNames);
-        Assert.StartsWith("/proxyhosts/", response.Headers.Location.ToString());
+        Assert.StartsWith("/api/proxyhosts/", response.Headers.Location.ToString());
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         await SeedHostAsync("duplicate.example.com");
         var body = new { domainNames = new[] { "duplicate.example.com" }, destinationUri = "http://backend:8080" };
 
-        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
@@ -118,7 +118,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
         var body = new { domainNames = new[] { "missing-dest.example.com" } };
 
-        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -128,12 +128,12 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
     {
         var body = new { domainNames = new[] { "noauth.example.com" }, destinationUri = "http://backend:8080" };
 
-        var response = await _client.PostAsJsonAsync("/proxyhosts", body);
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- US4: DELETE /proxyhosts/{id} ---
+    // --- US4: DELETE /api/proxyhosts/{id} ---
 
     [Fact]
     public async Task DeleteProxyHost_WithExistingId_Returns204()
@@ -142,7 +142,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
 
-        var response = await _client.DeleteAsync($"/proxyhosts/{seededId}");
+        var response = await _client.DeleteAsync($"/api/proxyhosts/{seededId}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -154,8 +154,8 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
 
-        await _client.DeleteAsync($"/proxyhosts/{seededId}");
-        var response = await _client.DeleteAsync($"/proxyhosts/{seededId}");
+        await _client.DeleteAsync($"/api/proxyhosts/{seededId}");
+        var response = await _client.DeleteAsync($"/api/proxyhosts/{seededId}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -163,12 +163,12 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task DeleteProxyHost_WithoutToken_Returns401()
     {
-        var response = await _client.DeleteAsync($"/proxyhosts/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/proxyhosts/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- US3: PUT /proxyhosts/{id} ---
+    // --- US3: PUT /api/proxyhosts/{id} ---
 
     [Fact]
     public async Task UpdateProxyHost_WithValidPartialUpdate_Returns200WithUpdatedDto()
@@ -178,7 +178,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
         var body = new { isEnabled = false };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{seededId}", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{seededId}", body);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var dto = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
@@ -194,7 +194,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
         var body = new { isEnabled = false };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{Guid.NewGuid()}", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{Guid.NewGuid()}", body);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -207,7 +207,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
             new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
         var body = new { destinationUri = "not-a-valid-uri" };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{seededId}", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{seededId}", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -217,7 +217,7 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
     {
         var body = new { isEnabled = false };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{Guid.NewGuid()}", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{Guid.NewGuid()}", body);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

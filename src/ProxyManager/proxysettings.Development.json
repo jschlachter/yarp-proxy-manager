@@ -22,7 +22,6 @@
           "Hosts": ["proxy-manager.west94.io"]
         },
         "Transforms": [
-          { "PathRemovePrefix": "/api" },
           { "BearerToken": "access_token" },
           { "RequestHeaderOriginalHost": "true" },
           {

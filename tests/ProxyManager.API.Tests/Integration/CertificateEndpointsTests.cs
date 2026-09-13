@@ -43,12 +43,12 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         return host.Id;
     }
 
-    // --- GET /certificates ---
+    // --- GET /api/certificates ---
 
     [Fact]
     public async Task GetCertificates_Returns200WithPagedResult()
     {
-        var response = await _client.GetAsync("/certificates");
+        var response = await _client.GetAsync("/api/certificates");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<PagedResult<CertificateDto>>();
@@ -60,18 +60,18 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     public async Task GetCertificates_WithoutToken_Returns401()
     {
         using var anonClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var response = await anonClient.GetAsync("/certificates");
+        var response = await anonClient.GetAsync("/api/certificates");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- GET /certificates/{id} ---
+    // --- GET /api/certificates/{id} ---
 
     [Fact]
     public async Task GetCertificateById_ExistingId_Returns200WithDto()
     {
         var id = await SeedCertAsync("byid-cert");
 
-        var response = await _client.GetAsync($"/certificates/{id}");
+        var response = await _client.GetAsync($"/api/certificates/{id}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var dto = await response.Content.ReadFromJsonAsync<CertificateDto>();
@@ -83,11 +83,11 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task GetCertificateById_UnknownId_Returns404()
     {
-        var response = await _client.GetAsync($"/certificates/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/certificates/{Guid.NewGuid()}");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    // --- POST /certificates ---
+    // --- POST /api/certificates ---
 
     private (Guid CertAssetId, Guid KeyAssetId) SeedPemAssets()
     {
@@ -119,7 +119,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
             keyAssetId
         };
 
-        var response = await _client.PostAsJsonAsync("/certificates", body);
+        var response = await _client.PostAsJsonAsync("/api/certificates", body);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(response.Headers.Location);
@@ -128,7 +128,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         Assert.NotEqual(Guid.Empty, dto.Id);
         Assert.Equal("new-pem-cert", dto.Name);
         Assert.Equal("Pem", dto.Format);
-        Assert.StartsWith("/certificates/", response.Headers.Location.ToString());
+        Assert.StartsWith("/api/certificates/", response.Headers.Location.ToString());
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
             passPhrase = "secret"
         };
 
-        var response = await _client.PostAsJsonAsync("/certificates", body);
+        var response = await _client.PostAsJsonAsync("/api/certificates", body);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
@@ -160,7 +160,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
             keyAssetId
         };
 
-        var response = await _client.PostAsJsonAsync("/certificates", body);
+        var response = await _client.PostAsJsonAsync("/api/certificates", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -170,7 +170,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     {
         var body = new { name = "no-asset", format = "Pem" };
 
-        var response = await _client.PostAsJsonAsync("/certificates", body);
+        var response = await _client.PostAsJsonAsync("/api/certificates", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -181,7 +181,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         var certAssetId = SeedPfxAsset();
         var body = new { name = "bad-format", format = "DER", certificateAssetId = certAssetId };
 
-        var response = await _client.PostAsJsonAsync("/certificates", body);
+        var response = await _client.PostAsJsonAsync("/api/certificates", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -191,11 +191,11 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     {
         using var anonClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
         var body = new { name = "noauth", format = "Pem", certificateAssetId = Guid.NewGuid() };
-        var response = await anonClient.PostAsJsonAsync("/certificates", body);
+        var response = await anonClient.PostAsJsonAsync("/api/certificates", body);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- PUT /certificates/{id} ---
+    // --- PUT /api/certificates/{id} ---
 
     [Fact]
     public async Task UpdateCertificate_ValidRename_Returns200WithUpdatedName()
@@ -203,7 +203,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         var id = await SeedCertAsync("rename-me");
         var body = new { name = "renamed" };
 
-        var response = await _client.PutAsJsonAsync($"/certificates/{id}", body);
+        var response = await _client.PutAsJsonAsync($"/api/certificates/{id}", body);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var dto = await response.Content.ReadFromJsonAsync<CertificateDto>();
@@ -214,18 +214,18 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     [Fact]
     public async Task UpdateCertificate_UnknownId_Returns404()
     {
-        var response = await _client.PutAsJsonAsync($"/certificates/{Guid.NewGuid()}", new { name = "x" });
+        var response = await _client.PutAsJsonAsync($"/api/certificates/{Guid.NewGuid()}", new { name = "x" });
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    // --- DELETE /certificates/{id} ---
+    // --- DELETE /api/certificates/{id} ---
 
     [Fact]
     public async Task DeleteCertificate_ExistingId_Returns204()
     {
         var id = await SeedCertAsync("delete-me");
 
-        var response = await _client.DeleteAsync($"/certificates/{id}");
+        var response = await _client.DeleteAsync($"/api/certificates/{id}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -235,8 +235,8 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     {
         var id = await SeedCertAsync("delete-twice");
 
-        await _client.DeleteAsync($"/certificates/{id}");
-        var response = await _client.DeleteAsync($"/certificates/{id}");
+        await _client.DeleteAsync($"/api/certificates/{id}");
+        var response = await _client.DeleteAsync($"/api/certificates/{id}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -245,11 +245,11 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     public async Task DeleteCertificate_WithoutToken_Returns401()
     {
         using var anonClient = _factory.CreateClient(new() { AllowAutoRedirect = false });
-        var response = await anonClient.DeleteAsync($"/certificates/{Guid.NewGuid()}");
+        var response = await anonClient.DeleteAsync($"/api/certificates/{Guid.NewGuid()}");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    // --- PUT /proxyhosts/{id}/certificate ---
+    // --- PUT /api/proxyhosts/{id}/certificate ---
 
     [Fact]
     public async Task AssignCertificate_ValidCertId_Returns200WithUpdatedHost()
@@ -258,7 +258,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         var certId = await SeedCertAsync("assign-cert");
         var body = new { certificateId = certId };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{hostId}/certificate", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{hostId}/certificate", body);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var dto = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
@@ -275,7 +275,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         await repo.AddAsync(host);
         var body = new { certificateId = (Guid?)null };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{host.Id}/certificate", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{host.Id}/certificate", body);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var dto = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
@@ -287,7 +287,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
     public async Task AssignCertificate_UnknownHostId_Returns404()
     {
         var body = new { certificateId = (Guid?)null };
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{Guid.NewGuid()}/certificate", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{Guid.NewGuid()}/certificate", body);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -297,7 +297,7 @@ public sealed class CertificateEndpointsTests : IAsyncDisposable
         var hostId = await SeedHostAsync("badcert.example.com");
         var body = new { certificateId = Guid.NewGuid() };
 
-        var response = await _client.PutAsJsonAsync($"/proxyhosts/{hostId}/certificate", body);
+        var response = await _client.PutAsJsonAsync($"/api/proxyhosts/{hostId}/certificate", body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

@@ -109,10 +109,11 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
-        app.MapScalarApiReference(options =>
+        app.MapOpenApi("/api/openapi/{documentName}.json");
+        app.MapScalarApiReference("/api/scalar", options =>
         {
             options
+                .WithOpenApiRoutePattern("/api/openapi/{documentName}.json")
                 .SortOperationsByMethod()
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient)
                 .WithTitle("Proxy Manager API")

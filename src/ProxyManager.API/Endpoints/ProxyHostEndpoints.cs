@@ -12,25 +12,25 @@ using West94.ProxyManager.Core.Messages.Queries;
 
 namespace West94.ProxyManager.Endpoints;
 
-/// <summary>Request body for POST /proxyhosts.</summary>
+/// <summary>Request body for POST /api/proxyhosts.</summary>
 public sealed record CreateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri);
 
-/// <summary>Request body for PUT /proxyhosts/{id}.</summary>
+/// <summary>Request body for PUT /api/proxyhosts/{id}.</summary>
 public sealed record UpdateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
     bool? IsEnabled);
 
-/// <summary>Request body for PUT /proxyhosts/{id}/certificate.</summary>
+/// <summary>Request body for PUT /api/proxyhosts/{id}/certificate.</summary>
 public sealed record AssignCertificateRequest(Guid? CertificateId);
 
 public static class ProxyHostEndpoints
 {
     public static IEndpointRouteBuilder MapProxyHostEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/proxyhosts")
+        var group = app.MapGroup("/api/proxyhosts")
             .WithTags("ProxyHosts")
             .RequireAuthorization();
 
@@ -76,7 +76,7 @@ public static class ProxyHostEndpoints
             try
             {
                 var dto = await bus.InvokeAsync<ProxyHostDto>(command, ct);
-                return TypedResults.Created($"/proxyhosts/{dto.Id}", dto);
+                return TypedResults.Created($"/api/proxyhosts/{dto.Id}", dto);
             }
             catch (ProxyHostValidationException ex)
             {

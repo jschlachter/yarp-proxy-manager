@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "local": "PROXY_MANAGER_API_URL=http://localhost:5001 ADMIN_GROUP_CLAIM='authentik Admins' next dev",
+    "local": "PROXY_MANAGER_API_URL=http://localhost:5001 PROXY_MANAGER_FILES_URL=http://localhost:5002 ADMIN_GROUP_CLAIM='authentik Admins' next dev",
     "build": "next build",
     "start": "next start",
     "test": "jest",

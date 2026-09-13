@@ -8,6 +8,7 @@ const mockRoute: ProxyHost = {
   domainNames: ["example.com"],
   destination: "http://backend:8080",
   isEnabled: true,
+  tlsMode: "Manual",
 };
 
 describe("RouteForm", () => {
@@ -50,6 +51,58 @@ describe("RouteForm", () => {
     it("pre-fills fields with existing route data", () => {
       render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} />);
       expect(screen.getByLabelText("Destination URL")).toHaveValue("http://backend:8080");
+    });
+  });
+
+  describe("TLS mode selector", () => {
+    it("defaults to Manual when creating a new route", () => {
+      render(<RouteForm onSubmit={jest.fn()} />);
+      expect(screen.getByRole("radio", { name: "Manual" })).toHaveAttribute("aria-checked", "true");
+      expect(screen.getByRole("radio", { name: "Let's Encrypt" })).toHaveAttribute(
+        "aria-checked",
+        "false"
+      );
+    });
+
+    it("pre-selects the existing route's TLS mode", () => {
+      render(
+        <RouteForm
+          initialData={{ ...mockRoute, tlsMode: "LetsEncrypt" }}
+          onSubmit={jest.fn()}
+        />
+      );
+      expect(screen.getByRole("radio", { name: "Let's Encrypt" })).toHaveAttribute(
+        "aria-checked",
+        "true"
+      );
+    });
+
+    it("submits the selected TLS mode", async () => {
+      const onSubmit = jest.fn();
+      render(<RouteForm onSubmit={onSubmit} />);
+
+      await userEvent.type(screen.getByLabelText("Destination URL"), "http://backend:8080");
+      await userEvent.type(screen.getByLabelText("Domain Names"), "example.com");
+      fireEvent.click(screen.getByRole("radio", { name: "Let's Encrypt" }));
+      fireEvent.click(screen.getByRole("button", { name: /save|submit|create/i }));
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({ tlsMode: "LetsEncrypt" })
+        );
+      });
+    });
+
+    it("shows the TLS mode as read-only text in readOnly mode", () => {
+      render(
+        <RouteForm
+          initialData={{ ...mockRoute, tlsMode: "LetsEncrypt" }}
+          onSubmit={jest.fn()}
+          readOnly
+        />
+      );
+      expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+      expect(screen.getByText("Let's Encrypt")).toBeInTheDocument();
     });
   });
 

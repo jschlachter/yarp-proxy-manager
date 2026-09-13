@@ -6,6 +6,10 @@ Requires=proxymanager-postgresql.service
 [Container]
 Image=west94.com/proxymanager:1.0.0-alpha
 ContainerName=proxymanager
+# LettuceEncrypt__EmailAddress (ACME account contact) and LettuceEncrypt__AcceptTermsOfService
+# are supplied via the shared .env file (standard ASP.NET Core "__" config override convention),
+# same as Authentication:* and other secrets consumed by the sibling units in this pod.
+EnvironmentFile=.env
 Volume=%h/proxymanager/certs:/app/certs
 Pod=proxymanager.pod
 

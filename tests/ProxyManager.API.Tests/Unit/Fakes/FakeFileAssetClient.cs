@@ -1,4 +1,4 @@
-using West94.ProxyManager.API.Infrastructure.Files;
+using West94.ProxyManager.Infrastructure.Files;
 
 namespace West94.ProxyManager.API.Tests.Unit.Fakes;
 
@@ -25,5 +25,19 @@ public sealed class FakeFileAssetClient : IFileAssetClient
             _assets[id] = (entry.Summary with { Status = "Committed" }, entry.Content);
         }
         return Task.CompletedTask;
+    }
+
+    public List<(string FileName, string ContentType, byte[] Content)> Uploads { get; } = [];
+
+    public Task<Guid> UploadAsync(string fileName, string contentType, Stream content, CancellationToken ct)
+    {
+        using var buffer = new MemoryStream();
+        content.CopyTo(buffer);
+        var bytes = buffer.ToArray();
+
+        var id = Guid.NewGuid();
+        Uploads.Add((fileName, contentType, bytes));
+        _assets[id] = (new FileAssetSummary(id, fileName, "Staged"), bytes);
+        return Task.FromResult(id);
     }
 }

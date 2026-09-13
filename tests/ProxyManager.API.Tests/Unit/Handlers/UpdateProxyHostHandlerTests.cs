@@ -116,4 +116,48 @@ public class UpdateProxyHostHandlerTests
 
         Assert.Equal("https://new-backend:9000", dto.Destination);
     }
+
+    [Fact]
+    public async Task Handle_WithTlsMode_UpdatesTlsModeInResult()
+    {
+        var repo = new FakeProxyHostRepository();
+        var host = SeedHost(repo);
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new UpdateProxyHostHandler(repo, auditLog);
+
+        var command = new UpdateProxyHostCommand(host.Id, null, null, null, "actor-1", "LetsEncrypt");
+
+        var (dto, _) = await handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal("LetsEncrypt", dto.TlsMode);
+    }
+
+    [Fact]
+    public async Task Handle_WithoutTlsMode_LeavesTlsModeUnchanged()
+    {
+        var repo = new FakeProxyHostRepository();
+        var host = SeedHost(repo);
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new UpdateProxyHostHandler(repo, auditLog);
+
+        var command = new UpdateProxyHostCommand(host.Id, null, null, false, "actor-1");
+
+        var (dto, _) = await handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal("Manual", dto.TlsMode);
+    }
+
+    [Fact]
+    public async Task Handle_WithInvalidTlsMode_ThrowsValidationException()
+    {
+        var repo = new FakeProxyHostRepository();
+        var host = SeedHost(repo);
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new UpdateProxyHostHandler(repo, auditLog);
+
+        var command = new UpdateProxyHostCommand(host.Id, null, null, null, "actor-1", "NotARealMode");
+
+        await Assert.ThrowsAsync<ProxyHostValidationException>(() =>
+            handler.Handle(command, CancellationToken.None));
+    }
 }

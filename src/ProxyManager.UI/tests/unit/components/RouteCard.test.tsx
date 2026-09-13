@@ -7,6 +7,7 @@ const mockRoute: ProxyHost = {
   domainNames: ["my-service.example.com"],
   destination: "http://backend:8080",
   isEnabled: true,
+  tlsMode: "Manual" as const,
 };
 
 describe("RouteCard", () => {

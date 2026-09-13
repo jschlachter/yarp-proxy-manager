@@ -39,6 +39,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         existing.DestinationPort = host.Destination.Port;
         existing.IsEnabled = host.IsEnabled;
         existing.CertificateId = host.CertificateId;
+        existing.TlsMode = host.TlsMode;
 
         await db.SaveChangesAsync(ct);
     }
@@ -55,7 +56,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
     private static ProxyHost ToDomain(ProxyHostRecord r)
     {
         var destination = new DestinationUri(r.DestinationScheme, r.DestinationHost, r.DestinationPort);
-        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, r.CertificateId);
+        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, r.CertificateId, r.TlsMode);
     }
 
     private static ProxyHostRecord ToRecord(ProxyHost h) => new()
@@ -66,6 +67,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         DestinationHost = h.Destination.Host,
         DestinationPort = h.Destination.Port,
         IsEnabled = h.IsEnabled,
-        CertificateId = h.CertificateId
+        CertificateId = h.CertificateId,
+        TlsMode = h.TlsMode
     };
 }

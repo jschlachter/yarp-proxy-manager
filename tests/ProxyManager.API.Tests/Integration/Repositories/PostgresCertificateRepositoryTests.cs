@@ -148,4 +148,48 @@ public sealed class PostgresCertificateRepositoryTests : IAsyncLifetime
     {
         await _repo.RemoveAsync(Guid.NewGuid());
     }
+
+    [Fact]
+    public async Task AddAsync_And_FindAsync_RoundTrip_Source()
+    {
+        var cert = Certificate.Create("le-cert", CertificateFormat.Pem, Guid.NewGuid(), Guid.NewGuid(),
+            "le-cert.pem", "le-cert.key", null, Subject, source: CertificateSource.LetsEncrypt);
+
+        await _repo.AddAsync(cert);
+        var loaded = await _repo.FindAsync(cert.Id);
+
+        Assert.NotNull(loaded);
+        Assert.Equal(CertificateSource.LetsEncrypt, loaded.Source);
+    }
+
+    [Fact]
+    public async Task ReplaceAssets_Then_UpdateAsync_PersistsNewAssetsAndSubject()
+    {
+        var cert = MakePemCert("renew-me");
+        await _repo.AddAsync(cert);
+
+        var newCertAssetId = Guid.NewGuid();
+        var newKeyAssetId = Guid.NewGuid();
+        var newSubject = new CertificateSubjectInfo("CN=renewed.example.com", ["renewed.example.com"],
+            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(90), "RENEWEDTHUMBPRINT0123456789");
+        cert.ReplaceAssets(newCertAssetId, newKeyAssetId, "renewed.pem", "renewed.key", newSubject);
+
+        await _repo.UpdateAsync(cert);
+        var loaded = await _repo.FindAsync(cert.Id);
+
+        Assert.NotNull(loaded);
+        Assert.Equal(cert.Id, loaded.Id);
+        Assert.Equal(newCertAssetId, loaded.CertificateAssetId);
+        Assert.Equal(newKeyAssetId, loaded.KeyAssetId);
+        Assert.Equal("renewed.pem", loaded.CertificateFileName);
+        Assert.Equal("renewed.key", loaded.KeyFileName);
+
+        // Full member-wise comparison (covers every field, including NotBefore/NotAfter, which
+        // UpdateAsync previously dropped silently). Assert.Equivalent is used rather than
+        // Assert.Equal/record equality because CertificateSubjectInfo's synthesized record equality
+        // compares SubjectAlternativeNames via reference equality (List<string>/string[] don't
+        // override Equals), which would spuriously fail after a real DB round-trip returns a new
+        // list instance with the same contents.
+        Assert.Equivalent(newSubject, loaded.Subject, strict: true);
+    }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 
 namespace West94.ProxyManager.Infrastructure.Data.Configurations;
 
@@ -36,5 +37,10 @@ internal sealed class ProxyHostConfiguration : IEntityTypeConfiguration<ProxyHos
 
         builder.Property(x => x.CertificateId)
             .HasColumnName("certificate_id");
+
+        builder.Property(x => x.TlsMode)
+            .HasColumnName("tls_mode")
+            .IsRequired()
+            .HasDefaultValue(TlsMode.Manual);
     }
 }

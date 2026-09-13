@@ -16,6 +16,7 @@ const mockRoute: ProxyHost = {
   domainNames: ["svc.example.com"],
   destination: "http://svc-backend:8080",
   isEnabled: true,
+  tlsMode: "Manual" as const,
 };
 
 beforeEach(() => {

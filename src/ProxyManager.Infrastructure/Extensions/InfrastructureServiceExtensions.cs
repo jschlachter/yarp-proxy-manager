@@ -8,6 +8,7 @@ using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
 using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 using West94.ProxyManager.Infrastructure.Data;
+using West94.ProxyManager.Infrastructure.Files;
 using West94.ProxyManager.Infrastructure.Options;
 using West94.ProxyManager.Infrastructure.Repositories;
 
@@ -36,6 +37,20 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IProxyHostRepository, PostgresProxyHostRepository>();
         services.AddScoped<IAuditLogRepository, PostgresAuditLogRepository>();
         services.AddScoped<ICertificateRepository, PostgresCertificateRepository>();
+
+        return services;
+    }
+
+    /// <summary>Registers the typed HTTP client into ProxyManager.Files, shared by both ProxyManager.API and ProxyManager.</summary>
+    public static IServiceCollection AddFilesClient(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<FilesServiceOptions>(configuration.GetSection(FilesServiceOptions.Section));
+        services.AddHttpClient<IFileAssetClient, FileAssetClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<FilesServiceOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.DefaultRequestHeaders.Add("X-Files-Service-Token", options.ServiceToken);
+        });
 
         return services;
     }

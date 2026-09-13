@@ -9,4 +9,5 @@ public sealed record UpdateProxyHostCommand(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
     bool? IsEnabled,
-    string ActorId);
+    string ActorId,
+    string? TlsMode = null);

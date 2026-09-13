@@ -60,11 +60,11 @@ public static class AccountEndpoints
         })
         .ExcludeFromDescription();
 
-        app.MapGet("/logout", async (HttpContext context) =>
+        app.MapGet("/logout", () =>
         {
-            await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return TypedResults.Redirect("/");
+            return TypedResults.SignOut(
+                new AuthenticationProperties { RedirectUri = "/" },
+                [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
         }).ExcludeFromDescription();
 
         return app;

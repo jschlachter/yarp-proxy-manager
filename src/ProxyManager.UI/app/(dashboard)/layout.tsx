@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SidebarNav } from "@/components/SidebarNav";
+import { UserMenu } from "@/components/UserMenu";
 import { WaypointsIcon } from "lucide-react";
 
 export default async function DashboardLayout({
@@ -19,6 +20,7 @@ export default async function DashboardLayout({
     .slice(0, 2)
     .join("")
     .toUpperCase();
+  const accountUrl = process.env.AUTHENTIK_ACCOUNT_URL ?? null;
 
   return (
     <div className="flex h-full min-h-screen">
@@ -40,14 +42,7 @@ export default async function DashboardLayout({
         <SidebarNav />
 
         <div className="mx-3 mb-3 rounded-xl border border-sidebar-border bg-sidebar-accent/40 px-3 py-2.5 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg brand-gradient text-xs font-semibold text-primary-foreground">
-              {initials || "?"}
-            </span>
-            <span className="text-xs font-medium text-sidebar-foreground truncate">
-              {userName}
-            </span>
-          </div>
+          <UserMenu userName={userName} initials={initials} accountUrl={accountUrl} />
           <ThemeToggle />
         </div>
       </aside>

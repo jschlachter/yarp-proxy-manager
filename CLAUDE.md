@@ -120,6 +120,8 @@ Wolverine + RabbitMQ for inter-service communication. Fanout exchanges `proxy-ho
 
 Auth config keys: `Authentication:Authority`, `Authentication:ClientId`, `Authentication:ClientSecret`, `Authentication:Audience` (env vars or appsettings).
 
+**UI-side auth config:** `AUTHENTIK_ACCOUNT_URL` (plain env var on `ProxyManager.UI`, e.g. `https://auth.west94.io/if/user/`) — points the sidebar user menu's "Edit Profile"/"Change Password" items at Authentik's own hosted self-service account page. Unset by default; when unset, those two menu items render disabled.
+
 **Database:** `Database:ConnectionString` (Options pattern, `{{Token}}` interpolation). Migrations are applied automatically at startup by the `*DatabaseMigrationService` hosted services — create migrations with `dotnet ef migrations add <Name> --project src/ProxyManager.Infrastructure` (or `src/ProxyManager.Files`); each has an `IDesignTimeDbContextFactory`.
 
 **Object storage (Files):** `ObjectStorage` section — RustFS S3 endpoint, access/secret key, `ForcePathStyle`, region. `Upload` section bounds accepted content.
@@ -128,7 +130,7 @@ Auth config keys: `Authentication:Authority`, `Authentication:ClientId`, `Authen
 
 ## Deployment
 
-**Podman Quadlet** (systemd-managed containers). `systemd/` holds unit files for the pod/network/volumes plus one `.container` per service: `proxymanager`, `proxymanager-api`, `proxymanager-files`, `proxymanager-ui`, `proxymanager-postgresql`, `proxymanager-rabbitmq`, `proxymanager-rustfs`. Volumes mount `~/proxymanager/config/` (proxysettings) and `~/proxymanager/certs/` (TLS). Environment comes from a `.env` file in `systemd/`.
+**Podman Quadlet** (systemd-managed containers). `systemd/` holds unit files for the pod/network/volumes plus one `.container` per service: `proxymanager`, `proxymanager-api`, `proxymanager-files`, `proxymanager-ui`, `proxymanager-postgresql`, `proxymanager-rabbitmq`, `proxymanager-rustfs`. Volumes mount `~/proxymanager/config/` (proxysettings) and `~/proxymanager/certs/` (TLS). Environment comes from a `.env` file in `systemd/` (e.g. `PROXY_MANAGER_API_URL`, `PROXY_MANAGER_FILES_URL`, `AUTHENTIK_ACCOUNT_URL` for the UI container).
 
 ## Logging
 

@@ -1,5 +1,10 @@
 import type { ComponentType } from "react";
-import { RouteIcon, HeartPulseIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  LayoutDashboardIcon,
+  RouteIcon,
+  HeartPulseIcon,
+  ShieldCheckIcon,
+} from "lucide-react";
 
 export interface Module {
   label: string;
@@ -9,6 +14,12 @@ export interface Module {
 }
 
 export const MODULE_REGISTRY: Module[] = [
+  {
+    label: "Dashboard",
+    href: "/",
+    icon: LayoutDashboardIcon,
+    enabled: true,
+  },
   {
     label: "Routes",
     href: "/routes",

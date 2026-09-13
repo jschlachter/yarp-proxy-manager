@@ -22,6 +22,13 @@ describe("MODULE_REGISTRY", () => {
     expect(routes?.enabled).toBe(true);
   });
 
+  it("contains at least the Dashboard module", () => {
+    const dashboard = MODULE_REGISTRY.find((m) => m.href === "/");
+    expect(dashboard).toBeDefined();
+    expect(dashboard?.label).toBe("Dashboard");
+    expect(dashboard?.enabled).toBe(true);
+  });
+
   it("filtering enabled:true returns only enabled entries", () => {
     const enabled = MODULE_REGISTRY.filter((m) => m.enabled);
     expect(enabled.length).toBeGreaterThan(0);

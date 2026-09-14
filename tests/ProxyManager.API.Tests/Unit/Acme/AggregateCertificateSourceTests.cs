@@ -67,6 +67,42 @@ public class AggregateCertificateSourceTests
     }
 
     [Fact]
+    public async Task GetCertificateAsync_WildcardSanMatchesSubdomain()
+    {
+        var (source, certs, files) = CreateSource();
+        var pfxBytes = TestCertificateGenerator.CreatePfx();
+        var cert = Certificate.Create("wildcard", CertificateFormat.Pfx, Guid.NewGuid(), null, "wildcard.pfx", null, null, Subject("*.example.com"));
+        certs.Seed(cert);
+        files.Seed(cert.CertificateAssetId, "wildcard.pfx", pfxBytes);
+
+        var result = await source.GetCertificateAsync("proxy-manager.example.com", CancellationToken.None);
+
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task GetCertificateAsync_WildcardSanDoesNotMatchBareDomain()
+    {
+        var (source, certs, _) = CreateSource();
+        certs.Seed(Certificate.Create("wildcard", CertificateFormat.Pfx, Guid.NewGuid(), null, "wildcard.pfx", null, null, Subject("*.example.com")));
+
+        var result = await source.GetCertificateAsync("example.com", CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetCertificateAsync_WildcardSanDoesNotMatchMultiLevelSubdomain()
+    {
+        var (source, certs, _) = CreateSource();
+        certs.Seed(Certificate.Create("wildcard", CertificateFormat.Pfx, Guid.NewGuid(), null, "wildcard.pfx", null, null, Subject("*.example.com")));
+
+        var result = await source.GetCertificateAsync("a.b.example.com", CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task GetCertificatesAsync_SkipsMalformedRowWithoutThrowing()
     {
         var (source, certs, files) = CreateSource();

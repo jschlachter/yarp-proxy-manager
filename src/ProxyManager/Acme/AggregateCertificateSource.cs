@@ -41,9 +41,39 @@ public sealed class AggregateCertificateSource(
         var certificates = await LoadAllAsync(cancellationToken);
 
         var match = certificates.FirstOrDefault(c =>
-            c.Subject.SubjectAlternativeNames.Any(san => string.Equals(san, domainName, StringComparison.OrdinalIgnoreCase)));
+            c.Subject.SubjectAlternativeNames.Any(san => MatchesDomain(san, domainName)));
 
         return match is null ? null : await TryLoadAsync(match, cancellationToken);
+    }
+
+    /// <summary>
+    /// SNI hostname match against a stored SAN entry, supporting a single-label wildcard
+    /// (RFC 6125 §6.4.3 "left-most label" style: <c>*.example.com</c> matches <c>foo.example.com</c>
+    /// but not <c>example.com</c> or <c>foo.bar.example.com</c>) since manually-uploaded certificates
+    /// (e.g. wildcard certs) commonly rely on this, unlike Let's Encrypt HTTP-01 certs which are always
+    /// exact-domain (see plan non-goals — no wildcard issuance, only wildcard matching for Manual certs).
+    /// </summary>
+    private static bool MatchesDomain(string san, string domainName)
+    {
+        if (string.Equals(san, domainName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!san.StartsWith("*.", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var sanSuffix = san[1..]; // ".example.com"
+        var domainFirstDot = domainName.IndexOf('.');
+        if (domainFirstDot < 0)
+        {
+            return false;
+        }
+
+        var domainSuffix = domainName[domainFirstDot..]; // ".foo.example.com" -> ".example.com" only if single-label left of it
+        return string.Equals(sanSuffix, domainSuffix, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<IReadOnlyList<Certificate>> LoadAllAsync(CancellationToken ct)

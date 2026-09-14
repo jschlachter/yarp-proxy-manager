@@ -6,16 +6,23 @@ export interface UserSession {
   accessToken: string;
 }
 
+/** Server round-trips `Enum.ToString()` — "Manual" | "LetsEncrypt". */
+export type TlsMode = "Manual" | "LetsEncrypt";
+
 export interface ProxyHost {
   id: string;
   domainNames: string[];
   destination: string;
   isEnabled: boolean;
   certificateId?: string;
+  tlsMode: TlsMode;
 }
 
 /** Server round-trips `Enum.ToString()` — "Pfx" | "Pem", not "PFX" | "PEM". */
 export type CertificateFormat = "Pfx" | "Pem";
+
+/** Server round-trips `Enum.ToString()` — "Manual" | "LetsEncrypt". */
+export type CertificateSource = "Manual" | "LetsEncrypt";
 
 export interface Certificate {
   id: string;
@@ -32,6 +39,7 @@ export interface Certificate {
   thumbprint: string;
   createdAt: string;
   updatedAt: string;
+  source: CertificateSource;
 }
 
 export type FileAssetStatus = "Staged" | "Committed" | "Deleted";

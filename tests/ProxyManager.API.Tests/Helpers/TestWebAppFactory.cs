@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Testcontainers.PostgreSql;
-using West94.ProxyManager.API.Infrastructure.Files;
+using West94.ProxyManager.Infrastructure.Files;
 using West94.ProxyManager.API.Tests.Unit.Fakes;
 using West94.ProxyManager.Infrastructure.Data;
 

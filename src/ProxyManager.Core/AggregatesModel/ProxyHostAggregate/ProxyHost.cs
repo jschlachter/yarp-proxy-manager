@@ -6,25 +6,27 @@ public class ProxyHost : Entity
 {
     private List<string> _domainNames;
 
-    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId)
+    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode)
     {
         Id = id;
         _domainNames = domainNames;
         Destination = destination;
         IsEnabled = isEnabled;
         CertificateId = certificateId;
+        TlsMode = tlsMode;
     }
 
     public IReadOnlyList<string> DomainNames => _domainNames;
     public DestinationUri Destination { get; private set; }
     public bool IsEnabled { get; private set; }
     public Guid? CertificateId { get; private set; }
+    public TlsMode TlsMode { get; private set; }
 
     /// <summary>Reconstitutes a ProxyHost from its persisted state. For Infrastructure layer use only.</summary>
-    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId) =>
-        new(id, domainNames.ToList(), destination, isEnabled, certificateId);
+    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode) =>
+        new(id, domainNames.ToList(), destination, isEnabled, certificateId, tlsMode);
 
-    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, Guid? certificateId = null)
+    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, Guid? certificateId = null, TlsMode tlsMode = TlsMode.Manual)
     {
         ArgumentNullException.ThrowIfNull(domainNames);
         ArgumentNullException.ThrowIfNull(destination);
@@ -33,7 +35,7 @@ public class ProxyHost : Entity
         if (domains.Count == 0)
             throw new ArgumentException("At least one domain name is required.", nameof(domainNames));
 
-        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificateId);
+        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificateId, tlsMode);
     }
 
     public void Enable() => IsEnabled = true;
@@ -58,4 +60,6 @@ public class ProxyHost : Entity
     }
 
     public void AssignCertificate(Guid? certificateId) => CertificateId = certificateId;
+
+    public void SetTlsMode(TlsMode mode) => TlsMode = mode;
 }

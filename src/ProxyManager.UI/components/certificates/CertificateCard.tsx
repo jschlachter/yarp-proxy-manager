@@ -12,6 +12,7 @@ interface CertificateCardProps {
 
 export default function CertificateCard({ certificate, isAdmin, onDelete }: CertificateCardProps) {
   const expired = new Date(certificate.notAfter).getTime() < Date.now();
+  const isLetsEncrypt = certificate.source === "LetsEncrypt";
 
   return (
     <div className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card/80 p-4 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
@@ -23,6 +24,15 @@ export default function CertificateCard({ certificate, isAdmin, onDelete }: Cert
           </span>
           <Badge variant="outline" className="gap-1.5 border-transparent bg-primary/10 text-primary">
             {certificate.format === "Pfx" ? "PFX" : "PEM"}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={cn(
+              "gap-1.5 border-transparent",
+              isLetsEncrypt ? "bg-emerald-500/10 text-emerald-500" : "bg-accent text-accent-foreground"
+            )}
+          >
+            {isLetsEncrypt ? "Let's Encrypt" : "Manual"}
           </Badge>
           {expired && (
             <Badge variant="outline" className="border-transparent bg-destructive/10 text-destructive">
@@ -43,26 +53,50 @@ export default function CertificateCard({ certificate, isAdmin, onDelete }: Cert
         <p className="text-xs text-muted-foreground">
           Valid until {new Date(certificate.notAfter).toLocaleDateString()}
         </p>
+        {isLetsEncrypt && isAdmin && (
+          <p className="text-xs text-muted-foreground">
+            Managed automatically by Let&apos;s Encrypt — editing and deletion are disabled.
+          </p>
+        )}
       </div>
       {isAdmin && (
         <div className="flex shrink-0 gap-2 opacity-70 transition-opacity group-hover:opacity-100">
-          <Link
-            href={`/certificates/${certificate.id}`}
-            className={cn(
-              "inline-flex items-center justify-center rounded-lg border border-input bg-background/50 px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-accent hover:text-accent-foreground"
-            )}
-            aria-label="Edit"
-          >
-            Edit
-          </Link>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(certificate.id)}
-            aria-label="Delete"
-          >
-            Delete
-          </Button>
+          {isLetsEncrypt ? (
+            <>
+              <Button variant="outline" size="sm" disabled aria-label="Edit" title="Managed by Let's Encrypt">
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled
+                aria-label="Delete"
+                title="Managed by Let's Encrypt"
+              >
+                Delete
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                href={`/certificates/${certificate.id}`}
+                className={cn(
+                  "inline-flex items-center justify-center rounded-lg border border-input bg-background/50 px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-accent hover:text-accent-foreground"
+                )}
+                aria-label="Edit"
+              >
+                Edit
+              </Link>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onDelete(certificate.id)}
+                aria-label="Delete"
+              >
+                Delete
+              </Button>
+            </>
+          )}
         </div>
       )}
     </div>

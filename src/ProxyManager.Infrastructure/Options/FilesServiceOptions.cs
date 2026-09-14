@@ -1,6 +1,6 @@
-namespace West94.ProxyManager.API.Options;
+namespace West94.ProxyManager.Infrastructure.Options;
 
-/// <summary>Configuration for the API's service-to-service HTTP client into ProxyManager.Files.</summary>
+/// <summary>Configuration for a service-to-service HTTP client into ProxyManager.Files.</summary>
 public sealed record FilesServiceOptions
 {
     public const string Section = "FilesService";

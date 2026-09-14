@@ -18,4 +18,5 @@ internal sealed class CertificateRecord
     public string Thumbprint { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+    public int Source { get; set; }
 }

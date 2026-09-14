@@ -7,6 +7,7 @@ const makeRoute = (id: string): ProxyHost => ({
   domainNames: [`${id}.example.com`],
   destination: `http://backend-${id}:8080`,
   isEnabled: true,
+  tlsMode: "Manual" as const,
 });
 
 describe("RouteList", () => {

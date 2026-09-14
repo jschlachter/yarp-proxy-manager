@@ -114,6 +114,12 @@ namespace ProxyManager.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("pass_phrase");
 
+                    b.Property<int>("Source")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("source");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("text")
@@ -175,6 +181,12 @@ namespace ProxyManager.Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_enabled");
+
+                    b.Property<int>("TlsMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("tls_mode");
 
                     b.HasKey("Id");
 

@@ -126,4 +126,23 @@ public sealed class PostgresProxyHostRepositoryTests : IAsyncLifetime
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _repo.AddAsync(host));
     }
+
+    [Fact]
+    public async Task AddAsync_And_UpdateAsync_RoundTripTlsMode()
+    {
+        var host = ProxyHost.Create(["tlsmode.example.com"], DestinationUri.Parse("http://backend:8080"), tlsMode: TlsMode.LetsEncrypt);
+
+        await _repo.AddAsync(host);
+        var loaded = await _repo.FindAsync(host.Id);
+
+        Assert.NotNull(loaded);
+        Assert.Equal(TlsMode.LetsEncrypt, loaded.TlsMode);
+
+        loaded.SetTlsMode(TlsMode.Manual);
+        await _repo.UpdateAsync(loaded);
+
+        var reloaded = await _repo.FindAsync(host.Id);
+        Assert.NotNull(reloaded);
+        Assert.Equal(TlsMode.Manual, reloaded.TlsMode);
+    }
 }

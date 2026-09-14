@@ -112,4 +112,42 @@ public class CreateProxyHostHandlerTests
         Assert.Equal(dto.Id, @event.Id);
         Assert.Contains("new.example.com", @event.DomainNames);
     }
+
+    [Fact]
+    public async Task Handle_WithoutTlsMode_DefaultsToManual()
+    {
+        var repo = new FakeProxyHostRepository();
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new CreateProxyHostHandler(repo, auditLog);
+
+        var (dto, _) = await handler.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.Equal("Manual", dto.TlsMode);
+    }
+
+    [Fact]
+    public async Task Handle_WithLetsEncryptTlsMode_SetsTlsModeOnDto()
+    {
+        var repo = new FakeProxyHostRepository();
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new CreateProxyHostHandler(repo, auditLog);
+
+        var command = ValidCommand() with { TlsMode = "LetsEncrypt" };
+        var (dto, _) = await handler.Handle(command, CancellationToken.None);
+
+        Assert.Equal("LetsEncrypt", dto.TlsMode);
+    }
+
+    [Fact]
+    public async Task Handle_WithInvalidTlsMode_ThrowsValidationException()
+    {
+        var repo = new FakeProxyHostRepository();
+        var auditLog = new FakeAuditLogRepository();
+        var handler = new CreateProxyHostHandler(repo, auditLog);
+
+        var command = ValidCommand() with { TlsMode = "NotARealMode" };
+
+        await Assert.ThrowsAsync<ProxyHostValidationException>(() =>
+            handler.Handle(command, CancellationToken.None));
+    }
 }

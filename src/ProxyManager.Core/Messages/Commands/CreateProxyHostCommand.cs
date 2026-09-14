@@ -4,4 +4,5 @@ namespace West94.ProxyManager.Core.Messages.Commands;
 public sealed record CreateProxyHostCommand(
     IEnumerable<string> DomainNames,
     string DestinationUri,
-    string ActorId);
+    string ActorId,
+    string? TlsMode = null);

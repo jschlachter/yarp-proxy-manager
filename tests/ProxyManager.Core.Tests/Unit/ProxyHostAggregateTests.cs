@@ -76,4 +76,33 @@ public class ProxyHostAggregateTests
 
         Assert.Throws<ArgumentException>(() => host.UpdateDomainNames([]));
     }
+
+    [Fact]
+    public void Create_WithoutExplicitTlsMode_DefaultsToManual()
+    {
+        var host = ProxyHost.Create(["example.com"], DestinationUri.Parse("http://backend:8080"));
+
+        Assert.Equal(TlsMode.Manual, host.TlsMode);
+    }
+
+    [Fact]
+    public void SetTlsMode_UpdatesTlsMode()
+    {
+        var host = ProxyHost.Create(["example.com"], DestinationUri.Parse("http://backend:8080"));
+
+        host.SetTlsMode(TlsMode.LetsEncrypt);
+
+        Assert.Equal(TlsMode.LetsEncrypt, host.TlsMode);
+    }
+
+    [Fact]
+    public void Reconstitute_RoundTripsTlsMode()
+    {
+        var id = Guid.NewGuid();
+        var destination = DestinationUri.Parse("http://backend:8080");
+
+        var host = ProxyHost.Reconstitute(id, ["example.com"], destination, isEnabled: true, certificateId: null, tlsMode: TlsMode.LetsEncrypt);
+
+        Assert.Equal(TlsMode.LetsEncrypt, host.TlsMode);
+    }
 }

@@ -1,4 +1,4 @@
-namespace West94.ProxyManager.API.Infrastructure.Files;
+namespace West94.ProxyManager.Infrastructure.Files;
 
 /// <summary>
 /// Minimal client-side shape of the Files service's <c>FileAssetDto</c> — only the fields this

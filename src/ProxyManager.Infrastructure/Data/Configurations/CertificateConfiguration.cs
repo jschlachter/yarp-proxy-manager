@@ -67,5 +67,10 @@ internal sealed class CertificateConfiguration : IEntityTypeConfiguration<Certif
         builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired();
+
+        builder.Property(x => x.Source)
+            .HasColumnName("source")
+            .IsRequired()
+            .HasDefaultValue(0);
     }
 }

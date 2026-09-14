@@ -6,4 +6,5 @@ public sealed record ProxyHostDto(
     IReadOnlyList<string> DomainNames,
     string Destination,
     bool IsEnabled,
-    Guid? CertificateId);
+    Guid? CertificateId,
+    string TlsMode);

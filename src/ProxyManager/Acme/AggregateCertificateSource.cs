@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using LettuceEncrypt;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 using West94.ProxyManager.Infrastructure.Files;
 using CoreCertificateRepository = West94.ProxyManager.Core.AggregatesModel.CertificateAggregate.ICertificateRepository;
@@ -17,6 +18,7 @@ namespace West94.ProxyManager.Acme;
 /// </summary>
 public sealed class AggregateCertificateSource(
     IServiceScopeFactory scopeFactory,
+    IOptions<FilesRetryOptions> retryOptions,
     ILogger<AggregateCertificateSource> logger) : ICertificateSource
 {
     public async Task<IEnumerable<X509Certificate2>> GetCertificatesAsync(CancellationToken cancellationToken)
@@ -90,14 +92,25 @@ public sealed class AggregateCertificateSource(
             using var scope = scopeFactory.CreateScope();
             var files = scope.ServiceProvider.GetRequiredService<IFileAssetClient>();
 
-            var certBytes = await files.GetContentAsync(certificate.CertificateAssetId, ct);
+            var certBytes = await GetContentWithRetryAsync(files, certificate.CertificateAssetId, ct);
 
-            return certificate.Format switch
+            var x509 = certificate.Format switch
             {
                 CertificateFormat.Pfx => X509CertificateLoader.LoadPkcs12(certBytes, certificate.PassPhrase),
                 CertificateFormat.Pem => await LoadPemAsync(files, certificate, certBytes, ct),
                 _ => null,
             };
+
+            // Kestrel's server-mode SSL throws NotSupportedException for a certificate without its
+            // private key (e.g. a cert-only PFX), which would break every handshake/startup.
+            if (x509 is not null && !x509.HasPrivateKey)
+            {
+                logger.LogWarning("Skipping certificate {CertificateId} ({Name}) — it has no private key.", certificate.Id, certificate.Name);
+                x509.Dispose();
+                return null;
+            }
+
+            return x509;
         }
         catch (Exception ex)
         {
@@ -106,14 +119,14 @@ public sealed class AggregateCertificateSource(
         }
     }
 
-    private static async Task<X509Certificate2?> LoadPemAsync(IFileAssetClient files, Certificate certificate, byte[] certBytes, CancellationToken ct)
+    private async Task<X509Certificate2?> LoadPemAsync(IFileAssetClient files, Certificate certificate, byte[] certBytes, CancellationToken ct)
     {
         if (certificate.KeyAssetId is null)
         {
             return null;
         }
 
-        var keyBytes = await files.GetContentAsync(certificate.KeyAssetId.Value, ct);
+        var keyBytes = await GetContentWithRetryAsync(files, certificate.KeyAssetId.Value, ct);
         var certPem = System.Text.Encoding.UTF8.GetString(certBytes);
         var keyPem = System.Text.Encoding.UTF8.GetString(keyBytes);
 
@@ -121,4 +134,38 @@ public sealed class AggregateCertificateSource(
             ? X509Certificate2.CreateFromPem(certPem, keyPem)
             : X509Certificate2.CreateFromEncryptedPem(certPem, keyPem, certificate.PassPhrase);
     }
+
+    // ProxyManager and ProxyManager.Files routinely start together; without this, LettuceEncrypt's
+    // one-shot startup load (and its on-demand negative cache) turns a few seconds of Files
+    // unavailability into a TLS outage for the whole process lifetime.
+    private async Task<byte[]> GetContentWithRetryAsync(IFileAssetClient files, Guid assetId, CancellationToken ct)
+    {
+        var options = retryOptions.Value;
+        var delay = options.InitialDelay;
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await files.GetContentAsync(assetId, ct);
+            }
+            catch (Exception ex) when (attempt < options.MaxAttempts && IsTransient(ex, ct))
+            {
+                logger.LogWarning(
+                    "Files service unavailable fetching asset {AssetId} (attempt {Attempt}/{MaxAttempts}): {Reason}. Retrying in {Delay}.",
+                    assetId, attempt, options.MaxAttempts, ex.Message, delay);
+
+                await Task.Delay(delay, ct);
+                delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2, options.MaxDelay.Ticks));
+            }
+        }
+    }
+
+    private static bool IsTransient(Exception ex, CancellationToken ct) => ex switch
+    {
+        HttpRequestException { StatusCode: null } => true,
+        HttpRequestException { StatusCode: >= System.Net.HttpStatusCode.InternalServerError } => true,
+        TaskCanceledException => !ct.IsCancellationRequested,
+        _ => false,
+    };
 }

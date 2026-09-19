@@ -70,6 +70,7 @@ try
     services.AddSingleton<LettuceEncrypt.Accounts.IAccountStore>(
         new AccountKeyFileStore(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "certs", "acme-account"))));
     services.AddSingleton<IDomainSource, ProxyHostDomainSource>();
+    services.Configure<FilesRetryOptions>(configuration.GetSection(FilesRetryOptions.Section));
     services.AddSingleton<ICertificateSource, AggregateCertificateSource>();
     services.AddSingleton<ICertificateRepository, AggregateCertificateRepository>();
 

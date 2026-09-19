@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ProxyHost } from "@/types";
+import { cn } from "@/lib/utils";
+import type { ProxyHost, TlsMode } from "@/types";
 import type { CreateRouteRequest, UpdateRouteRequest } from "@/lib/proxy-manager-client";
 
 export type RouteFormPayload = CreateRouteRequest & UpdateRouteRequest;
@@ -34,6 +35,7 @@ export default function RouteForm({
     initialData?.domainNames.join(", ") ?? ""
   );
   const [isEnabled, setIsEnabled] = useState(initialData?.isEnabled ?? true);
+  const [tlsMode, setTlsMode] = useState<TlsMode>(initialData?.tlsMode ?? "Manual");
   const [errors, setErrors] = useState<FormErrors>({});
 
   function validate(): FormErrors {
@@ -55,7 +57,7 @@ export default function RouteForm({
       .split(",")
       .map((h) => h.trim())
       .filter(Boolean);
-    onSubmit({ domainNames, destinationUri, isEnabled });
+    onSubmit({ domainNames, destinationUri, isEnabled, tlsMode });
   }
 
   if (readOnly && initialData) {
@@ -72,6 +74,12 @@ export default function RouteForm({
         <div>
           <Label>Status</Label>
           <p className="mt-1 text-sm">{initialData.isEnabled ? "Enabled" : "Disabled"}</p>
+        </div>
+        <div>
+          <Label>TLS Mode</Label>
+          <p className="mt-1 text-sm">
+            {initialData.tlsMode === "LetsEncrypt" ? "Let's Encrypt" : "Manual"}
+          </p>
         </div>
       </div>
     );
@@ -129,6 +137,47 @@ export default function RouteForm({
           className="h-4 w-4 rounded border-input accent-primary"
         />
         <Label htmlFor="isEnabled">Enabled</Label>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label id="tlsMode-label">TLS Mode</Label>
+        <div
+          role="radiogroup"
+          aria-labelledby="tlsMode-label"
+          className="inline-flex rounded-lg border border-input bg-background/50 p-1"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={tlsMode === "Manual"}
+            onClick={() => setTlsMode("Manual")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              tlsMode === "Manual"
+                ? "brand-gradient text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Manual
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={tlsMode === "LetsEncrypt"}
+            onClick={() => setTlsMode("LetsEncrypt")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              tlsMode === "LetsEncrypt"
+                ? "brand-gradient text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Let&apos;s Encrypt
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Let&apos;s Encrypt automatically issues and renews a certificate for this route&apos;s domains.
+        </p>
       </div>
 
       <Button type="submit">{submitLabel}</Button>

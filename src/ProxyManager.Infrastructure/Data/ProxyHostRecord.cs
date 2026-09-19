@@ -1,3 +1,5 @@
+using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
+
 namespace West94.ProxyManager.Infrastructure.Data;
 
 /// <summary>EF Core persistence model for ProxyHost. Decouples the ORM from the domain aggregate.</summary>
@@ -10,4 +12,5 @@ internal sealed class ProxyHostRecord
     public int DestinationPort { get; set; }
     public bool IsEnabled { get; set; }
     public Guid? CertificateId { get; set; }
+    public TlsMode TlsMode { get; set; }
 }

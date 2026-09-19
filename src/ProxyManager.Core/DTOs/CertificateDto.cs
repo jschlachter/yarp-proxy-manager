@@ -15,4 +15,5 @@ public sealed record CertificateDto(
     DateTimeOffset NotAfter,
     string Thumbprint,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Source);

@@ -25,5 +25,6 @@ public sealed class GetProxyHostsHandler(IProxyHostRepository repository)
         host.DomainNames,
         host.Destination.ToString(),
         host.IsEnabled,
-        host.CertificateId);
+        host.CertificateId,
+        host.TlsMode.ToString());
 }

@@ -30,6 +30,9 @@
     <ProjectReference Include="..\..\src\ProxyManager\ProxyManager.csproj">
       <Aliases>ProxyManagerApp</Aliases>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\ProxyManager.Files\ProxyManager.Files.csproj">
+      <Aliases>ProxyManagerFilesApp</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

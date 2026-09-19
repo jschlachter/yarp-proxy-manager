@@ -23,5 +23,5 @@ public sealed class GetCertificatesHandler(ICertificateRepository repository)
         c.Id, c.Name, c.Format.ToString(),
         c.CertificateAssetId, c.KeyAssetId, c.CertificateFileName, c.KeyFileName,
         c.Subject.Subject, c.Subject.SubjectAlternativeNames, c.Subject.NotBefore, c.Subject.NotAfter, c.Subject.Thumbprint,
-        c.CreatedAt, c.UpdatedAt);
+        c.CreatedAt, c.UpdatedAt, c.Source.ToString());
 }

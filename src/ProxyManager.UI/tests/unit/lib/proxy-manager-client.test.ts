@@ -22,6 +22,7 @@ const mockRoute: ProxyHost = {
   domainNames: ["example.com"],
   destination: "http://backend:8080",
   isEnabled: true,
+  tlsMode: "Manual" as const,
 };
 
 const originalEnv = process.env;

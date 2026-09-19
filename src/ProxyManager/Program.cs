@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Scalar.AspNetCore;
 
+using LettuceEncrypt;
 using Serilog;
 using Serilog.Events;
 using Wolverine;
 using Wolverine.RabbitMQ;
 
+using West94.ProxyManager.Acme;
 using West94.ProxyManager.Endpoints;
 using West94.ProxyManager.Infrastructure.Extensions;
 using West94.ProxyManager.Infrastructure.Options;
@@ -50,6 +52,27 @@ try
 
     services.AddHttpContextAccessor();
     services.AddHttpClient();
+    services.AddFilesClient(configuration);
+
+    // Automated Let's Encrypt (ACME HTTP-01) certificate issuance/renewal for LetsEncrypt-mode
+    // ProxyHosts. Domains, existing certificates, and newly-issued certificates all flow through
+    // the Certificate/ProxyHost aggregates via the Acme.* adapters below, so LE-issued certificates
+    // appear in the same certificate UI/API as manually-uploaded ones.
+    services.Configure<LettuceEncryptOptions>(configuration.GetSection("LettuceEncrypt"));
+    services.AddLettuceEncrypt();
+
+    // Persist only the ACME account key across restarts (not certificates — those already flow
+    // through the Certificate aggregate via AggregateCertificateSource/AggregateCertificateRepository
+    // below). Deliberately NOT using LettuceEncrypt's built-in PersistDataToDirectory: it would also
+    // register a FileSystemCertificateRepository as an ICertificateSource/ICertificateRepository,
+    // duplicating every issued certificate's full PFX (private key included) to disk outside the
+    // aggregate's lifecycle, uncleaned on Certificate deletion. See AccountKeyFileStore for details.
+    services.AddSingleton<LettuceEncrypt.Accounts.IAccountStore>(
+        new AccountKeyFileStore(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "certs", "acme-account"))));
+    services.AddSingleton<IDomainSource, ProxyHostDomainSource>();
+    services.Configure<FilesRetryOptions>(configuration.GetSection(FilesRetryOptions.Section));
+    services.AddSingleton<ICertificateSource, AggregateCertificateSource>();
+    services.AddSingleton<ICertificateRepository, AggregateCertificateRepository>();
 
     services.AddAuthentication(options =>
     {
@@ -177,6 +200,18 @@ try
 
             opts.ListenToRabbitQueue("proxy-manager-config-reload");
         }
+    });
+
+    // Kestrel's HTTPS endpoint is still declared in the "Kestrel" config section (port/binding), but
+    // certificate selection for it is handed to LettuceEncrypt here — this is the officially supported
+    // way to attach a code callback to a JSON-declared endpoint by name.
+    builder.WebHost.ConfigureKestrel(kestrelOptions =>
+    {
+        kestrelOptions.Configure(configuration.GetSection("Kestrel"))
+            .Endpoint("Https", endpointConfig =>
+            {
+                endpointConfig.ListenOptions.UseLettuceEncrypt(kestrelOptions.ApplicationServices);
+            });
     });
 
     var app = builder.Build();

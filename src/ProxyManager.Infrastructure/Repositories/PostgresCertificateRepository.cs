@@ -34,6 +34,16 @@ public sealed class PostgresCertificateRepository(ProxyManagerDbContext db) : IC
 
         existing.Name = certificate.Name;
         existing.PassPhrase = certificate.PassPhrase;
+        existing.CertificateAssetId = certificate.CertificateAssetId;
+        existing.KeyAssetId = certificate.KeyAssetId;
+        existing.CertificateFileName = certificate.CertificateFileName;
+        existing.KeyFileName = certificate.KeyFileName;
+        existing.Subject = certificate.Subject.Subject;
+        existing.SubjectAlternativeNames = certificate.Subject.SubjectAlternativeNames.ToList();
+        existing.NotBefore = certificate.Subject.NotBefore;
+        existing.NotAfter = certificate.Subject.NotAfter;
+        existing.Thumbprint = certificate.Subject.Thumbprint;
+        existing.Source = (int)certificate.Source;
         existing.UpdatedAt = certificate.UpdatedAt;
 
         await db.SaveChangesAsync(ct);
@@ -52,7 +62,7 @@ public sealed class PostgresCertificateRepository(ProxyManagerDbContext db) : IC
         Certificate.Reconstitute(r.Id, r.Name, (CertificateFormat)r.Format,
             r.CertificateAssetId, r.KeyAssetId, r.CertificateFileName, r.KeyFileName, r.PassPhrase,
             new CertificateSubjectInfo(r.Subject, r.SubjectAlternativeNames, r.NotBefore, r.NotAfter, r.Thumbprint),
-            r.CreatedAt, r.UpdatedAt);
+            r.CreatedAt, r.UpdatedAt, (CertificateSource)r.Source);
 
     private static CertificateRecord ToRecord(Certificate c) => new()
     {
@@ -70,6 +80,7 @@ public sealed class PostgresCertificateRepository(ProxyManagerDbContext db) : IC
         NotAfter = c.Subject.NotAfter,
         Thumbprint = c.Subject.Thumbprint,
         CreatedAt = c.CreatedAt,
-        UpdatedAt = c.UpdatedAt
+        UpdatedAt = c.UpdatedAt,
+        Source = (int)c.Source
     };
 }

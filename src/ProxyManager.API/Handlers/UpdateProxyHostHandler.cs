@@ -37,6 +37,15 @@ public sealed class UpdateProxyHostHandler(IProxyHostRepository repository, IAud
             else host.Disable();
         }
 
+        if (command.TlsMode is not null)
+        {
+            if (!Enum.TryParse<TlsMode>(command.TlsMode, ignoreCase: true, out var tlsMode))
+                throw new ProxyHostValidationException(
+                    $"'{command.TlsMode}' is not a valid TLS mode. Use 'Manual' or 'LetsEncrypt'.");
+
+            host.SetTlsMode(tlsMode);
+        }
+
         await repository.UpdateAsync(host, ct);
 
         var dto = GetProxyHostsHandler.MapToDto(host);

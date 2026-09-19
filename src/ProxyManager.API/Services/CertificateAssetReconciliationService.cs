@@ -1,4 +1,4 @@
-using West94.ProxyManager.API.Infrastructure.Files;
+using West94.ProxyManager.Infrastructure.Files;
 using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 
 namespace West94.ProxyManager.API.Services;

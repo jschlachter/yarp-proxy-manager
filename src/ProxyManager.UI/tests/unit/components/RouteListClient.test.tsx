@@ -9,7 +9,13 @@ jest.mock("next/navigation", () => ({
 
 const mockRoutes: PaginatedRoutes = {
   items: [
-    { id: "r1", domainNames: ["svc.example.com"], destination: "http://svc:8080", isEnabled: true },
+    {
+      id: "r1",
+      domainNames: ["svc.example.com"],
+      destination: "http://svc:8080",
+      isEnabled: true,
+      tlsMode: "Manual",
+    },
   ],
   totalCount: 1,
   page: 1,

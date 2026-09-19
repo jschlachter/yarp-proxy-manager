@@ -4,6 +4,7 @@ import type {
   MaintainerAssignment,
   ProblemDetails,
   ProxyHost,
+  TlsMode,
   UserSession,
 } from "@/types";
 
@@ -103,12 +104,14 @@ export interface PaginatedRoutes {
 export interface CreateRouteRequest {
   domainNames?: string[];
   destinationUri?: string;
+  tlsMode?: TlsMode;
 }
 
 export interface UpdateRouteRequest {
   domainNames?: string[];
   destinationUri?: string;
   isEnabled?: boolean;
+  tlsMode?: TlsMode;
 }
 
 export function listRoutes(

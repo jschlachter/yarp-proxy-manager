@@ -130,7 +130,7 @@ Auth config keys: `Authentication:Authority`, `Authentication:ClientId`, `Authen
 
 ## Deployment
 
-**Podman Quadlet** (systemd-managed containers). `systemd/` holds unit files for the pod/network/volumes plus one `.container` per service: `proxymanager`, `proxymanager-api`, `proxymanager-files`, `proxymanager-ui`, `proxymanager-postgresql`, `proxymanager-rabbitmq`, `proxymanager-rustfs`. Volumes mount `~/proxymanager/config/` (proxysettings) and `~/proxymanager/certs/` (TLS). Environment comes from a `.env` file in `systemd/` (e.g. `PROXY_MANAGER_API_URL`, `PROXY_MANAGER_FILES_URL`, `AUTHENTIK_ACCOUNT_URL` for the UI container).
+**Podman Quadlet** (systemd-managed containers). `systemd/` has one folder per service (`proxymanager` also holds the pod and network, `api`, `files`, `ui`, `postgresql`, `rabbitmq`, `rustfs`), each with a `deploy.sh` (creates that service's Podman secrets, installs its units, `daemon-reload`) and a `services/` folder holding its Quadlet files. Run `systemd/proxymanager/deploy.sh` first on a fresh host (it installs the pod and network). `scripts/deploy-vm.sh` is a separate helper for local Podman Desktop testing. Volumes mount `~/proxymanager/config/` (proxysettings) and `~/proxymanager/certs/` (TLS). Environment comes from a `.env` file in `systemd/` (e.g. `PROXY_MANAGER_API_URL`, `PROXY_MANAGER_FILES_URL`, `AUTHENTIK_ACCOUNT_URL` for the UI container).
 
 ## Logging
 

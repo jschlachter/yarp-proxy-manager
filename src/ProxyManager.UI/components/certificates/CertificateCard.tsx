@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getExpiryStatus } from "@/lib/certificates";
 import { cn } from "@/lib/utils";
 import type { Certificate } from "@/types";
 
@@ -8,10 +9,11 @@ interface CertificateCardProps {
   certificate: Certificate;
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  onView: (id: string) => void;
 }
 
-export default function CertificateCard({ certificate, isAdmin, onDelete }: CertificateCardProps) {
-  const expired = new Date(certificate.notAfter).getTime() < Date.now();
+export default function CertificateCard({ certificate, isAdmin, onDelete, onView }: CertificateCardProps) {
+  const expired = getExpiryStatus(certificate.notAfter) === "expired";
   const isLetsEncrypt = certificate.source === "LetsEncrypt";
 
   return (
@@ -59,9 +61,12 @@ export default function CertificateCard({ certificate, isAdmin, onDelete }: Cert
           </p>
         )}
       </div>
-      {isAdmin && (
-        <div className="flex shrink-0 gap-2 opacity-70 transition-opacity group-hover:opacity-100">
-          {isLetsEncrypt ? (
+      <div className="flex shrink-0 gap-2 opacity-70 transition-opacity group-hover:opacity-100">
+        <Button variant="outline" size="sm" onClick={() => onView(certificate.id)} aria-label="View">
+          View
+        </Button>
+        {isAdmin &&
+          (isLetsEncrypt ? (
             <>
               <Button variant="outline" size="sm" disabled aria-label="Edit" title="Managed by Let's Encrypt">
                 Edit
@@ -96,9 +101,8 @@ export default function CertificateCard({ certificate, isAdmin, onDelete }: Cert
                 Delete
               </Button>
             </>
-          )}
-        </div>
-      )}
+          ))}
+      </div>
     </div>
   );
 }

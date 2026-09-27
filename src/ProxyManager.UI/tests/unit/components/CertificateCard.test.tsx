@@ -28,33 +28,33 @@ const letsEncryptCertificate: Certificate = {
 describe("CertificateCard", () => {
   describe("Source badge", () => {
     it("renders a Manual badge for a manually-uploaded certificate", () => {
-      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={jest.fn()} />);
+      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={jest.fn()} onView={jest.fn()} />);
       expect(screen.getByText("Manual")).toBeInTheDocument();
       expect(screen.queryByText("Let's Encrypt")).not.toBeInTheDocument();
     });
 
     it("renders a Let's Encrypt badge for a machine-issued certificate", () => {
-      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={jest.fn()} />);
+      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={jest.fn()} onView={jest.fn()} />);
       expect(screen.getByText("Let's Encrypt")).toBeInTheDocument();
     });
   });
 
   describe("manual actions", () => {
     it("shows an active Edit link and Delete button for a manual certificate", () => {
-      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={jest.fn()} />);
+      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={jest.fn()} onView={jest.fn()} />);
       expect(screen.getByRole("link", { name: "Edit" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Delete" })).not.toBeDisabled();
     });
 
     it("calls onDelete when Delete is clicked for a manual certificate", () => {
       const onDelete = jest.fn();
-      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={onDelete} />);
+      render(<CertificateCard certificate={manualCertificate} isAdmin onDelete={onDelete} onView={jest.fn()} />);
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       expect(onDelete).toHaveBeenCalledWith("cert-1");
     });
 
     it("disables Edit and Delete actions for a Let's Encrypt certificate", () => {
-      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={jest.fn()} />);
+      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={jest.fn()} onView={jest.fn()} />);
       expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Edit" })).toBeDisabled();
       expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
@@ -62,18 +62,39 @@ describe("CertificateCard", () => {
 
     it("does not call onDelete when Delete is clicked for a Let's Encrypt certificate", () => {
       const onDelete = jest.fn();
-      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={onDelete} />);
+      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={onDelete} onView={jest.fn()} />);
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       expect(onDelete).not.toHaveBeenCalled();
     });
 
-    it("hides actions entirely for non-admin viewers regardless of source", () => {
+    it("hides Edit and Delete for non-admin viewers regardless of source", () => {
       render(
-        <CertificateCard certificate={letsEncryptCertificate} isAdmin={false} onDelete={jest.fn()} />
+        <CertificateCard certificate={letsEncryptCertificate} isAdmin={false} onDelete={jest.fn()} onView={jest.fn()} />
       );
       expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
       expect(screen.queryByRole("link", { name: "Edit" })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("View action", () => {
+    it.each([true, false])("shows an enabled View button when isAdmin=%s", (isAdmin) => {
+      render(
+        <CertificateCard certificate={manualCertificate} isAdmin={isAdmin} onDelete={jest.fn()} onView={jest.fn()} />
+      );
+      expect(screen.getByRole("button", { name: "View" })).not.toBeDisabled();
+    });
+
+    it("keeps View enabled for a Let's Encrypt certificate", () => {
+      render(<CertificateCard certificate={letsEncryptCertificate} isAdmin onDelete={jest.fn()} onView={jest.fn()} />);
+      expect(screen.getByRole("button", { name: "View" })).not.toBeDisabled();
+    });
+
+    it("calls onView with the certificate id", () => {
+      const onView = jest.fn();
+      render(<CertificateCard certificate={manualCertificate} isAdmin={false} onDelete={jest.fn()} onView={onView} />);
+      fireEvent.click(screen.getByRole("button", { name: "View" }));
+      expect(onView).toHaveBeenCalledWith("cert-1");
     });
   });
 });

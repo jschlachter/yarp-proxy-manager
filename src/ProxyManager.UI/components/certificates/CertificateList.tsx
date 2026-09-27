@@ -9,9 +9,10 @@ interface CertificateListProps {
   certificates: Certificate[];
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  onView: (id: string) => void;
 }
 
-export default function CertificateList({ certificates, isAdmin, onDelete }: CertificateListProps) {
+export default function CertificateList({ certificates, isAdmin, onDelete, onView }: CertificateListProps) {
   if (certificates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-card/40 py-20 text-center">
@@ -45,6 +46,7 @@ export default function CertificateList({ certificates, isAdmin, onDelete }: Cer
           certificate={certificate}
           isAdmin={isAdmin}
           onDelete={onDelete}
+          onView={onView}
         />
       ))}
     </div>

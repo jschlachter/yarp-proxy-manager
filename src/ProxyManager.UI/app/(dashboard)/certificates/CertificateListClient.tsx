@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TriangleAlertIcon } from "lucide-react";
 import CertificateList from "@/components/certificates/CertificateList";
+import CertificateViewDialog from "@/components/certificates/CertificateViewDialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +23,7 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(null);
 
   async function refresh() {
     setIsLoading(true);
@@ -43,6 +45,7 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
   const pendingCertificate = pendingDeleteId
     ? certificates.find((cert) => cert.id === pendingDeleteId)
     : undefined;
+  const viewCertificate = viewId ? certificates.find((cert) => cert.id === viewId) : undefined;
   const [deleteError, setDeleteError] = useState<string | undefined>();
 
   async function handleConfirmDelete() {
@@ -76,6 +79,12 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
         certificates={certificates}
         isAdmin={isAdmin}
         onDelete={setPendingDeleteId}
+        onView={setViewId}
+      />
+
+      <CertificateViewDialog
+        certificate={viewCertificate}
+        onOpenChange={(open) => !open && setViewId(null)}
       />
 
       <Dialog open={!!pendingDeleteId} onOpenChange={(open) => !open && setPendingDeleteId(null)}>

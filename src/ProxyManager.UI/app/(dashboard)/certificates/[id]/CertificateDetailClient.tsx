@@ -8,6 +8,7 @@ import CertificateForm, {
   type CreateCertificatePayload,
   type UpdateCertificatePayload,
 } from "@/components/certificates/CertificateForm";
+import { apiFetch } from "@/lib/api-fetch";
 import type { Certificate, ProblemDetails } from "@/types";
 
 interface CertificateDetailClientProps {
@@ -23,7 +24,7 @@ export default function CertificateDetailClient({ id, isAdmin }: CertificateDeta
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/manage/api/certificates/${encodeURIComponent(id)}`)
+    apiFetch(`/manage/api/certificates/${encodeURIComponent(id)}`)
       .then(async (response) => {
         if (!response.ok) {
           if (!cancelled) setCertificate(null);
@@ -52,7 +53,7 @@ export default function CertificateDetailClient({ id, isAdmin }: CertificateDeta
     setError(undefined);
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
+      const response = await apiFetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

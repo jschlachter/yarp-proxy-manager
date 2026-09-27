@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import RouteForm from "@/components/routes/RouteForm";
 import MaintainerPanel from "@/components/routes/MaintainerPanel";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
   useEffect(() => {
     async function loadRoute() {
       try {
-        const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}`);
+        const response = await apiFetch(`/manage/api/routes/${encodeURIComponent(id)}`);
         if (response.status === 404) {
           router.replace("/routes");
           return;
@@ -57,7 +58,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
 
     async function loadMaintainers() {
       try {
-        const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}/maintainers`);
+        const response = await apiFetch(`/manage/api/routes/${encodeURIComponent(id)}/maintainers`);
         if (response.ok) {
           const data = (await response.json()) as MaintainerAssignment[];
           setMaintainers(data);
@@ -74,7 +75,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
 
   async function handleSubmit(payload: RouteFormPayload) {
     setError(undefined);
-    const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
+    const response = await apiFetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -89,7 +90,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
   }
 
   async function handleDelete() {
-    const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
+    const response = await apiFetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
 

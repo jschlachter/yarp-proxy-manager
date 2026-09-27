@@ -121,7 +121,8 @@ using a fake `HttpMessageHandler` and a static `ConfigurationManager`:
   is captured by the cookie options, so a typed client would have pinned one `HttpMessageHandler`
   for the process lifetime.
 - **Task 1:** `IMemoryCache.GetOrCreate` isn't atomic, so the lookup runs under a lock; without it
-  the parallel test made two token-endpoint calls. The shared call runs with
+  the parallel test made two token-endpoint calls. With the lock the factory runs once per key, so
+  the cache holds the `Task` itself rather than the planned `Lazy<Task<…>>` (review finding). The shared call runs with
   `CancellationToken.None` (each caller uses `WaitAsync(ct)`), so an aborted first request can't
   cancel everyone's refresh. A faulted call (network error) is evicted like a failed one and the
   exception propagates.

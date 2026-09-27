@@ -44,7 +44,7 @@ public sealed class OidcTokenRefresher(
         // Key on a hash so the raw refresh token isn't held in the cache.
         var key = "oidc-refresh:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken)));
 
-        Lazy<Task<TokenRefreshResult?>> refresh;
+        Task<TokenRefreshResult?> refresh;
         // GetOrCreate isn't atomic: without the lock, racing callers each create (and send) their own refresh.
         lock (cacheLock)
         {
@@ -52,13 +52,13 @@ public sealed class OidcTokenRefresher(
             {
                 entry.AbsoluteExpirationRelativeToNow = DedupeWindow;
                 // The shared call must not be cancelled by whichever request happened to start it.
-                return new Lazy<Task<TokenRefreshResult?>>(() => SendRefreshAsync(refreshToken, CancellationToken.None));
+                return SendRefreshAsync(refreshToken, CancellationToken.None);
             })!;
         }
 
         try
         {
-            var result = await refresh.Value.WaitAsync(ct);
+            var result = await refresh.WaitAsync(ct);
             if (result is null)
             {
                 // Don't pin a failure for the whole window; a later request may retry.
@@ -67,7 +67,7 @@ public sealed class OidcTokenRefresher(
 
             return result;
         }
-        catch (Exception) when (refresh.Value.IsFaulted)
+        catch (Exception) when (refresh.IsFaulted)
         {
             cache.Remove(key);
             throw;

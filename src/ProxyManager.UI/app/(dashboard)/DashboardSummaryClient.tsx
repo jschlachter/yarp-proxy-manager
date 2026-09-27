@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { RouteIcon, ShieldCheckIcon, HeartPulseIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import type { ProblemDetails } from "@/types";
 import type { PaginatedRoutes, PaginatedCertificates } from "@/lib/proxy-manager-client";
 
@@ -21,8 +22,8 @@ export default function DashboardSummaryClient() {
     setFetchError(null);
     try {
       const [routesResponse, certificatesResponse] = await Promise.all([
-        fetch("/manage/api/routes?page=1&pageSize=1"),
-        fetch("/manage/api/certificates?page=1&pageSize=1"),
+        apiFetch("/manage/api/routes?page=1&pageSize=1"),
+        apiFetch("/manage/api/certificates?page=1&pageSize=1"),
       ]);
 
       if (!routesResponse.ok) {

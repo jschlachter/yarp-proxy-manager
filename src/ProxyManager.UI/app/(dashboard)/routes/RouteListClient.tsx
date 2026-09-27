@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-fetch";
 import RouteList from "@/components/routes/RouteList";
 import type { ProxyHost, ProblemDetails } from "@/types";
 import type { PaginatedRoutes } from "@/lib/proxy-manager-client";
@@ -22,7 +23,7 @@ export default function RouteListClient({ isAdmin, initialPage = 1 }: RouteListC
     setIsLoading(true);
     setFetchError(null);
     try {
-      const response = await fetch(`/manage/api/routes?page=${pageNum}&pageSize=50`);
+      const response = await apiFetch(`/manage/api/routes?page=${pageNum}&pageSize=50`);
       if (!response.ok) {
         const problem = (await response.json()) as ProblemDetails;
         setFetchError(problem.detail ?? "Unable to load routes.");
@@ -43,7 +44,7 @@ export default function RouteListClient({ isAdmin, initialPage = 1 }: RouteListC
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this route?")) return;
 
-    const response = await fetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
+    const response = await apiFetch(`/manage/api/routes/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
 

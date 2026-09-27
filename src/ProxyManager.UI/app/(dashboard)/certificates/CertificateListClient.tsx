@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TriangleAlertIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import CertificateList from "@/components/certificates/CertificateList";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,7 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
   async function refresh() {
     setIsLoading(true);
     try {
-      const response = await fetch("/manage/api/certificates");
+      const response = await apiFetch("/manage/api/certificates");
       if (response.ok) {
         const data = (await response.json()) as { items: Certificate[] };
         setCertificates(data.items);
@@ -50,7 +51,7 @@ export default function CertificateListClient({ isAdmin }: CertificateListClient
     const id = pendingDeleteId;
     setPendingDeleteId(null);
     setDeleteError(undefined);
-    const response = await fetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
+    const response = await apiFetch(`/manage/api/certificates/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     if (!response.ok) {

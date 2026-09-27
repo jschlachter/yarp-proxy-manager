@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-fetch";
 import RouteForm, { type RouteFormPayload } from "@/components/routes/RouteForm";
 
 export default function NewRouteClient() {
@@ -10,7 +11,7 @@ export default function NewRouteClient() {
 
   async function handleSubmit(payload: RouteFormPayload) {
     setError(undefined);
-    const response = await fetch("/manage/api/routes", {
+    const response = await apiFetch("/manage/api/routes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

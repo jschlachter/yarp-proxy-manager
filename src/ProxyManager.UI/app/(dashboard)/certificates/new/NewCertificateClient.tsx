@@ -6,13 +6,14 @@ import CertificateForm, {
   type CreateCertificatePayload,
   type UpdateCertificatePayload,
 } from "@/components/certificates/CertificateForm";
+import { apiFetch } from "@/lib/api-fetch";
 import type { FileAsset, ProblemDetails } from "@/types";
 
 async function uploadAsset(file: File): Promise<FileAsset> {
   const form = new FormData();
   form.append("file", file, file.name);
 
-  const response = await fetch("/manage/api/files?assetType=certificate", {
+  const response = await apiFetch("/manage/api/files?assetType=certificate", {
     method: "POST",
     body: form,
   });
@@ -40,7 +41,7 @@ export default function NewCertificateClient() {
       const keyAsset = payload.keyFile ? await uploadAsset(payload.keyFile) : undefined;
 
       setStage("creating");
-      const response = await fetch("/manage/api/certificates", {
+      const response = await apiFetch("/manage/api/certificates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -115,7 +115,7 @@ Wolverine + RabbitMQ for inter-service communication. Fanout exchanges `proxy-ho
 **YARP routes/clusters:** system routes live in `proxysettings.{Environment}.json` (separate from `appsettings.json`); user routes live in the database (see ProxyManager above). Custom YARP transforms: `BearerTokenTransformFactory` (`"BearerToken": "access_token"` — swaps the OIDC cookie's access token onto the `Authorization` header) and `ClaimHeaderTransformFactory` (`"ClaimHeader"` — projects claims to `X-Auth-Sub` / `X-Auth-Groups` / `X-Auth-Name` headers).
 
 **Authentication split:**
-- ProxyManager — OpenID Connect, cookie sessions, authority Authentik at `https://auth.west94.io`. Token refresh is handled in the cookie `OnValidatePrincipal` event using helpers in `src/ProxyManager/West94.AspNetCore.Authentication/`.
+- ProxyManager — OpenID Connect, cookie sessions, authority Authentik at `https://auth.west94.io`. `AddOidcTokenRefresh()` (`src/ProxyManager/West94.AspNetCore.Authentication/`) refreshes the access token in the cookie's `OnValidatePrincipal` event before it expires (leeway `Authentication:TokenRefresh:RefreshLeeway`, default 60 s), de-duplicating concurrent refreshes per refresh token (ADR 0001). Unauthenticated requests under `/api` and `/manage/api` get 401 instead of an OIDC redirect; the UI's `lib/api-fetch.ts` turns that into a `/login?returnUrl=…` navigation.
 - ProxyManager.API and ProxyManager.Files — JWT Bearer, same authority, audience-validated. Files also accepts the service token scheme.
 
 Auth config keys: `Authentication:Authority`, `Authentication:ClientId`, `Authentication:ClientSecret`, `Authentication:Audience` (env vars or appsettings).

@@ -46,7 +46,7 @@ export default function CertificateViewDialog({ certificate, onOpenChange }: Cer
   return (
     <Dialog open={!!certificate} onOpenChange={onOpenChange}>
       {shown && (
-        <DialogContent ref={popupRef} initialFocus={popupRef} className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent ref={popupRef} initialFocus={popupRef} className="gap-6 p-6 sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <CertificateDetails certificate={shown} />
         </DialogContent>
       )}
@@ -60,7 +60,7 @@ function CertificateDetails({ certificate }: { certificate: Certificate }) {
 
   return (
     <>
-      <DialogHeader className="pr-8">
+      <DialogHeader className="gap-3 pr-8">
         <DialogTitle className="truncate">{certificate.name}</DialogTitle>
         <DialogDescription className="flex flex-wrap gap-1.5">
           <Badge variant="outline" className="border-transparent bg-primary/10 text-primary">
@@ -137,9 +137,9 @@ function CertificateDetails({ certificate }: { certificate: Certificate }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3>
-      <dl className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[9rem_1fr] sm:gap-y-2">{children}</dl>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[9rem_1fr] sm:gap-y-3">{children}</dl>
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { getExpiryStatus } from "@/lib/certificates";
 import { cn } from "@/lib/utils";
 import type { Certificate } from "@/types";
@@ -61,7 +61,7 @@ export default function CertificateCard({ certificate, isAdmin, onDelete, onView
           </p>
         )}
       </div>
-      <div className="flex shrink-0 gap-2 opacity-70 transition-opacity group-hover:opacity-100">
+      <div className="flex shrink-0 items-center gap-2 opacity-70 transition-opacity group-hover:opacity-100">
         <Button variant="outline" size="sm" onClick={() => onView(certificate.id)} aria-label="View">
           View
         </Button>
@@ -85,9 +85,7 @@ export default function CertificateCard({ certificate, isAdmin, onDelete, onView
             <>
               <Link
                 href={`/certificates/${certificate.id}`}
-                className={cn(
-                  "inline-flex items-center justify-center rounded-lg border border-input bg-background/50 px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-accent hover:text-accent-foreground"
-                )}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
                 aria-label="Edit"
               >
                 Edit

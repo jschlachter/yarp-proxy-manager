@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
+import { useHealthStates } from "@/lib/use-health-states";
 import RouteForm from "@/components/routes/RouteForm";
 import MaintainerPanel from "@/components/routes/MaintainerPanel";
+import HealthBadge from "@/components/routes/HealthBadge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +36,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | undefined>();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const healthStates = useHealthStates();
 
   useEffect(() => {
     async function loadRoute() {
@@ -82,6 +85,7 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
     });
 
     if (response.ok) {
+      setRoute((await response.json()) as ProxyHost);
       router.refresh();
     } else {
       const problem = (await response.json()) as ProblemDetails;
@@ -130,9 +134,12 @@ export default function RouteDetailClient({ id, isAdmin }: RouteDetailClientProp
         Back to routes
       </Link>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-gradient">
-          {route.domainNames[0] ?? route.destination}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-gradient">
+            {route.domainNames[0] ?? route.destination}
+          </h1>
+          {route.healthCheck && <HealthBadge state={healthStates.get(route.id)} />}
+        </div>
         <p className="text-sm text-muted-foreground font-mono">{route.destination}</p>
       </div>
 

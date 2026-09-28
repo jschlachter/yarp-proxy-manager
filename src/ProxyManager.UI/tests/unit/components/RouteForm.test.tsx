@@ -136,4 +136,115 @@ describe("RouteForm", () => {
       expect(screen.getByText("http://backend:8080")).toBeInTheDocument();
     });
   });
+
+  describe("health checks", () => {
+    const routeWithChecks: ProxyHost = {
+      ...mockRoute,
+      healthCheck: {
+        availableDestinationsPolicy: "HealthyOrPanic",
+        active: {
+          policy: "ConsecutiveFailures",
+          intervalSeconds: 20,
+          timeoutSeconds: null,
+          path: "/health",
+          query: null,
+          healthAddress: null,
+          consecutiveFailuresThreshold: 3,
+        },
+        passive: null,
+      },
+    };
+
+    async function fillRequired() {
+      await userEvent.type(screen.getByLabelText("Destination URL"), "http://backend:8080");
+      await userEvent.type(screen.getByLabelText("Domain Names"), "example.com");
+    }
+
+    it("shows active fields and a single-option policy dropdown once enabled", async () => {
+      render(<RouteForm onSubmit={jest.fn()} />);
+      expect(screen.queryByLabelText("Interval (s)")).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByLabelText("Active health check"));
+
+      expect(screen.getByLabelText("Interval (s)")).toBeInTheDocument();
+      const policy = screen.getByLabelText("Active policy");
+      expect(Array.from((policy as HTMLSelectElement).options).map((o) => o.text)).toEqual([
+        "ConsecutiveFailuresHealthPolicy",
+      ]);
+      expect(screen.getByRole("radio", { name: "Stop traffic when unhealthy" })).toHaveAttribute(
+        "aria-checked",
+        "true"
+      );
+    });
+
+    it("submits the configured healthCheck", async () => {
+      const onSubmit = jest.fn();
+      render(<RouteForm onSubmit={onSubmit} />);
+      await fillRequired();
+
+      await userEvent.click(screen.getByLabelText("Active health check"));
+      await userEvent.type(screen.getByLabelText("Path"), "/health");
+      await userEvent.click(screen.getByLabelText("Passive health check"));
+      await userEvent.type(screen.getByLabelText("Failure rate limit (0–1)"), "0.4");
+      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            healthCheck: {
+              availableDestinationsPolicy: "HealthyAndUnknown",
+              active: {
+                policy: "ConsecutiveFailures",
+                intervalSeconds: null,
+                timeoutSeconds: null,
+                path: "/health",
+                query: null,
+                healthAddress: null,
+                consecutiveFailuresThreshold: null,
+              },
+              passive: { policy: "TransportFailureRate", reactivationPeriodSeconds: null, failureRateLimit: 0.4 },
+            },
+          })
+        );
+      });
+    });
+
+    it("pre-fills the fields of a host that has checks", () => {
+      render(<RouteForm initialData={routeWithChecks} onSubmit={jest.fn()} />);
+
+      expect(screen.getByLabelText("Active health check")).toBeChecked();
+      expect(screen.getByLabelText("Interval (s)")).toHaveValue("20");
+      expect(screen.getByLabelText("Path")).toHaveValue("/health");
+      expect(screen.getByLabelText("Passive health check")).not.toBeChecked();
+      expect(screen.getByRole("radio", { name: "Keep sending traffic" })).toHaveAttribute("aria-checked", "true");
+    });
+
+    it("blocks submit with an inline error for an invalid rate limit", async () => {
+      const onSubmit = jest.fn();
+      render(<RouteForm onSubmit={onSubmit} />);
+      await fillRequired();
+
+      await userEvent.click(screen.getByLabelText("Passive health check"));
+      await userEvent.type(screen.getByLabelText("Failure rate limit (0–1)"), "1.5");
+      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+
+      expect(await screen.findByText("Must be between 0 and 1 (exclusive)")).toBeInTheDocument();
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it("renders a summary in the read-only view", () => {
+      render(<RouteForm initialData={routeWithChecks} onSubmit={jest.fn()} readOnly />);
+
+      expect(
+        screen.getByText("Active: ConsecutiveFailuresHealthPolicy (every 20s, /health, threshold 3)")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Keeps sending traffic when unhealthy")).toBeInTheDocument();
+    });
+
+    it("shows Off in the read-only view when there are no checks", () => {
+      render(<RouteForm initialData={mockRoute} onSubmit={jest.fn()} readOnly />);
+
+      expect(screen.getByText("Off")).toBeInTheDocument();
+    });
+  });
 });

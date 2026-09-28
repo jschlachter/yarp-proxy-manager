@@ -34,8 +34,9 @@ public sealed class CreateProxyHostHandler(IProxyHostRepository repository, IAud
             throw new ProxyHostValidationException(
                 $"'{command.TlsMode}' is not a valid TLS mode. Use 'Manual' or 'LetsEncrypt'.");
 
+        var healthCheck = HealthCheckMapper.ToDomain(command.HealthCheck);
         var destination = DestinationUri.Parse(command.DestinationUri);
-        var host = ProxyHost.Create(domains, destination, tlsMode: tlsMode);
+        var host = ProxyHost.Create(domains, destination, tlsMode: tlsMode, healthCheck: healthCheck);
         await repository.AddAsync(host, ct);
 
         await auditLog.AppendAsync(

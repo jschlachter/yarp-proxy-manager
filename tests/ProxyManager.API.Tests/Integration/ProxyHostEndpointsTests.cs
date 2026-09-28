@@ -222,6 +222,56 @@ public sealed class ProxyHostEndpointsTests : IAsyncDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task CreateProxyHost_WithHealthCheck_Returns201WithHealthCheck()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new
+        {
+            domainNames = new[] { "health-create.example.com" },
+            destinationUri = "http://backend:8080",
+            healthCheck = new
+            {
+                availableDestinationsPolicy = "HealthyAndUnknown",
+                active = new { policy = "ConsecutiveFailures", intervalSeconds = 15, path = "/health" },
+                passive = new { policy = "TransportFailureRate", failureRateLimit = 0.3 }
+            }
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<ProxyHostDto>();
+        Assert.Equal(
+            new HealthCheckDto(
+                "HealthyAndUnknown",
+                new ActiveHealthCheckDto("ConsecutiveFailures", IntervalSeconds: 15, Path: "/health"),
+                new PassiveHealthCheckDto("TransportFailureRate", FailureRateLimit: 0.3)),
+            result!.HealthCheck);
+    }
+
+    [Fact]
+    public async Task CreateProxyHost_WithOutOfRangeFailureRateLimit_Returns400()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TestJwtFactory.CreateToken());
+        var body = new
+        {
+            domainNames = new[] { "health-invalid.example.com" },
+            destinationUri = "http://backend:8080",
+            healthCheck = new
+            {
+                availableDestinationsPolicy = "HealthyAndUnknown",
+                passive = new { policy = "TransportFailureRate", failureRateLimit = 1.5 }
+            }
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/proxyhosts", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();

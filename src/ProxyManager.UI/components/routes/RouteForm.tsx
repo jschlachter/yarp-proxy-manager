@@ -4,8 +4,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import HealthCheckFields from "@/components/routes/HealthCheckFields";
+import {
+  ACTIVE_HEALTH_POLICIES,
+  PASSIVE_HEALTH_POLICIES,
+  toFormState,
+  toPayload,
+  validateHealthCheck,
+  type HealthCheckErrors,
+} from "@/lib/health-checks";
 import { cn } from "@/lib/utils";
-import type { ProxyHost, TlsMode } from "@/types";
+import type { HealthCheck, ProxyHost, TlsMode } from "@/types";
 import type { CreateRouteRequest, UpdateRouteRequest } from "@/lib/proxy-manager-client";
 
 export type RouteFormPayload = CreateRouteRequest & UpdateRouteRequest;
@@ -21,6 +31,40 @@ interface RouteFormProps {
 interface FormErrors {
   destinationUri?: string;
   domainNames?: string;
+  healthCheck?: HealthCheckErrors;
+}
+
+const policyLabel = (options: { value: string; label: string }[], value: string) =>
+  options.find((o) => o.value === value)?.label ?? value;
+
+/** One summary line per enabled check, listing only the fields that are set. */
+function healthCheckSummary(healthCheck: HealthCheck): string[] {
+  const lines: string[] = [];
+  const { active, passive } = healthCheck;
+  if (active) {
+    const parts = [
+      active.intervalSeconds != null && `every ${active.intervalSeconds}s`,
+      active.timeoutSeconds != null && `timeout ${active.timeoutSeconds}s`,
+      (active.path || active.query) && `${active.path ?? ""}${active.query ?? ""}`,
+      active.healthAddress && `via ${active.healthAddress}`,
+      active.consecutiveFailuresThreshold != null && `threshold ${active.consecutiveFailuresThreshold}`,
+    ].filter(Boolean);
+    lines.push(`Active: ${policyLabel(ACTIVE_HEALTH_POLICIES, active.policy)}${parts.length ? ` (${parts.join(", ")})` : ""}`);
+  }
+  if (passive) {
+    const parts = [
+      passive.reactivationPeriodSeconds != null && `reactivate after ${passive.reactivationPeriodSeconds}s`,
+      passive.failureRateLimit != null && `rate limit ${passive.failureRateLimit}`,
+    ].filter(Boolean);
+    lines.push(`Passive: ${policyLabel(PASSIVE_HEALTH_POLICIES, passive.policy)}${parts.length ? ` (${parts.join(", ")})` : ""}`);
+  }
+  if (lines.length > 0)
+    lines.push(
+      healthCheck.availableDestinationsPolicy === "HealthyOrPanic"
+        ? "Keeps sending traffic when unhealthy"
+        : "Stops traffic when unhealthy"
+    );
+  return lines;
 }
 
 export default function RouteForm({
@@ -36,12 +80,15 @@ export default function RouteForm({
   );
   const [isEnabled, setIsEnabled] = useState(initialData?.isEnabled ?? true);
   const [tlsMode, setTlsMode] = useState<TlsMode>(initialData?.tlsMode ?? "Manual");
+  const [healthCheck, setHealthCheck] = useState(() => toFormState(initialData?.healthCheck));
   const [errors, setErrors] = useState<FormErrors>({});
 
   function validate(): FormErrors {
     const errs: FormErrors = {};
     if (!destinationUri.trim()) errs.destinationUri = "Destination URL is required";
     if (!domainNamesRaw.trim()) errs.domainNames = "At least one domain name is required";
+    const healthErrs = validateHealthCheck(healthCheck);
+    if (Object.keys(healthErrs).length > 0) errs.healthCheck = healthErrs;
     return errs;
   }
 
@@ -57,10 +104,12 @@ export default function RouteForm({
       .split(",")
       .map((h) => h.trim())
       .filter(Boolean);
-    onSubmit({ domainNames, destinationUri, isEnabled, tlsMode });
+    // Always send healthCheck so turning both checks off on an edit clears them.
+    onSubmit({ domainNames, destinationUri, isEnabled, tlsMode, healthCheck: toPayload(healthCheck) });
   }
 
   if (readOnly && initialData) {
+    const healthSummary = initialData.healthCheck ? healthCheckSummary(initialData.healthCheck) : [];
     return (
       <div className="space-y-4">
         <div>
@@ -80,6 +129,18 @@ export default function RouteForm({
           <p className="mt-1 text-sm">
             {initialData.tlsMode === "LetsEncrypt" ? "Let's Encrypt" : "Manual"}
           </p>
+        </div>
+        <div>
+          <Label>Health checks</Label>
+          {healthSummary.length > 0 ? (
+            <ul className="mt-1 space-y-0.5 text-sm">
+              {healthSummary.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-sm">Off</p>
+          )}
         </div>
       </div>
     );
@@ -178,6 +239,18 @@ export default function RouteForm({
         <p className="text-xs text-muted-foreground">
           Let&apos;s Encrypt automatically issues and renews a certificate for this route&apos;s domains.
         </p>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Health checks</h3>
+          <p className="text-xs text-muted-foreground">
+            Optional. Leave a field blank to use YARP&apos;s default.
+          </p>
+        </div>
+        <HealthCheckFields value={healthCheck} onChange={setHealthCheck} errors={errors.healthCheck} />
       </div>
 
       <Button type="submit">{submitLabel}</Button>

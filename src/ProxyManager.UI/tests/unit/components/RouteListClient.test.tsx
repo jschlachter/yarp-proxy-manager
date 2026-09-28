@@ -7,6 +7,9 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: jest.fn(), push: jest.fn() }),
 }));
 
+// Health polling has its own tests; keep it off the fetch mock these tests script.
+jest.mock("@/lib/use-health-states", () => ({ useHealthStates: () => new Map() }));
+
 const mockRoutes: PaginatedRoutes = {
   items: [
     {

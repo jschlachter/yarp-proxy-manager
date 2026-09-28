@@ -13,4 +13,28 @@ internal sealed class ProxyHostRecord
     public bool IsEnabled { get; set; }
     public Guid? CertificateId { get; set; }
     public TlsMode TlsMode { get; set; }
+    public HealthCheckRecord? HealthCheck { get; set; }
 }
+
+/// <summary>
+/// jsonb persistence shape of <see cref="HealthCheckSettings"/>. Durations are whole seconds and enums
+/// are strings so the stored JSON stays readable and stable if enum ordinals ever change.
+/// </summary>
+internal sealed record HealthCheckRecord(
+    ActiveHealthCheckRecord? Active,
+    PassiveHealthCheckRecord? Passive,
+    string AvailableDestinationsPolicy);
+
+internal sealed record ActiveHealthCheckRecord(
+    string Policy,
+    int? IntervalSeconds,
+    int? TimeoutSeconds,
+    string? Path,
+    string? Query,
+    string? HealthAddress,
+    int? ConsecutiveFailuresThreshold);
+
+internal sealed record PassiveHealthCheckRecord(
+    string Policy,
+    int? ReactivationPeriodSeconds,
+    double? FailureRateLimit);

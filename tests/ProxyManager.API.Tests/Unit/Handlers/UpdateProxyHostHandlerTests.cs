@@ -2,6 +2,7 @@ using West94.ProxyManager.API.Handlers;
 using West94.ProxyManager.API.Tests.Unit.Fakes;
 using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
+using West94.ProxyManager.Core.DTOs;
 using West94.ProxyManager.Core.Exceptions;
 using West94.ProxyManager.Core.Messages.Commands;
 using West94.ProxyManager.Core.Messages.Events;
@@ -159,5 +160,48 @@ public class UpdateProxyHostHandlerTests
 
         await Assert.ThrowsAsync<ProxyHostValidationException>(() =>
             handler.Handle(command, CancellationToken.None));
+    }
+
+    private static ProxyHost SeedHostWithPassiveCheck(FakeProxyHostRepository repo)
+    {
+        var host = ProxyHost.Create(
+            ["health-update.example.com"],
+            DestinationUri.Parse("http://original:8080"),
+            healthCheck: new HealthCheckSettings(
+                null,
+                new PassiveHealthCheck(PassiveHealthCheckPolicy.TransportFailureRate, failureRateLimit: 0.4),
+                AvailableDestinationsPolicy.HealthyOrPanic));
+        repo.Seed(host);
+        return host;
+    }
+
+    [Fact]
+    public async Task Handle_HealthCheckOmitted_LeavesSettingsUnchanged()
+    {
+        var repo = new FakeProxyHostRepository();
+        var host = SeedHostWithPassiveCheck(repo);
+        var original = host.HealthCheck;
+        var handler = new UpdateProxyHostHandler(repo, new FakeAuditLogRepository());
+
+        var (dto, _) = await handler.Handle(
+            new UpdateProxyHostCommand(host.Id, null, null, false, "actor-1"), CancellationToken.None);
+
+        Assert.Equal(original, (await repo.FindAsync(host.Id))!.HealthCheck);
+        Assert.Equal(0.4, dto.HealthCheck!.Passive!.FailureRateLimit);
+    }
+
+    [Fact]
+    public async Task Handle_HealthCheckWithBothChecksNull_ClearsSettings()
+    {
+        var repo = new FakeProxyHostRepository();
+        var host = SeedHostWithPassiveCheck(repo);
+        var handler = new UpdateProxyHostHandler(repo, new FakeAuditLogRepository());
+
+        var command = new UpdateProxyHostCommand(host.Id, null, null, null, "actor-1",
+            HealthCheck: new HealthCheckDto("HealthyAndUnknown", null, null));
+        var (dto, _) = await handler.Handle(command, CancellationToken.None);
+
+        Assert.Null(dto.HealthCheck);
+        Assert.Null((await repo.FindAsync(host.Id))!.HealthCheck);
     }
 }

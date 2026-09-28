@@ -145,4 +145,32 @@ public sealed class PostgresProxyHostRepositoryTests : IAsyncLifetime
         Assert.NotNull(reloaded);
         Assert.Equal(TlsMode.Manual, reloaded.TlsMode);
     }
+
+    [Fact]
+    public async Task HealthCheck_RoundTripsThroughAddUpdateAndClear()
+    {
+        var both = new HealthCheckSettings(
+            new ActiveHealthCheck(
+                ActiveHealthCheckPolicy.ConsecutiveFailures,
+                TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(5), "/health", "?deep=1", "http://probe:9000", 3),
+            new PassiveHealthCheck(PassiveHealthCheckPolicy.TransportFailureRate, TimeSpan.FromSeconds(60), 0.25),
+            AvailableDestinationsPolicy.HealthyOrPanic);
+        var host = ProxyHost.Create(["health.example.com"], DestinationUri.Parse("http://backend:8080"), healthCheck: both);
+
+        await _repo.AddAsync(host);
+        // GetAllAsync reads untracked, so each assertion sees what is actually stored.
+        Assert.Equal(both, await LoadHealthCheckAsync(host.Id));
+
+        var passiveOnly = new HealthCheckSettings(null, both.Passive, AvailableDestinationsPolicy.HealthyAndUnknown);
+        host.ConfigureHealthCheck(passiveOnly);
+        await _repo.UpdateAsync(host);
+        Assert.Equal(passiveOnly, await LoadHealthCheckAsync(host.Id));
+
+        host.ConfigureHealthCheck(null);
+        await _repo.UpdateAsync(host);
+        Assert.Null(await LoadHealthCheckAsync(host.Id));
+    }
+
+    private async Task<HealthCheckSettings?> LoadHealthCheckAsync(Guid id) =>
+        (await _repo.GetAllAsync()).Single(h => h.Id == id).HealthCheck;
 }

@@ -1,3 +1,5 @@
+using West94.ProxyManager.Core.DTOs;
+
 namespace West94.ProxyManager.Core.Messages.Commands;
 
 /// <summary>Creates a new proxy host mapping public domain names to an upstream backend.</summary>
@@ -5,4 +7,5 @@ public sealed record CreateProxyHostCommand(
     IEnumerable<string> DomainNames,
     string DestinationUri,
     string ActorId,
-    string? TlsMode = null);
+    string? TlsMode = null,
+    HealthCheckDto? HealthCheck = null);

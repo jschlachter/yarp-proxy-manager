@@ -7,4 +7,5 @@ public sealed record ProxyHostDto(
     string Destination,
     bool IsEnabled,
     Guid? CertificateId,
-    string TlsMode);
+    string TlsMode,
+    HealthCheckDto? HealthCheck = null);

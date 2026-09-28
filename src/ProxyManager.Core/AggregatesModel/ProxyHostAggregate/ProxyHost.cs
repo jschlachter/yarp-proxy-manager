@@ -6,7 +6,7 @@ public class ProxyHost : Entity
 {
     private List<string> _domainNames;
 
-    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode)
+    private ProxyHost(Guid id, List<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode, HealthCheckSettings? healthCheck)
     {
         Id = id;
         _domainNames = domainNames;
@@ -14,6 +14,7 @@ public class ProxyHost : Entity
         IsEnabled = isEnabled;
         CertificateId = certificateId;
         TlsMode = tlsMode;
+        HealthCheck = healthCheck;
     }
 
     public IReadOnlyList<string> DomainNames => _domainNames;
@@ -22,11 +23,14 @@ public class ProxyHost : Entity
     public Guid? CertificateId { get; private set; }
     public TlsMode TlsMode { get; private set; }
 
-    /// <summary>Reconstitutes a ProxyHost from its persisted state. For Infrastructure layer use only.</summary>
-    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode) =>
-        new(id, domainNames.ToList(), destination, isEnabled, certificateId, tlsMode);
+    /// <summary>YARP health checks for this host; null when no check is enabled (ADR 0003).</summary>
+    public HealthCheckSettings? HealthCheck { get; private set; }
 
-    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, Guid? certificateId = null, TlsMode tlsMode = TlsMode.Manual)
+    /// <summary>Reconstitutes a ProxyHost from its persisted state. For Infrastructure layer use only.</summary>
+    internal static ProxyHost Reconstitute(Guid id, IEnumerable<string> domainNames, DestinationUri destination, bool isEnabled, Guid? certificateId, TlsMode tlsMode, HealthCheckSettings? healthCheck = null) =>
+        new(id, domainNames.ToList(), destination, isEnabled, certificateId, tlsMode, healthCheck);
+
+    public static ProxyHost Create(IEnumerable<string> domainNames, DestinationUri destination, Guid? certificateId = null, TlsMode tlsMode = TlsMode.Manual, HealthCheckSettings? healthCheck = null)
     {
         ArgumentNullException.ThrowIfNull(domainNames);
         ArgumentNullException.ThrowIfNull(destination);
@@ -35,7 +39,7 @@ public class ProxyHost : Entity
         if (domains.Count == 0)
             throw new ArgumentException("At least one domain name is required.", nameof(domainNames));
 
-        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificateId, tlsMode);
+        return new ProxyHost(Guid.NewGuid(), domains, destination, isEnabled: true, certificateId, tlsMode, healthCheck);
     }
 
     public void Enable() => IsEnabled = true;
@@ -62,4 +66,7 @@ public class ProxyHost : Entity
     public void AssignCertificate(Guid? certificateId) => CertificateId = certificateId;
 
     public void SetTlsMode(TlsMode mode) => TlsMode = mode;
+
+    /// <summary>Replaces the health check settings; null turns every check off.</summary>
+    public void ConfigureHealthCheck(HealthCheckSettings? settings) => HealthCheck = settings;
 }

@@ -2,6 +2,7 @@ using West94.ProxyManager.API.Handlers;
 using West94.ProxyManager.API.Tests.Unit.Fakes;
 using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
+using West94.ProxyManager.Core.DTOs;
 using West94.ProxyManager.Core.Exceptions;
 using West94.ProxyManager.Core.Messages.Commands;
 using West94.ProxyManager.Core.Messages.Events;
@@ -149,5 +150,52 @@ public class CreateProxyHostHandlerTests
 
         await Assert.ThrowsAsync<ProxyHostValidationException>(() =>
             handler.Handle(command, CancellationToken.None));
+    }
+
+    private static readonly HealthCheckDto BothChecks = new(
+        "HealthyAndUnknown",
+        new ActiveHealthCheckDto("ConsecutiveFailures", 15, 10, "/health", null, null, 2),
+        new PassiveHealthCheckDto("TransportFailureRate", 120, 0.3));
+
+    [Fact]
+    public async Task Handle_WithBothHealthChecks_StoresAndReturnsThem()
+    {
+        var repo = new FakeProxyHostRepository();
+        var handler = new CreateProxyHostHandler(repo, new FakeAuditLogRepository());
+
+        var (dto, _) = await handler.Handle(ValidCommand() with { HealthCheck = BothChecks }, CancellationToken.None);
+
+        Assert.Equal(BothChecks, dto.HealthCheck);
+        var stored = (await repo.FindAsync(dto.Id))!.HealthCheck;
+        Assert.NotNull(stored);
+        Assert.Equal(TimeSpan.FromSeconds(15), stored.Active!.Interval);
+        Assert.Equal(0.3, stored.Passive!.FailureRateLimit);
+        Assert.Equal(AvailableDestinationsPolicy.HealthyAndUnknown, stored.AvailableDestinationsPolicy);
+    }
+
+    [Fact]
+    public async Task Handle_InvalidFailureRateLimit_ThrowsValidationException()
+    {
+        var handler = new CreateProxyHostHandler(new FakeProxyHostRepository(), new FakeAuditLogRepository());
+        var command = ValidCommand() with
+        {
+            HealthCheck = BothChecks with { Passive = new PassiveHealthCheckDto("TransportFailureRate", FailureRateLimit: 1.5) }
+        };
+
+        var ex = await Assert.ThrowsAsync<ProxyHostValidationException>(() => handler.Handle(command, CancellationToken.None));
+        Assert.Contains("failureRateLimit", ex.Message);
+    }
+
+    [Fact]
+    public async Task Handle_UnknownHealthPolicy_ThrowsValidationException()
+    {
+        var handler = new CreateProxyHostHandler(new FakeProxyHostRepository(), new FakeAuditLogRepository());
+        var command = ValidCommand() with
+        {
+            HealthCheck = BothChecks with { Active = new ActiveHealthCheckDto("RandomGuess") }
+        };
+
+        var ex = await Assert.ThrowsAsync<ProxyHostValidationException>(() => handler.Handle(command, CancellationToken.None));
+        Assert.Contains("healthCheck.active.policy", ex.Message);
     }
 }

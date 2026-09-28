@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { RouteIcon } from "lucide-react";
 import RouteCard from "./RouteCard";
-import type { ProxyHost } from "@/types";
+import type { HealthState, ProxyHost } from "@/types";
 
 interface RouteListProps {
   routes: ProxyHost[];
@@ -12,6 +12,7 @@ interface RouteListProps {
   pageSize: number;
   isAdmin: boolean;
   onDelete: (id: string) => void;
+  healthStates?: Map<string, HealthState>;
 }
 
 export default function RouteList({
@@ -21,6 +22,7 @@ export default function RouteList({
   pageSize,
   isAdmin,
   onDelete,
+  healthStates,
 }: RouteListProps) {
   const totalPages = Math.ceil(total / pageSize);
   const showPagination = total > pageSize;
@@ -59,6 +61,7 @@ export default function RouteList({
             route={route}
             isAdmin={isAdmin}
             onDelete={onDelete}
+            healthState={healthStates?.get(route.id)}
           />
         ))}
       </div>

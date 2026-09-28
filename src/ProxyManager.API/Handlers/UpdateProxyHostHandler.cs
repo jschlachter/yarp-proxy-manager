@@ -46,6 +46,10 @@ public sealed class UpdateProxyHostHandler(IProxyHostRepository repository, IAud
             host.SetTlsMode(tlsMode);
         }
 
+        // Null leaves the settings unchanged; an object with both checks null clears them.
+        if (command.HealthCheck is not null)
+            host.ConfigureHealthCheck(HealthCheckMapper.ToDomain(command.HealthCheck));
+
         await repository.UpdateAsync(host, ct);
 
         var dto = GetProxyHostsHandler.MapToDto(host);

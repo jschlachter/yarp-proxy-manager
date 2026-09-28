@@ -66,4 +66,29 @@ describe("RouteCard", () => {
     );
     expect(container).toMatchSnapshot();
   });
+
+  it("shows the health badge when a health state is passed", () => {
+    render(
+      <RouteCard
+        route={mockRoute}
+        isAdmin={false}
+        onDelete={() => {}}
+        healthState={{
+          proxyHostId: "route-1",
+          status: "Unhealthy",
+          active: "Unhealthy",
+          passive: null,
+          checkedAt: "2026-09-27T12:00:00Z",
+        }}
+      />
+    );
+
+    expect(screen.getByLabelText("Health: Unhealthy")).toBeInTheDocument();
+  });
+
+  it("shows no health badge without a health state", () => {
+    render(<RouteCard route={mockRoute} isAdmin={false} onDelete={() => {}} />);
+
+    expect(screen.queryByLabelText(/^Health:/)).not.toBeInTheDocument();
+  });
 });

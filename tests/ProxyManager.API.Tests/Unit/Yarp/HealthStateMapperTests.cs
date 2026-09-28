@@ -19,7 +19,8 @@ public class HealthStateMapperTests
     [InlineData(null, DestinationHealth.Unknown, DestinationHealth.Unknown)]
     // Both
     [InlineData(DestinationHealth.Healthy, DestinationHealth.Healthy, DestinationHealth.Healthy)]
-    [InlineData(DestinationHealth.Healthy, DestinationHealth.Unknown, DestinationHealth.Unknown)]
+    [InlineData(DestinationHealth.Healthy, DestinationHealth.Unknown, DestinationHealth.Healthy)]
+    [InlineData(DestinationHealth.Unknown, DestinationHealth.Healthy, DestinationHealth.Healthy)]
     [InlineData(DestinationHealth.Unknown, DestinationHealth.Unknown, DestinationHealth.Unknown)]
     [InlineData(DestinationHealth.Unhealthy, DestinationHealth.Healthy, DestinationHealth.Unhealthy)]
     [InlineData(DestinationHealth.Healthy, DestinationHealth.Unhealthy, DestinationHealth.Unhealthy)]

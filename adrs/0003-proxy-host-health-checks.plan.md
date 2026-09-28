@@ -242,7 +242,9 @@ Work in `src/ProxyManager.UI`.
 - Define the DTO in the proxy project:
   `HealthStateDto(Guid ProxyHostId, string Status, string? Active, string? Passive, DateTimeOffset CheckedAt)`.
   - `Status` is `Unhealthy` if any enabled check is `Unhealthy`.
-  - Otherwise it is `Healthy` if every enabled check is `Healthy`.
+  - Otherwise it is `Healthy` if any enabled check is `Healthy`. Passive state stays `Unknown` on a
+    host with little traffic, so requiring every check to be `Healthy` would leave hosts amber for
+    good. (This was changed in review.)
   - Otherwise it is `Unknown`.
   - Put the status rule in a small static `HealthStateMapper` so it can be unit tested.
 

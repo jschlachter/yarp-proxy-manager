@@ -17,8 +17,10 @@ public sealed record HealthStateDto(Guid ProxyHostId, string Status, string? Act
 public static class HealthStateMapper
 {
     /// <summary>
-    /// Unhealthy if any enabled check is Unhealthy; Healthy if every enabled check is Healthy;
-    /// otherwise Unknown. A null argument means that check is disabled.
+    /// Unhealthy if any enabled check is Unhealthy; otherwise Healthy if any is Healthy; otherwise
+    /// Unknown. A null argument means that check is disabled. A single Healthy check is enough because
+    /// passive state stays Unknown on a host with little traffic, and HealthyAndUnknown still routes
+    /// to Unknown destinations, so Unknown here would falsely suggest a problem.
     /// </summary>
     public static DestinationHealth Combine(DestinationHealth? active, DestinationHealth? passive)
     {
@@ -27,7 +29,7 @@ public static class HealthStateMapper
         if (enabled.Contains(DestinationHealth.Unhealthy))
             return DestinationHealth.Unhealthy;
 
-        return enabled.Length > 0 && enabled.All(h => h == DestinationHealth.Healthy)
+        return enabled.Contains(DestinationHealth.Healthy)
             ? DestinationHealth.Healthy
             : DestinationHealth.Unknown;
     }

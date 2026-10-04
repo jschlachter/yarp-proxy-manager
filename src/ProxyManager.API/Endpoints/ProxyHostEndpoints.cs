@@ -16,14 +16,16 @@ namespace West94.ProxyManager.Endpoints;
 public sealed record CreateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
-    string? TlsMode = null);
+    string? TlsMode = null,
+    HealthCheckDto? HealthCheck = null);
 
 /// <summary>Request body for PUT /api/proxyhosts/{id}.</summary>
 public sealed record UpdateProxyHostRequest(
     IEnumerable<string>? DomainNames,
     string? DestinationUri,
     bool? IsEnabled,
-    string? TlsMode = null);
+    string? TlsMode = null,
+    HealthCheckDto? HealthCheck = null);
 
 /// <summary>Request body for PUT /api/proxyhosts/{id}/certificate.</summary>
 public sealed record AssignCertificateRequest(Guid? CertificateId);
@@ -74,7 +76,8 @@ public static class ProxyHostEndpoints
                 request.DomainNames ?? [],
                 request.DestinationUri,
                 actorId,
-                request.TlsMode);
+                request.TlsMode,
+                request.HealthCheck);
 
             try
             {
@@ -138,7 +141,8 @@ public static class ProxyHostEndpoints
                 request.DestinationUri,
                 request.IsEnabled,
                 actorId,
-                request.TlsMode);
+                request.TlsMode,
+                request.HealthCheck);
 
             try
             {

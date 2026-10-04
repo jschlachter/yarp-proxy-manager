@@ -40,6 +40,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         existing.IsEnabled = host.IsEnabled;
         existing.CertificateId = host.CertificateId;
         existing.TlsMode = host.TlsMode;
+        existing.HealthCheck = ToRecord(host.HealthCheck);
 
         await db.SaveChangesAsync(ct);
     }
@@ -56,7 +57,7 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
     private static ProxyHost ToDomain(ProxyHostRecord r)
     {
         var destination = new DestinationUri(r.DestinationScheme, r.DestinationHost, r.DestinationPort);
-        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, r.CertificateId, r.TlsMode);
+        return ProxyHost.Reconstitute(r.Id, r.DomainNames, destination, r.IsEnabled, r.CertificateId, r.TlsMode, ToDomain(r.HealthCheck));
     }
 
     private static ProxyHostRecord ToRecord(ProxyHost h) => new()
@@ -68,6 +69,46 @@ public sealed class PostgresProxyHostRepository(ProxyManagerDbContext db) : IPro
         DestinationPort = h.Destination.Port,
         IsEnabled = h.IsEnabled,
         CertificateId = h.CertificateId,
-        TlsMode = h.TlsMode
+        TlsMode = h.TlsMode,
+        HealthCheck = ToRecord(h.HealthCheck)
     };
+
+    private static HealthCheckSettings? ToDomain(HealthCheckRecord? r) => r is null ? null : new(
+        r.Active is { } a
+            ? new ActiveHealthCheck(
+                Enum.Parse<ActiveHealthCheckPolicy>(a.Policy),
+                Seconds(a.IntervalSeconds),
+                Seconds(a.TimeoutSeconds),
+                a.Path,
+                a.Query,
+                a.HealthAddress,
+                a.ConsecutiveFailuresThreshold)
+            : null,
+        r.Passive is { } p
+            ? new PassiveHealthCheck(
+                Enum.Parse<PassiveHealthCheckPolicy>(p.Policy),
+                Seconds(p.ReactivationPeriodSeconds),
+                p.FailureRateLimit)
+            : null,
+        Enum.Parse<AvailableDestinationsPolicy>(r.AvailableDestinationsPolicy));
+
+    private static HealthCheckRecord? ToRecord(HealthCheckSettings? h) => h is null ? null : new(
+        h.Active is { } a
+            ? new ActiveHealthCheckRecord(
+                a.Policy.ToString(),
+                WholeSeconds(a.Interval),
+                WholeSeconds(a.Timeout),
+                a.Path,
+                a.Query,
+                a.HealthAddress,
+                a.ConsecutiveFailuresThreshold)
+            : null,
+        h.Passive is { } p
+            ? new PassiveHealthCheckRecord(p.Policy.ToString(), WholeSeconds(p.ReactivationPeriod), p.FailureRateLimit)
+            : null,
+        h.AvailableDestinationsPolicy.ToString());
+
+    private static TimeSpan? Seconds(int? seconds) => seconds is { } s ? TimeSpan.FromSeconds(s) : null;
+
+    private static int? WholeSeconds(TimeSpan? value) => value is { } v ? (int)v.TotalSeconds : null;
 }

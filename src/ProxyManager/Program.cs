@@ -194,6 +194,8 @@ try
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
+    // Before MapReverseProxy so the proxy-served health endpoint is clearly ahead of ui-api-route (ADR 0003).
+    app.MapHealthStateEndpoints();
     app.MapReverseProxy();
 
     app.MapAccountEndpoints();

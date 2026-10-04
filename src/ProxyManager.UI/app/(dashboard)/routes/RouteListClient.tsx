@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
+import { useHealthStates } from "@/lib/use-health-states";
 import RouteList from "@/components/routes/RouteList";
 import type { ProxyHost, ProblemDetails } from "@/types";
 import type { PaginatedRoutes } from "@/lib/proxy-manager-client";
@@ -18,6 +19,7 @@ export default function RouteListClient({ isAdmin, initialPage = 1 }: RouteListC
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [page, setPage] = useState(initialPage);
   const [isLoading, setIsLoading] = useState(true);
+  const healthStates = useHealthStates();
 
   const loadRoutes = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -82,6 +84,7 @@ export default function RouteListClient({ isAdmin, initialPage = 1 }: RouteListC
       pageSize={routeData.pageSize}
       isAdmin={isAdmin}
       onDelete={handleDelete}
+      healthStates={healthStates}
     />
   );
 }

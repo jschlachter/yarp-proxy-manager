@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import HealthBadge from "@/components/routes/HealthBadge";
 import { cn } from "@/lib/utils";
-import type { ProxyHost } from "@/types";
+import type { HealthState, ProxyHost } from "@/types";
 
 interface RouteCardProps {
   route: ProxyHost;
   isAdmin: boolean;
   isMaintainer?: boolean;
   onDelete: (id: string) => void;
+  healthState?: HealthState;
 }
 
-export default function RouteCard({ route, isAdmin, isMaintainer = false, onDelete }: RouteCardProps) {
+export default function RouteCard({ route, isAdmin, isMaintainer = false, onDelete, healthState }: RouteCardProps) {
   return (
     <div className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card/80 p-4 backdrop-blur-sm transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
       <span
@@ -42,6 +44,7 @@ export default function RouteCard({ route, isAdmin, isMaintainer = false, onDele
             />
             {route.isEnabled ? "Enabled" : "Disabled"}
           </Badge>
+          <HealthBadge state={healthState} />
         </div>
         <p className="text-sm text-muted-foreground truncate font-mono">
           <span className="text-primary/70">→</span> {route.destination}

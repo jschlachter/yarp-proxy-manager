@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
@@ -42,5 +44,14 @@ internal sealed class ProxyHostConfiguration : IEntityTypeConfiguration<ProxyHos
             .HasColumnName("tls_mode")
             .IsRequired()
             .HasDefaultValue(TlsMode.Manual);
+
+        // Settings are always read and written as a whole and never queried, so one jsonb column
+        // keeps the mapping small (ADR 0003). Records compare by value, so the default comparer works.
+        builder.Property(x => x.HealthCheck)
+            .HasColumnName("health_check")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                v => JsonSerializer.Deserialize<HealthCheckRecord>(v, JsonSerializerOptions.Default));
     }
 }

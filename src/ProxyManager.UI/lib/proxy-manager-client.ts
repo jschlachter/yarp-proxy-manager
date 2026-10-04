@@ -1,6 +1,7 @@
 import type {
   Certificate,
   FileAsset,
+  HealthCheck,
   MaintainerAssignment,
   ProblemDetails,
   ProxyHost,
@@ -105,6 +106,7 @@ export interface CreateRouteRequest {
   domainNames?: string[];
   destinationUri?: string;
   tlsMode?: TlsMode;
+  healthCheck?: HealthCheck | null;
 }
 
 export interface UpdateRouteRequest {
@@ -112,6 +114,7 @@ export interface UpdateRouteRequest {
   destinationUri?: string;
   isEnabled?: boolean;
   tlsMode?: TlsMode;
+  healthCheck?: HealthCheck | null;
 }
 
 export function listRoutes(

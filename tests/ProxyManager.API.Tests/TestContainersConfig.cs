@@ -11,6 +11,5 @@ internal static class TestContainersConfig
     internal static void Initialize()
     {
         TestcontainersSettings.ResourceReaperEnabled = false;
-        TestcontainersSettings.DockerHostOverride = "unix:///var/run/docker.sock";
     }
 }

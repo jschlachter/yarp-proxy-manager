@@ -6,8 +6,9 @@ namespace West94.ProxyManager.Yarp;
 
 /// <summary>
 /// YARP <see cref="IProxyConfigProvider"/> that loads user-defined proxy routes from the database.
-/// Starts with an empty config; call <see cref="Reload"/> to populate routes and to signal YARP
-/// to re-read the configuration.
+/// Starts with an empty config; <see cref="Services.ProxyConfigSeedService"/> calls
+/// <see cref="Reload"/> at startup, and later calls repopulate routes and signal YARP to re-read
+/// the configuration.
 /// </summary>
 public sealed class DatabaseProxyConfigProvider(IServiceScopeFactory scopeFactory)
     : IProxyConfigProvider, IProxyConfigReloader

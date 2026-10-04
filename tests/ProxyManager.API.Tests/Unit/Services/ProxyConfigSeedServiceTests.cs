@@ -12,18 +12,20 @@ namespace West94.ProxyManager.API.Tests.Unit.Services;
 [Trait("Category", "Unit")]
 public class ProxyConfigSeedServiceTests
 {
-    private sealed class SpyReloader : IProxyConfigReloader
-    {
-        public int ReloadCount { get; private set; }
-        public void Reload() => ReloadCount++;
-    }
-
-    private static IServiceScopeFactory BuildScopeFactory(FakeProxyHostRepository repo)
+    private static (ProxyConfigSeedService Service, DatabaseProxyConfigProvider Provider) CreateService(
+        FakeProxyHostRepository repo, IConfiguration config)
     {
         var services = new ServiceCollection();
         services.AddScoped<IProxyHostRepository>(_ => repo);
-        return services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>();
+        var scopeFactory = services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>();
+        var provider = new DatabaseProxyConfigProvider(scopeFactory);
+        var service = new ProxyConfigSeedService(
+            scopeFactory, config, provider, NullLogger<ProxyConfigSeedService>.Instance);
+        return (service, provider);
     }
+
+    private static IEnumerable<string> RoutedHosts(DatabaseProxyConfigProvider provider) =>
+        provider.GetConfig().Routes.SelectMany(r => r.Match.Hosts ?? []);
 
     private static IConfiguration BuildConfig(params (string Key, string Value)[] entries)
     {
@@ -35,70 +37,60 @@ public class ProxyConfigSeedServiceTests
     public async Task StartAsync_EmptyDb_WithHostBasedRoutes_SeedsHosts()
     {
         var repo = new FakeProxyHostRepository();
-        var reloader = new SpyReloader();
         var config = BuildConfig(
             ("ReverseProxy:Routes:myapp:ClusterId", "myapp"),
             ("ReverseProxy:Routes:myapp:Match:Hosts:0", "app.example.com"),
             ("ReverseProxy:Clusters:myapp:Destinations:primary:Address", "http://backend:8080")
         );
 
-        var service = new ProxyConfigSeedService(
-            BuildScopeFactory(repo), config, reloader,
-            NullLogger<ProxyConfigSeedService>.Instance);
+        var (service, provider) = CreateService(repo, config);
 
         await service.StartAsync(default);
 
         var seeded = await repo.GetAllAsync();
         Assert.Single(seeded);
         Assert.Contains("app.example.com", seeded[0].DomainNames);
-        Assert.Equal(1, reloader.ReloadCount);
+        Assert.Contains("app.example.com", RoutedHosts(provider));
     }
 
     [Fact]
-    public async Task StartAsync_NonEmptyDb_SkipsSeedingAndReload()
+    public async Task StartAsync_NonEmptyDb_SkipsSeedingAndLoadsExistingRoutes()
     {
         var repo = new FakeProxyHostRepository();
         repo.Seed(ProxyHost.Create(["existing.example.com"], DestinationUri.Parse("http://old:8080")));
-        var reloader = new SpyReloader();
         var config = BuildConfig(
             ("ReverseProxy:Routes:myapp:ClusterId", "myapp"),
             ("ReverseProxy:Routes:myapp:Match:Hosts:0", "app.example.com"),
             ("ReverseProxy:Clusters:myapp:Destinations:primary:Address", "http://backend:8080")
         );
 
-        var service = new ProxyConfigSeedService(
-            BuildScopeFactory(repo), config, reloader,
-            NullLogger<ProxyConfigSeedService>.Instance);
+        var (service, provider) = CreateService(repo, config);
 
         await service.StartAsync(default);
 
         var all = await repo.GetAllAsync();
         Assert.Single(all);
-        Assert.Equal(0, reloader.ReloadCount);
+        Assert.Equal(["existing.example.com"], RoutedHosts(provider));
     }
 
     [Fact]
-    public async Task StartAsync_NoReverseProxySection_SkipsSeedingAndReload()
+    public async Task StartAsync_EmptyDb_NoReverseProxySection_LoadsEmptyConfig()
     {
         var repo = new FakeProxyHostRepository();
-        var reloader = new SpyReloader();
         var config = BuildConfig();
 
-        var service = new ProxyConfigSeedService(
-            BuildScopeFactory(repo), config, reloader,
-            NullLogger<ProxyConfigSeedService>.Instance);
+        var (service, provider) = CreateService(repo, config);
 
         await service.StartAsync(default);
 
         Assert.Empty(await repo.GetAllAsync());
-        Assert.Equal(0, reloader.ReloadCount);
+        Assert.Empty(provider.GetConfig().Routes);
     }
 
     [Fact]
-    public async Task StartAsync_OnlyPathBasedSystemRoutes_SkipsSeedingAndReload()
+    public async Task StartAsync_OnlyPathBasedSystemRoutes_SkipsSeeding()
     {
         var repo = new FakeProxyHostRepository();
-        var reloader = new SpyReloader();
         var config = BuildConfig(
             ("ReverseProxy:Routes:apiRoute:ClusterId", "apiCluster"),
             ("ReverseProxy:Routes:apiRoute:Match:Path", "/api/{**catch-all}"),
@@ -106,21 +98,18 @@ public class ProxyConfigSeedServiceTests
             ("ReverseProxy:Routes:ui-route:Match:Path", "/{**catch-all}")
         );
 
-        var service = new ProxyConfigSeedService(
-            BuildScopeFactory(repo), config, reloader,
-            NullLogger<ProxyConfigSeedService>.Instance);
+        var (service, provider) = CreateService(repo, config);
 
         await service.StartAsync(default);
 
         Assert.Empty(await repo.GetAllAsync());
-        Assert.Equal(0, reloader.ReloadCount);
+        Assert.Empty(provider.GetConfig().Routes);
     }
 
     [Fact]
     public async Task StartAsync_MultipleHostRoutes_SeedsAll()
     {
         var repo = new FakeProxyHostRepository();
-        var reloader = new SpyReloader();
         var config = BuildConfig(
             ("ReverseProxy:Routes:app1:ClusterId", "cluster1"),
             ("ReverseProxy:Routes:app1:Match:Hosts:0", "app1.example.com"),
@@ -130,14 +119,12 @@ public class ProxyConfigSeedServiceTests
             ("ReverseProxy:Clusters:cluster2:Destinations:primary:Address", "http://backend2:9090")
         );
 
-        var service = new ProxyConfigSeedService(
-            BuildScopeFactory(repo), config, reloader,
-            NullLogger<ProxyConfigSeedService>.Instance);
+        var (service, provider) = CreateService(repo, config);
 
         await service.StartAsync(default);
 
         var all = await repo.GetAllAsync();
         Assert.Equal(2, all.Count);
-        Assert.Equal(1, reloader.ReloadCount);
+        Assert.Equal(2, provider.GetConfig().Routes.Count);
     }
 }

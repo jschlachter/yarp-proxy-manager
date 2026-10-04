@@ -4,8 +4,9 @@ using West94.ProxyManager.Yarp;
 namespace West94.ProxyManager.Services;
 
 /// <summary>
-/// On first startup, seeds the database with any host-based routes found in the loaded
-/// ReverseProxy configuration (e.g. proxysettings.{env}.json). System routes that use
+/// At startup, seeds an empty database with any host-based routes found in the loaded
+/// ReverseProxy configuration (e.g. proxysettings.{env}.json), then performs the initial load of
+/// database routes into <see cref="DatabaseProxyConfigProvider"/>. System routes that use
 /// path-only matching (apiRoute, ui-route, etc.) are automatically skipped because they
 /// carry no Match.Hosts entries.
 /// </summary>
@@ -17,7 +18,21 @@ public sealed class ProxyConfigSeedService(
     IProxyConfigReloader reloader,
     ILogger<ProxyConfigSeedService> logger) : IHostedService
 {
+    /// <summary>
+    /// Seeds the database when it is empty, then loads every database route into YARP. The load
+    /// runs on every start so existing hosts are routed before Kestrel accepts its first request.
+    /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await SeedIfEmptyAsync(cancellationToken);
+        reloader.Reload();
+        logger.LogInformation("Loaded database proxy routes at startup.");
+    }
+
+    /// <summary>
+    /// Adds the host-based routes from configuration to the database when it holds no proxy hosts.
+    /// </summary>
+    private async Task SeedIfEmptyAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var repo = scope.ServiceProvider.GetRequiredService<IProxyHostRepository>();
@@ -81,7 +96,6 @@ public sealed class ProxyConfigSeedService(
         if (seeded > 0)
         {
             logger.LogInformation("Seeded {Count} proxy host(s) from configuration.", seeded);
-            reloader.Reload();
         }
         else
         {

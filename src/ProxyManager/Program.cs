@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Scalar.AspNetCore;
 
@@ -13,6 +14,7 @@ using West94.ProxyManager.Acme;
 using West94.ProxyManager.Endpoints;
 using West94.ProxyManager.Infrastructure.Extensions;
 using West94.ProxyManager.Infrastructure.Options;
+using West94.ProxyManager.Options;
 using West94.ProxyManager.Services;
 using West94.ProxyManager.Yarp;
 using Microsoft.AspNetCore.Authentication;
@@ -36,8 +38,11 @@ try
     var proxySettingsFile = $"proxysettings.{builder.Environment.EnvironmentName}.json";
     configuration.AddJsonFile(proxySettingsFile, optional: true, reloadOnChange: true);
 
+    services.AddManagementOptions(configuration);
+
     services.AddReverseProxy()
         .LoadFromConfig(configuration.GetSection("ReverseProxy"))   // system routes (apiRoute, ui-route)
+        .AddConfigFilter<ManagementHostRouteFilter>()               // scopes system routes to Management:Hosts (ADR 0005)
         .AddTransformFactory<BearerTokenTransformFactory>()
         .AddTransformFactory<ClaimHeaderTransformFactory>();
 
@@ -194,11 +199,16 @@ try
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseAuthorization();
+
+    // The proxy's own endpoints answer only on the management host, so a user domain gets these paths (ADR 0005).
+    var managementHosts = app.Services.GetRequiredService<IOptions<ManagementOptions>>().Value.Hosts;
+    var management = app.MapGroup("").RequireHost(managementHosts);
+
     // Before MapReverseProxy so the proxy-served health endpoint is clearly ahead of ui-api-route (ADR 0003).
-    app.MapHealthStateEndpoints();
+    management.MapHealthStateEndpoints();
     app.MapReverseProxy();
 
-    app.MapAccountEndpoints();
+    management.MapAccountEndpoints();
     app.MapFallbackToFile("404.html");
 
     Log.Information("Starting Proxy Manager host...");

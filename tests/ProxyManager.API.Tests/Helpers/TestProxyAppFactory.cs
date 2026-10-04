@@ -29,6 +29,12 @@ internal sealed class TestProxyAppFactory : WebApplicationFactory<ProxyManagerAp
 {
     public const string TestUserHeader = "X-Test-User";
 
+    /// <summary>
+    /// xunit collection for test classes that start this host. Program.cs replaces and freezes the static
+    /// Serilog bootstrap logger, so two proxy hosts starting in parallel fail with "logger is already frozen".
+    /// </summary>
+    public const string Collection = "ProxyApp";
+
     public FakeProxyHostRepository ProxyHosts { get; } = new();
 
     /// <summary>Seeds hosts and reloads YARP's database-backed config, as a change event would.</summary>
@@ -51,6 +57,8 @@ internal sealed class TestProxyAppFactory : WebApplicationFactory<ProxyManagerAp
             ["FilesService:BaseUrl"] = "http://files.invalid",
             ["Authentication:Authority"] = "https://idp.invalid",
             ["Authentication:ClientId"] = "test-client",
+            // TestServer sends Host: localhost, so the system routes and endpoints answer on it (ADR 0005).
+            ["Management:Hosts:0"] = "localhost",
             ["ReverseProxy:Routes:ui-api-route:ClusterId"] = "ui-cluster",
             ["ReverseProxy:Routes:ui-api-route:AuthorizationPolicy"] = "AuthenticatedUsersOnly",
             ["ReverseProxy:Routes:ui-api-route:Order"] = "1",

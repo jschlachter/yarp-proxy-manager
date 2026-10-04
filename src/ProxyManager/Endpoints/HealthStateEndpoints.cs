@@ -40,7 +40,8 @@ public static class HealthStateEndpoints
     /// <summary>
     /// Maps <c>GET /manage/api/health-states</c>. YARP keeps destination health only in this process,
     /// so the proxy serves it itself (ADR 0003). As a minimal-API endpoint it has Order 0 and wins over
-    /// the YARP <c>ui-api-route</c> (Order 1) for this one path.
+    /// the YARP <c>ui-api-route</c> (Order 1) for this one path. <c>Program.cs</c> maps it on the
+    /// management host only (ADR 0005), so on a user domain the path goes to that host's route.
     /// </summary>
     public static IEndpointRouteBuilder MapHealthStateEndpoints(this IEndpointRouteBuilder app)
     {

@@ -10,6 +10,7 @@ using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
 namespace West94.ProxyManager.API.Tests.Integration;
 
 [Trait("Category", "Integration")]
+[Collection(TestProxyAppFactory.Collection)]
 public sealed class HealthStateEndpointsTests : IAsyncDisposable
 {
     private readonly TestProxyAppFactory _factory = new();

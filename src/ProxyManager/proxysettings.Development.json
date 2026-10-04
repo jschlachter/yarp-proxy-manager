@@ -18,8 +18,7 @@
       "apiRoute": {
         "ClusterId": "apiCluster",
         "Match": {
-          "Path": "/api/{**catch-all}",
-          "Hosts": ["proxy-manager.west94.io"]
+          "Path": "/api/{**catch-all}"
         },
         "Transforms": [
           { "BearerToken": "access_token" },

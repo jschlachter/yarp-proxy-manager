@@ -1,36 +1,13 @@
 ---
 name: podman-quadlet
-description: Create, edit, review, and debug Podman Quadlet unit files (.container, .pod, .network, .volume, .build, .image, .kube) for systemd-managed containers, following this repo's conventions and Quadlet best practices. Use whenever the user mentions Quadlet, Podman systemd units, adding a new container/service to the pod, `systemd/*.container` files, converting a compose file or `podman run` command to systemd, container healthchecks or startup ordering under systemd, Podman secrets, or debugging a Quadlet unit that won't generate or start, even if they don't say "Quadlet" explicitly.
+description: This repo's conventions for Podman Quadlet units in `systemd/` (per-service folders, deploy.sh, proxymanager pod and network, naming, secrets). Use together with the rootless-quadlet skill whenever the user mentions Quadlet, Podman systemd units, adding a new container/service to the pod, `systemd/*.container` files, converting a compose file or `podman run` command to systemd, container healthchecks or startup ordering under systemd, Podman secrets, or debugging a Quadlet unit that won't generate or start, even if they don't say "Quadlet" explicitly.
 ---
 
-Quadlet turns declarative `.container`/`.pod`/`.network`/`.volume` files into systemd services
-at `daemon-reload` time. This skill covers writing them well and matching this repo's layout.
-Paths are relative to the repo root.
-
-## How Quadlet works (the facts that cause most mistakes)
-
-- A generator reads unit files from `~/.config/containers/systemd/` (rootless) or
-  `/etc/containers/systemd/` (rootful) — subdirectories are scanned — and writes real `.service`
-  units. You never `systemctl enable` a Quadlet unit; the `[Install]` section is honored at
-  generation time. Edit the file, then `systemctl --user daemon-reload`.
-- Generated service names are **not** always the file name:
-
-  | File | Service |
-  |---|---|
-  | `foo.container` | `foo.service` |
-  | `foo.pod` | `foo-pod.service` |
-  | `foo.network` | `foo-network.service` |
-  | `foo.volume` | `foo-volume.service` |
-  | `foo.build` / `foo.image` | `foo-build.service` / `foo-image.service` |
-
-- Inside Quadlet keys (`Pod=`, `Network=`, `Volume=`, `Image=`) refer to sibling units **by file
-  name** (`Pod=proxymanager.pod`, `Volume=data.volume:/var/lib/x`). Quadlet then adds the
-  dependency for you. In `[Unit]` (`After=`, `Requires=`) you must use the **generated service
-  name** (`proxymanager-postgresql.service`).
-- Only `[Container]`/`[Pod]`/etc. keys are Quadlet-specific; `[Unit]`, `[Service]`, `[Install]`
-  are plain systemd and pass through.
-- Containers in a pod share one network namespace: publish ports on the `.pod` (`PublishPort=`),
-  never on member containers, and two members can't bind the same port.
+This repo's conventions for Podman Quadlet units under `systemd/`. General rootless Quadlet
+knowledge (how the generator works, generated service names, host prerequisites, healthchecks
+and `Notify=healthy`, secrets, user namespaces, hardening, escaping, generic debugging) lives in
+the `rootless-quadlet` skill (`.claude/skills/rootless-quadlet/`). Load it alongside this one; where the two differ, this
+file wins. Paths are relative to the repo root.
 
 ## Conventions in this repo
 
@@ -72,7 +49,7 @@ Match the existing units in `systemd/` unless the user says otherwise:
   Secrets: always `Secret=<name>,type=env,target=<ENV_VAR>` with the secret created by a
   `systemd/<service>/deploy.sh` (`systemd/rustfs/deploy.sh` and `systemd/postgresql/deploy.sh` are
   the model for the create-if-missing secret step). Some app units still use a
-  shared `EnvironmentFile=.env`; don't put new credentials there (see Best practices).
+  shared `EnvironmentFile=.env`; don't put new credentials there (see Repo-specific practices).
 - Named volumes get their own `.volume` file (`proxymanager-<thing>.volume`) referenced as
   `Volume=proxymanager-<thing>.volume:/path`. Host bind mounts use `%h` (home) and add
   `ExecStartPre=mkdir -p %h/...` so the first start doesn't fail.
@@ -89,67 +66,14 @@ Match the existing units in `systemd/` unless the user says otherwise:
   `systemctl --user start proxymanager-pod.service proxymanager-ui.service`. Update the closing
   hint in `deploy-vm.sh` and the CLAUDE.md Deployment section if the set of units changes.
 
-## Best practices
+## Repo-specific practices
 
-**Images**
-- Fully qualify the registry; short names depend on `registries.conf` and can prompt or fail
-  under systemd.
-- Pin a version tag (or digest). Avoid `:latest` for anything holding state. If you want automatic
-  updates, opt in explicitly with `AutoUpdate=registry` and enable `podman-auto-update.timer`
-  rather than relying on a floating tag.
-
-**Health and ordering**
-- `After=`/`Requires=` only orders *process start*, not readiness. For a dependency the consumer
-  needs to be actually ready (databases, brokers), give it a `HealthCmd=` and
-  `Notify=healthy`; systemd then treats it as started only once healthy. Set `HealthStartPeriod=`
-  to cover slow init so early failures don't count.
-- The consumer should still retry its connection on startup; ordering is a mitigation, not a
-  guarantee (restarts happen independently).
-
-**Secrets and config**
-- Sensitive values (passwords, API keys, client secrets, connection strings with credentials,
-  tokens) go in **Podman secrets**, not in `Environment=` and not in an `EnvironmentFile=`.
-  Env files are plaintext on disk, get copied around by deploy scripts, are easy to commit by
-  accident, and their contents surface in `systemctl show` and `podman inspect`. A Podman secret
-  is stored by Podman and only injected into the container that references it.
-- Reference it with `Secret=<name>,type=env,target=<ENV_VAR>` (for apps that read env vars,
-  e.g. ASP.NET `Authentication__ClientSecret`). For apps that read files, mount it instead:
-  `Secret=<name>,type=mount,target=/run/secrets/<file>,mode=0400`.
-- Create secrets from stdin so the value never lands in argv or shell history:
-  `printf %s "$VALUE" | podman secret create <name> -`. Do this as the same user that runs the
-  units (rootless secrets are per-user), from the service's `systemd/<svc>/deploy.sh`. Use `openssl rand` for generated credentials and print them once.
-- Reserve `Environment=` and `EnvironmentFile=` for non-sensitive settings (URLs, feature flags,
-  group names). If a shared `.env` already holds credentials, flag them and suggest migrating each
-  to a secret rather than adding more.
-- Never commit real credentials, in unit files, `.env`, or setup scripts.
-
-**Escaping**
-- systemd expands `%` specifiers and `$VAR` in `Exec*`/`HealthCmd`. Write `$$VAR` for a literal
-  `$` evaluated inside the container (`HealthCmd=pg_isready -U $${POSTGRES_USER}`) and `%%` for a
-  literal `%`.
-
-**Storage**
-- Prefer named volumes (`.volume`) to bind mounts: portable, no host path setup.
-- On SELinux hosts, bind mounts need `:z` (shared label) or `:Z` (private to this container).
-  For rootless bind mounts where the container user differs from yours, `:U` chowns the source
-  to the container user's mapped UID. Verify what you're pointing `:U` at — it changes ownership
-  of the host directory.
-
-**Hardening (add when the image supports it)**
-- `NoNewPrivileges=true`, `DropCapability=ALL` (add back only what's needed), `ReadOnly=true` with
-  `Tmpfs=`/`Volume=` for the paths that must be writable, and a non-root `User=` if the image
-  doesn't already drop privileges. Test each; some images break under `ReadOnly`.
-
-**Rootless specifics**
-- Binding ports below 1024 needs `net.ipv4.ip_unprivileged_port_start` lowered on the host.
-- User services stop at logout unless linger is on: `loginctl enable-linger <user>`.
-- `%h` is the user's home; `%t` is the runtime dir (`/run/user/UID`).
-
-**Naming and layout**
-- Prefix everything with the project (`proxymanager-`), keep file name = container name so the
-  service name is predictable, and put a `Description=` on every unit — it's what shows in
-  `systemctl status`.
-- Comment non-obvious choices inline (why a port is published, why a timeout is long).
+- Credentials always go in Podman secrets created by the service's `deploy.sh`. Some app units
+  still use a shared `EnvironmentFile=.env`; don't add credentials to it, and when touching a unit
+  that reads one from there, suggest migrating it to a secret.
+- Databases and brokers that other units depend on (PostgreSQL, RabbitMQ) should carry a
+  `HealthCmd=` with `Notify=healthy`, so the API and files service start only once they're ready.
+- Prefix everything with `proxymanager-` and keep file name = `ContainerName=`.
 
 ## Workflow
 
@@ -179,24 +103,17 @@ Match the existing units in `systemd/` unless the user says otherwise:
    podman healthcheck run proxymanager-<svc>
    ```
 
-## Debugging checklist
+## Debugging checklist (repo-specific)
 
-- **Unit doesn't appear after `daemon-reload`:** generator error. Run the dryrun command, or
-  `journalctl --user -b | grep -i quadlet`. Usual causes: typo in a key, wrong file extension,
-  file not in a scanned directory.
-- **`Unit ...service not found` when starting:** you used the file name where the generated name
-  is different (`.pod` → `-pod.service`).
-- **Dependency fails to start:** `systemctl --user cat <unit>` shows the generated result;
-  `systemctl --user list-dependencies <unit>` shows the ordering graph.
-- **Container name doesn't resolve from another container:** confirm both are on the same
-  network/pod and `ContainerName=` matches what the client uses.
-- **Timeout on first start:** image pull exceeded `TimeoutStartSec`; pre-pull with `podman pull`
-  or raise the timeout.
-- **Permission denied on a bind mount:** SELinux label (`:z`/`:Z`) or UID mapping (`:U`,
-  `UserNS=keep-id`).
-- **Env var not what you expected (`$` or `%` mangled):** escaping, see above.
-- **Secret not found:** secrets are per-user for rootless; create it as the same user that runs
-  the units (`podman secret ls`).
+For general failures (unit not generated, bind-mount permissions, escaping, secrets not found),
+use the checklist in `rootless-quadlet`. Specific to this repo:
 
-When reviewing existing units, check against the conventions and best practices above and report
+- **`proxymanager-<svc>.service` won't start on a fresh host:** `systemd/proxymanager/deploy.sh`
+  hasn't run yet, so `proxymanager.pod` / `proxymanager.network` don't exist.
+- **Another service can't reach the new one:** it must be in `Pod=proxymanager.pod`; ports for
+  host access go on `proxymanager.pod`, not on the container.
+- **Generator dry run on the Podman Desktop VM:**
+  `podman machine ssh podman-machine-default -- /usr/libexec/podman/quadlet -dryrun -user`.
+
+When reviewing existing units, check against these conventions and `rootless-quadlet`, and report
 deviations as suggestions instead of silently rewriting working config.

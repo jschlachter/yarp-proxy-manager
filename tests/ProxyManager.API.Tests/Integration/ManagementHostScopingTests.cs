@@ -91,6 +91,16 @@ public sealed class ManagementHostScopingTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task OidcCallback_OnUserDomain_GoesToUserRoute()
+    {
+        // The OIDC handler matches its callback path in UseAuthentication, before routing; it must not
+        // run on a user domain, or a backend's own /signin-oidc never receives the request.
+        var response = await SendAsync("/signin-oidc", UserDomain);
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Startup_WithoutManagementHost_Fails()
     {
         await using var factory = new TestProxyAppFactory()

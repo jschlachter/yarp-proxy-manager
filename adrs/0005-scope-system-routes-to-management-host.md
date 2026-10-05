@@ -37,6 +37,11 @@ the current layout.
   domains. A system route that sets its own `Hosts` keeps them.
 - The proxy's minimal-API endpoints (account and health-state) are mapped in a route group with
   `RequireHost(Management:Hosts)`.
+- Authentication middleware runs only for requests on `Management:Hosts`. The OIDC handler claims
+  its callback paths (`/signin-oidc`, `/signout-callback-oidc`, `/signout-oidc`) inside
+  `UseAuthentication()`, before routing and on any host, so a backend that uses the same paths would
+  never receive them. User routes carry no authorization policy and the cookie is host-only, so
+  nothing on a user domain needs authentication.
 - `proxysettings.json` is renamed to `proxysettings.Production.json` and published into the image.
   `Program.cs` keeps loading only `proxysettings.{Environment}.json`. The dev file drops its
   hard-coded `apiRoute` `Hosts`.
@@ -59,7 +64,8 @@ between the two kinds no longer matters.
 
 ## Consequences
 
-- A user domain gets every path, including `/api`, `/manage`, `/login` and `/logout`.
+- A user domain gets every path, including `/api`, `/manage`, `/login`, `/logout` and the OIDC
+  callback paths.
 - The management UI and API answer only on `Management:Hosts`. Reaching them by another name, such
   as an IP address, now falls through to the 404 page. Every deployment must set the host name.
 - Production gets its system routes from the image. Changing them means rebuilding the image, or

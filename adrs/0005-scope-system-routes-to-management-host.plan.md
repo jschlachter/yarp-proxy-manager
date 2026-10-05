@@ -48,6 +48,12 @@ shipped in the image.
   ahead of `MapReverseProxy()` as today.
 - Update the `MapHealthStateEndpoints` summary: it wins over `ui-api-route` only on the
   management host.
+- *Added in review:* run `UseAuthentication()` only on the management host
+  (`app.UseWhen(HostString.MatchesAny(...))`). The OIDC handler otherwise answers `/signin-oidc`,
+  `/signout-callback-oidc` and `/signout-oidc` on every domain, before routing. The app also sets
+  `__AuthenticationMiddlewareSet`, because `WebApplication` otherwise auto-inserts
+  `UseAuthentication()` at the start of the pipeline (the branch's marker doesn't reach the app).
+  Integration test: `/signin-oidc` on a user domain returns 502.
 
 **Verify:** covered by task 4's integration tests.
 
@@ -73,10 +79,12 @@ shipped in the image.
 **Verify:** `dotnet test tests/ProxyManager.API.Tests/ProxyManager.API.Tests.csproj` passes,
 including `HealthStateEndpointsTests`.
 
-*Result:* `ManagementHostScopingTests` and `HealthStateEndpointsTests` pass (12/12, three runs).
+*Result:* `ManagementHostScopingTests` and `HealthStateEndpointsTests` pass (13/13, repeated runs).
 The project's other integration classes (`CertificateEndpointsTests`, `ProxyHostEndpointsTests`,
-`FileAssetClientTests`, `Postgres*RepositoryTests`) fail the same way on the base commit
-(36 failures there, 30 here); they don't touch the proxy host and are not part of this change.
+`FileAssetClientTests`, `Postgres*RepositoryTests`) fail on the base commit too, flakily: which
+tests fail and how many changes from run to run (30–41 seen on either commit), with Wolverine
+`IndeterminateRoutesException`, `HttpRequestException` and Testcontainers timeouts. They don't
+touch the proxy host and are not part of this change.
 
 ### 5. Ship production system routes — [x] done
 
@@ -110,7 +118,8 @@ The project's other integration classes (`CertificateEndpointsTests`, `ProxyHost
 `storage.west94.io`): `/api/x`, `/manage/x`, `/`, `/login` and `/manage/api/health-states` with a
 user `Host` are all forwarded to that host's backend (proxy log "Proxying to
 http://pod.lab…:9001/…"). On `proxy-manager.west94.io:8443`, `/` and `/login` challenge with OIDC,
-`/manage/api/health-states` is answered by the proxy (401 unauthenticated), and `/api/proxyhosts`
+`/signin-oidc`, `/signout-callback-oidc` and `/signout-oidc` with a user `Host` are also forwarded
+(after the review fix). `/manage/api/health-states` on the management host is answered by the proxy (401 unauthenticated), and `/api/proxyhosts`
 with a client-credentials JWT returns 200 through `apiRoute`. `https://localhost:8443/manage/`
 serves the 404 page (with status 200, as `MapFallbackToFile` always has). In agent-browser the
 management host redirects to the Authentik sign-in page; signing in was not done because no

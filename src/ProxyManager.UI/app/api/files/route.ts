@@ -95,7 +95,7 @@ export async function POST(request: Request): Promise<Response> {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
-          // Required by YARP's filesRoute CSRF match — see proxysettings.json. Harmless when
+          // Required by YARP's filesRoute CSRF match — see proxysettings.Production.json. Harmless when
           // PROXY_MANAGER_FILES_URL points directly at the Files container instead of through YARP.
           "X-Requested-With": "proxymanager-ui",
         },

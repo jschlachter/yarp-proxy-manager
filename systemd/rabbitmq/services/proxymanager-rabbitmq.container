@@ -11,9 +11,12 @@ Volume=proxymanager-rabbitmq.volume:/var/lib/rabbitmq
 Pod=proxymanager.pod
 
 HealthCmd=rabbitmq-diagnostics --quiet check_running && rabbitmq-diagnostics --quiet check_local_alarms
-HealthInterval=60s
+HealthInterval=15s
 HealthTimeout=30s
 HealthRetries=3
+HealthStartPeriod=30s
+# Report the unit started only once healthy, so dependents' After= waits for readiness
+Notify=healthy
 
 [Service]
 Restart=always

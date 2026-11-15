@@ -1,7 +1,7 @@
 [Unit]
 Description=Proxy Manager Files
-After=network-online.target proxymanager-rustfs.service proxymanager-postgresql.service
-Requires=proxymanager-rustfs.service proxymanager-postgresql.service
+After=network-online.target proxymanager-rustfs.service proxymanager-postgresql.service proxymanager-rabbitmq.service
+Requires=proxymanager-rustfs.service proxymanager-postgresql.service proxymanager-rabbitmq.service
 
 [Container]
 Image=west94.com/proxymanager-files:1.0.0-alpha

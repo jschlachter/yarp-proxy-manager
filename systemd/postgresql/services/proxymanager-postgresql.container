@@ -21,6 +21,8 @@ HealthInterval=30s
 HealthTimeout=5s
 HealthRetries=5
 HealthStartPeriod=20s
+# Report the unit started only once healthy, so dependents' After= waits for readiness
+Notify=healthy
 
 [Service]
 Restart=always

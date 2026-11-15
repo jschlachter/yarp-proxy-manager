@@ -1,7 +1,7 @@
 [Unit]
 Description=Proxy Manager
-After=network-online.target proxymanager-postgresql.service
-Requires=proxymanager-postgresql.service
+After=network-online.target proxymanager-postgresql.service proxymanager-rabbitmq.service
+Requires=proxymanager-postgresql.service proxymanager-rabbitmq.service
 
 [Container]
 Image=west94.com/proxymanager:1.0.0-alpha

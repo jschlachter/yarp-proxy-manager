@@ -14,6 +14,14 @@ ContainerName=proxymanager-rustfs
 Pod=proxymanager.pod
 Volume=%h/proxymanager-rustfs/data:/data:U,z,rw
 
+HealthCmd=curl -fsS -o /dev/null http://localhost:9000/health
+HealthInterval=30s
+HealthTimeout=5s
+HealthRetries=3
+HealthStartPeriod=10s
+# Report the unit started only once healthy, so dependents' After= waits for readiness
+Notify=healthy
+
 [Service]
 ExecStartPre=mkdir -p %h/proxymanager-rustfs/data
 Restart=always

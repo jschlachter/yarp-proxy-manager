@@ -1,0 +1,170 @@
+# Dependabot version updates
+# Docs: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+#
+# Groups are evaluated in order: a dependency lands in the FIRST group it matches,
+# so package families that must move in lockstep are listed before the catch-alls.
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # GitHub Actions (.github/workflows) — actions are SHA-pinned; Dependabot
+  # bumps the SHA and the trailing "# vX.Y.Z" comment together.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"               # -> "ci(deps): ..."
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------------------
+  # NuGet — src/*/*.csproj and tests/*/*.csproj (no central package management)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "nuget"
+    directories:
+      - "/src/*"
+      - "/tests/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "nuget"
+    commit-message:
+      prefix: "chore"
+      include: "scope"               # -> "chore(deps): ..."
+    cooldown:
+      default-days: 3
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      # Security fixes ship together, separate from the weekly batch
+      nuget-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Npgsql's EF provider is versioned against EF Core — update as one unit
+      ef-core:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+          - "Npgsql*"
+      # WolverineFx packages must share a version
+      wolverine:
+        patterns:
+          - "WolverineFx*"
+      # ASP.NET Core / Microsoft.Extensions follow the .NET release train
+      aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+          - "Microsoft.Extensions.*"
+          - "Microsoft.OpenApi"
+        update-types:
+          - "minor"
+          - "patch"
+      serilog:
+        patterns:
+          - "Serilog*"
+      # xunit v3 + Microsoft.Testing.Platform + coverage + Testcontainers
+      test-tooling:
+        patterns:
+          - "xunit*"
+          - "Microsoft.Testing.*"
+          - "coverlet*"
+          - "Testcontainers*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Everything else non-breaking; majors still get individual PRs
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ---------------------------------------------------------------------------
+  # npm — Next.js UI
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/src/ProxyManager.UI"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    versioning-strategy: "increase"  # bump package.json ranges, not only the lockfile
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"               # -> "chore(deps): ..." / "chore(deps-dev): ..."
+    cooldown:
+      default-days: 3
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Next.js and React must stay compatible with each other
+      nextjs-react:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      # Jest, Testing Library, Playwright
+      test-tooling:
+        patterns:
+          - "jest"
+          - "jest-*"
+          - "@jest/*"
+          - "@types/jest"
+          - "@testing-library/*"
+          - "@playwright/test"
+        update-types:
+          - "minor"
+          - "patch"
+      npm-development:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      npm-production:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # @types/node should track the Node runtime in the UI image, not the latest Node major
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]

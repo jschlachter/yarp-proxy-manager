@@ -2,6 +2,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using West94.ProxyManager.Core.Configuration;
 using West94.ProxyManager.Files.Data;
 using West94.ProxyManager.Files.Options;
 using West94.ProxyManager.Files.Repositories;
@@ -40,7 +41,21 @@ public static class ServiceCollectionExtensions
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Section));
         services.AddDbContext<FilesDbContext>((sp, options) =>
         {
-            var cs = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString;
+            // {{Token}} placeholders (e.g. Password={{POSTGRES_PASSWORD}}) are filled from configuration,
+            // so the password can arrive as a Podman secret env var instead of inside the string.
+            var rawCs = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString;
+            // Resolved from the container (not the registration-time parameter) so test hosts that add
+            // configuration in ConfigureWebHost are seen, matching ProxyManager.Infrastructure.
+            var config = sp.GetRequiredService<IConfiguration>();
+            var cs = ConfigurationTokens.Interpolate(rawCs, key => config[key], out var missing);
+            if (missing.Count > 0)
+            {
+                sp.GetRequiredService<ILoggerFactory>()
+                  .CreateLogger(nameof(ServiceCollectionExtensions))
+                  .LogError("Connection string contains unresolved tokens; missing configuration keys: {Keys}",
+                      string.Join(", ", missing));
+            }
+
             options.UseNpgsql(cs, o =>
             {
                 o.MigrationsAssembly(typeof(FilesDbContext).Assembly.FullName);

@@ -1,0 +1,19 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/ProxyManager.API/ProxyManager.API.csproj" />
+    <Project Path="src/ProxyManager.Core/ProxyManager.Core.csproj" />
+    <Project Path="src/ProxyManager.Files/ProxyManager.Files.csproj" />
+    <Project Path="src/ProxyManager.Infrastructure/ProxyManager.Infrastructure.csproj" />
+    <Project Path="src/ProxyManager/ProxyManager.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ProxyManager.API.Tests/ProxyManager.API.Tests.csproj" />
+    <Project Path="tests/ProxyManager.Core.Tests/ProxyManager.Core.Tests.csproj" />
+    <Project Path="tests/ProxyManager.Files.Tests/ProxyManager.Files.Tests.csproj" />
+  </Folder>
+</Solution>

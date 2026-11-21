@@ -5,6 +5,8 @@
 
 # dotenv files
 .env
+# Site-specific Quadlet settings (template: systemd/proxymanager.env.example)
+systemd/proxymanager.env
 
 # User-specific files
 *.rsuser

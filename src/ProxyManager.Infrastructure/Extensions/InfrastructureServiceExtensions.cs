@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Options;
 using West94.ProxyManager.Core.AggregatesModel.AuditLogAggregate;
 using West94.ProxyManager.Core.AggregatesModel.CertificateAggregate;
 using West94.ProxyManager.Core.AggregatesModel.ProxyHostAggregate;
+using West94.ProxyManager.Core.Configuration;
 using West94.ProxyManager.Infrastructure.Data;
 using West94.ProxyManager.Infrastructure.Files;
 using West94.ProxyManager.Infrastructure.Options;
@@ -16,8 +16,6 @@ namespace West94.ProxyManager.Infrastructure.Extensions;
 
 public static class InfrastructureServiceExtensions
 {
-    private static readonly Regex TokenPattern = new(@"\{\{([A-Za-z0-9_]+)\}\}", RegexOptions.Compiled);
-
     /// <summary>Registers EF Core DbContext and repository implementations backed by PostgreSQL.</summary>
     public static IServiceCollection AddProxyManagerInfrastructure(this IServiceCollection services)
     {
@@ -55,28 +53,15 @@ public static class InfrastructureServiceExtensions
         return services;
     }
 
+    /// <summary>Fills <c>{{Token}}</c> placeholders from configuration and logs any that stay unresolved.</summary>
     private static string InterpolateTokens(string connectionString, IConfiguration configuration, ILogger logger)
     {
-        var missing = new List<string>();
-
-        var result = TokenPattern.Replace(connectionString, match =>
-        {
-            var key = match.Groups[1].Value;
-            var value = configuration[key];
-            if (value is null)
-            {
-                missing.Add(key);
-                return match.Value;
-            }
-            return value;
-        });
+        var result = ConfigurationTokens.Interpolate(connectionString, key => configuration[key], out var missing);
 
         if (missing.Count > 0)
         {
-            var keys = string.Join(", ", missing);
-            logger.LogError("Connection string contains unresolved tokens; missing configuration keys: {Keys}", keys);
-            
-            
+            logger.LogError("Connection string contains unresolved tokens; missing configuration keys: {Keys}",
+                string.Join(", ", missing));
         }
 
         return result;

@@ -227,7 +227,7 @@ docs/                           design notes
 
 ## Contributing
 
-Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, code conventions, and the Conventional Commits format used for pull request titles. Report security issues privately as described in [SECURITY.md](SECURITY.md). Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, code conventions, and the Conventional Commits format used for pull request titles. Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## Acknowledgements
 

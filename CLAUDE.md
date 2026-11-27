@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Build entire solution
-dotnet build ProxyManager.sln
+dotnet build ProxyManager.slnx
 
 # Run the services individually (dev ports from Properties/launchSettings.json + .vscode/launch.json)
 dotnet run --project src/ProxyManager/ProxyManager.csproj              # proxy      https://localhost:7129
@@ -19,8 +19,9 @@ dotnet publish src/ProxyManager/ProxyManager.csproj -c Release
 dotnet publish src/ProxyManager.API/ProxyManager.API.csproj -c Release
 dotnet publish src/ProxyManager.Files/ProxyManager.Files.csproj -c Release
 
-# Container images (Podman) — target is proxy|api|files|ui|all
-./scripts/build-images.sh all --tag=dev
+# Container images (Podman) — target is proxy|api|files|ui|all. Default tag = the one the
+# Quadlet units pin in Image= (bump it there); --tag=X builds something the units won't run.
+./scripts/build-images.sh all
 
 # Deploy Quadlet units + certs to the Podman machine
 ./scripts/deploy-vm.sh
@@ -36,7 +37,7 @@ VSCode compound launch config **"Launch It All"** runs the proxy, API, and files
 
 ```bash
 # All .NET tests
-dotnet test ProxyManager.sln
+dotnet test ProxyManager.slnx
 
 # One project
 dotnet test tests/ProxyManager.API.Tests/ProxyManager.API.Tests.csproj
@@ -44,7 +45,7 @@ dotnet test tests/ProxyManager.Core.Tests/ProxyManager.Core.Tests.csproj
 dotnet test tests/ProxyManager.Files.Tests/ProxyManager.Files.Tests.csproj
 
 # Unit tests only (what CI runs) — tests are tagged [Trait("Category", "Unit"|"Integration")]
-dotnet test ProxyManager.sln -- --filter-trait "Category=Unit"
+dotnet test ProxyManager.slnx -- --filter-trait "Category=Unit"
 
 # One test by name
 dotnet test --filter "FullyQualifiedName~ClassName.MethodName"
@@ -97,17 +98,17 @@ npm run test:e2e       # Playwright e2e tests
 
 ### Projects (`src/`)
 
-- **ProxyManager** — ASP.NET Core 10 app that *is* the reverse proxy (YARP). Serves the UI shell, authenticates browser users via OIDC, terminates TLS via SNI cert loading from `certs/`. Two config sources feed YARP:
+- **ProxyManager** — ASP.NET Core 11 app that *is* the reverse proxy (YARP). Serves the UI shell, authenticates browser users via OIDC, terminates TLS with per-SNI certs chosen by LettuceEncrypt (see TLS below). Two config sources feed YARP:
   - **System routes** (`apiRoute`, `filesRoute`, `ui-route`, …) come from `proxysettings.{Environment}.json` → `ReverseProxy` section, loaded via `LoadFromConfig`.
   - **Management host (ADR 0005):** `Yarp/ManagementHostRouteFilter` (an `IProxyConfigFilter`) sets `Match.Hosts` to `Management:Hosts` on every route without hosts, i.e. the system routes; the proxy's own minimal-API endpoints (`/login`, `/logout`, `/signin-oidc`, `/manage/api/health-states`) are mapped with `RequireHost` on the same hosts. On any user domain every path goes to that host's backend.
   - **User-managed routes** come from the database via `Yarp/DatabaseProxyConfigProvider` (a second `IProxyConfigProvider` registered as a singleton). It reads `IProxyHostRepository`, translates through `ProxyHostYarpTranslator`, and hot-swaps an `InMemoryConfig`. Reloads are triggered by `Handlers/ProxyHostChangedHandler`, a Wolverine handler listening on the `proxy-manager-config-reload` queue bound to the `proxy-hosts` fanout exchange.
   - **Health checks (ADR 0003):** a user route may carry YARP active/passive health checks via `ProxyHost.HealthCheck` (a `HealthCheckSettings` value object, persisted as the `health_check` jsonb column). The translator maps it to `ClusterConfig.HealthCheck`, cluster `Metadata` (policy parameters) and `DestinationConfig.Health`.
   - **Live health state:** the proxy itself serves `GET /manage/api/health-states` (`Endpoints/HealthStateEndpoints.cs`, cookie auth), read from `IProxyStateLookup`. As a minimal-API endpoint it takes precedence over the YARP `ui-api-route` for that one path; the UI polls it every 10 s for the route health badges.
-- **ProxyManager.API** — ASP.NET Core 10 management REST API. JWT Bearer against the same Authentik authority (audience-validated). Endpoint groups: **`/api/proxyhosts`** and **`/api/certificates`** (not `/routes`). Endpoints are thin: they build a `Command`/`Query` record from `ProxyManager.Core.Messages` and dispatch it with Wolverine `IMessageBus.InvokeAsync`; the work lives in `Handlers/*Handler.cs`. Domain events are published to the `proxy-hosts` and `certificates` RabbitMQ fanout exchanges. Talks to the files service through `Infrastructure/Files/FileAssetClient` (typed `HttpClient`, `X-Files-Service-Token` header). Hosted services: `DatabaseMigrationService`, `CertificateAssetReconciliationService`.
+- **ProxyManager.API** — ASP.NET Core 11 management REST API. JWT Bearer against the same Authentik authority (audience-validated). Endpoint groups: **`/api/proxyhosts`** and **`/api/certificates`** (not `/routes`). Endpoints are thin: they build a `Command`/`Query` record from `ProxyManager.Core.Messages` and dispatch it with Wolverine `IMessageBus.InvokeAsync`; the work lives in `Handlers/*Handler.cs`. Domain events are published to the `proxy-hosts` and `certificates` RabbitMQ fanout exchanges. Talks to the files service through `Infrastructure/Files/FileAssetClient` (typed `HttpClient`, `X-Files-Service-Token` header). Hosted services: `DatabaseMigrationService`, `CertificateAssetReconciliationService`.
 - **ProxyManager.Core** — domain library (no longer scaffolding). `AggregatesModel/{ProxyHostAggregate,CertificateAggregate,AuditLogAggregate}`, `SeedWork/` (`Entity`, `IDomainEvent`), `Messages/{Commands,Events,Queries}`, `DTOs/`, `Exceptions/` (mapped to Problem responses in endpoints), `Certificates/X509CertificateInspector`.
 - **ProxyManager.Infrastructure** — data access. `ProxyManagerDbContext` (EF Core + Npgsql), `Data/Configurations/`, `Data/Migrations/`. Repositories come in `Postgres*Repository` and `InMemory*Repository` pairs; `AddProxyManagerInfrastructure()` wires the Postgres ones. Connection strings support `{{Token}}` placeholders interpolated from configuration keys at startup.
 - **ProxyManager.Files** — standalone deployable microservice for asset upload/storage. Stores bytes in an S3-compatible object store (`IObjectStore` / `S3ObjectStore`) backed by **RustFS**, which is never browser-reachable — uploads proxy through this service at `/api/files/**`. Own `FilesDbContext` (PostgreSQL, `files` schema, `__ef_migrations_history`). **Dual auth**: browser calls use JWT Bearer; service-to-service calls from the API use `Auth/ServiceTokenAuthenticationHandler` (`X-Files-Service-Token`). The default authz policy accepts either scheme. Subscribes to the `certificates` fanout exchange (`files-certificate-cleanup` queue) to delete orphaned assets. Hosted services: `FilesDatabaseMigrationService`, `BucketBootstrapHostedService`, `StagedAssetSweeper`.
-- **ProxyManager.UI** — Next.js 15 (App Router) frontend. See `src/ProxyManager.UI/CLAUDE.md` / `AGENTS.md`. Route group `app/(dashboard)/` for the shell; `app/api/**` BFF route handlers proxy to the management API via `lib/proxy-manager-client.ts`. `lib/auth.ts` derives RBAC from the `X-Auth-Groups` header the proxy injects; `lib/modules.ts` is the nav module registry. In production it is built and served behind the proxy.
+- **ProxyManager.UI** — Next.js 16 (App Router) frontend. See `src/ProxyManager.UI/CLAUDE.md` / `AGENTS.md`. Route group `app/(dashboard)/` for the shell; `app/api/**` BFF route handlers proxy to the management API via `lib/proxy-manager-client.ts`. `lib/auth.ts` derives RBAC from the `X-Auth-Groups` header the proxy injects; `lib/modules.ts` is the nav module registry. In production it is built and served behind the proxy.
 
 ### Messaging
 
@@ -131,22 +132,22 @@ Auth config keys: `Authentication:Authority`, `Authentication:ClientId`, `Authen
 
 **Object storage (Files):** `ObjectStorage` section — RustFS S3 endpoint, access/secret key, `ForcePathStyle`, region. `Upload` section bounds accepted content.
 
-**TLS:** ProxyManager loads per-domain certs from `certs/` at startup via SNI callbacks; production certs are mounted as a volume.
+**TLS:** Kestrel's HTTPS endpoint picks a certificate per SNI through LettuceEncrypt, whose only sources are the `Certificate` aggregate (`Acme/AggregateCertificateSource`, bytes from the Files service) and certs it issues for `LetsEncrypt`-mode proxy hosts. When neither has one (no SNI, an empty database, or the management host, which ACME never covers), it serves `LettuceEncryptOptions.FallbackCertificate`, loaded by `Acme/FallbackCertificateSetup` from `FallbackCertificate:Path` (default `certs/{first Management:Hosts entry}.pfx`, optional `FallbackCertificate:Password`). Without that file every such handshake fails with "server mode SSL must use a certificate with the associated private key". `certs/` is mounted as a volume (it also holds `acme-account/`).
 
 ## Deployment
 
-**Podman Quadlet** (systemd-managed containers). `systemd/` has one folder per service (`proxymanager` also holds the pod and network, `api`, `files`, `ui`, `postgresql`, `rabbitmq`, `rustfs`), each with a `deploy.sh` (creates that service's Podman secrets, installs its units, `daemon-reload`) and a `services/` folder holding its Quadlet files. Run `systemd/proxymanager/deploy.sh` first on a fresh host (it installs the pod and network). `scripts/deploy-vm.sh` is a separate helper for local Podman Desktop testing. Production system routes ship in the proxy image as `/app/proxysettings.Production.json` (mount a replacement over that path to change them without a rebuild); `~/proxymanager/certs/` is mounted for TLS. Set `Management__Hosts__0` if the management host differs from `appsettings.json`. Environment comes from a `.env` file in `systemd/` (e.g. `PROXY_MANAGER_API_URL`, `PROXY_MANAGER_FILES_URL`, `AUTHENTIK_ACCOUNT_URL` for the UI container).
+**Podman Quadlet** (systemd-managed containers). `systemd/` has one folder per service (`proxymanager` also holds the network and `proxymanager.target`, `api`, `files`, `ui`, `postgresql`, `rabbitmq`, `rustfs`), each with a `deploy.sh` (creates that service's Podman secrets, installs its units, `daemon-reload`) and a `services/` folder holding its Quadlet files. Run `systemd/proxymanager/deploy.sh` first on a fresh host (it installs the network and installs and enables the target). **No pod:** every container is standalone on `proxymanager.network` with its own network namespace, reached by container name; each joins `proxymanager.target` (`PartOf=`/`WantedBy=`), so `systemctl --user start|restart proxymanager.target` controls the whole stack (stop with `systemctl --user stop proxymanager.target 'proxymanager*.service'` to wait for every container). Only the proxy's 80/8443 are meant to be public; PostgreSQL, RabbitMQ and RustFS also publish their ports for the lab dev workflow (see `systemd/TODO.md`). `scripts/deploy-remote.sh` (SSH host) and `scripts/deploy-vm.sh` (local Podman Desktop VM) stage every service folder and run its `deploy.sh`. Over SSH a `deploy.sh` has no terminal, so both scripts create `proxymanager-oidc-client-secret` themselves first (from `OIDC_CLIENT_SECRET` or a local prompt, value sent over stdin). `deploy-remote.sh` also copies the `west94.com/...` app images with `podman save | ssh podman load` (there is no registry; skipped when the host has the same image ID) and checks its preconditions (env file present here or on the host, OIDC secret) *before* stopping `proxymanager.target`, so a failed precondition leaves the stack running. Production system routes ship in the proxy image as `/app/proxysettings.Production.json` (mount a replacement over that path to change them without a rebuild); `~/proxymanager/certs/` is mounted for TLS. Config split: **secrets are Podman secrets** (`pm-db-pass` from `postgresql/deploy.sh`, `proxymanager-files-service-token` from `files/deploy.sh`, `proxymanager-oidc-client-secret` from `proxymanager/deploy.sh`, which prompts for it or reads `OIDC_CLIENT_SECRET`; `proxymanager-rabbitmq-user`/`-password`/`-conf` from `rabbitmq/deploy.sh [--username=NAME]`, default user `proxymanager`, generated password, the `-conf` one a `rabbitmq.conf` fragment mounted into the broker's `conf.d/` and applied only on a blank data volume), mounted with `Secret=…,type=env`; service addresses (DB connection string, RabbitMQ host, Files/RustFS URLs) live in each .NET app's `appsettings.Production.json` using container names (`proxymanager-postgresql`, `proxymanager-rabbitmq`, `proxymanager-files`, `proxymanager-rustfs`; containers on `proxymanager.network` resolve each other's `ContainerName=`), so the units don't repeat them (an `Environment=` line would override the file); ports and the UI's backend URLs are `Environment=` lines in the units; the API and Files both listen on 8080 (the images' `ASPNETCORE_HTTP_PORTS`), as `proxymanager-api:8080` and `proxymanager-files:8080`; site-specific non-secrets (`Authentication__ClientId`, `Authentication__Audience`, `LettuceEncrypt__EmailAddress`, the UI's `AUTHENTIK_ACCOUNT_URL` and `ADMIN_GROUP_CLAIM`, optionally `Management__Hosts__0`) go in `systemd/proxymanager.env` (gitignored, template `systemd/proxymanager.env.example`), which `proxymanager/deploy.sh` installs as `~/proxymanager/proxymanager.env` for the units' `EnvironmentFile=`. Never put secrets in that env file.
 
 ## Logging
 
-Both .NET hosts use Serilog: console + rolling daily file logs under `logs/` (10MB cap, 30-file retention). Paths: `logs/proxyManager-.log`, `logs/api-.log`.
+All three .NET hosts use Serilog. `appsettings.json` (and so Production) logs to the console only, which journald captures through each container's unit; `appsettings.Development.json` adds rolling daily file logs under `logs/` (10MB cap, 30-file retention): `logs/proxyManager-.log`, `logs/api-.log`, `logs/files-.log`.
 
 ## Conventions
 
 - C# style rules for `src/**/*.cs` are in `.claude/rules/csharp-rules.md` (file-scoped namespaces, primary constructors, `IServiceCollection` extension methods to keep `Program.cs` clean, Options pattern over injected `IConfiguration`, `TypedResults` in endpoints, `[Trait("Category", …)]` on tests).
-- Next.js rules are in `.claude/rules/nextjs.rules.md`; this is Next.js 15/16 App Router — verify APIs against `node_modules/next/dist/docs/` rather than assuming.
+- Next.js rules are in `.claude/rules/nextjs.rules.md`; this is Next.js 16 App Router — verify APIs against `node_modules/next/dist/docs/` rather than assuming.
 - Use the context7 MCP server for up-to-date library/framework docs.
 
 ## Key Technologies
 
-.NET 10.0 / ASP.NET Core · YARP 2.3 · WolverineFx 5.22 (+ WolverineFx.RabbitMQ) · Serilog 4.3 · EF Core + Npgsql · AWSSDK.S3 against RustFS · Scalar.AspNetCore (OpenAPI UI, dev only) · xunit v3 on Microsoft.Testing.Platform · Testcontainers · Authentik (external OIDC) · Next.js 15 · Podman / Quadlet.
+.NET 11.0 / ASP.NET Core (`net11.0`) · YARP 2.3 · LettuceEncrypt-Archon 3.0 (ACME) · WolverineFx 6.64 (+ WolverineFx.RabbitMQ) · Serilog 4.4 · EF Core 11 + Npgsql · AWSSDK.S3 against RustFS · Scalar.AspNetCore (OpenAPI UI, dev only) · xunit v3 on Microsoft.Testing.Platform · Testcontainers · Authentik (external OIDC) · Next.js 16 / React 19 · Podman / Quadlet.

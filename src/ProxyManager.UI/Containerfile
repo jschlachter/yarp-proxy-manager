@@ -1,32 +1,35 @@
-FROM node:24-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Pinned so two builds of the same app tag get the same Node and Alpine; bump deliberately.
+ARG NODE_IMAGE=docker.io/library/node:24.22.3-alpine3.24
 
-FROM node:24-alpine AS builder
+FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
+
+# next build is what sends telemetry, so disable it here (the standalone server sends none).
+ENV NEXT_TELEMETRY_DISABLED=1
+
 COPY package.json package-lock.json ./
-RUN npm ci
+# Cache mount keeps downloaded packages across builds, so a lockfile change only fetches the diff.
+RUN --mount=type=cache,target=/root/.npm npm ci
+# .containerignore keeps the host's node_modules and .next out of this copy.
 COPY . .
 RUN npm run build
 
-FROM node:24-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-USER nextjs
-
-EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# output: "standalone" bundles server.js with only the node_modules it traces, so no separate
+# production install is needed. The node image ships a non-root "node" user (UID 1000).
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
+
+USER node
+
+EXPOSE 3000
 
 CMD ["node", "server.js"]

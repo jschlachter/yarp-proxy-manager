@@ -7,7 +7,19 @@
     <AssemblyName>West94.ProxyManager</AssemblyName>
     <RootNamespace>West94.ProxyManager</RootNamespace>
     <UserSecretsId>64e29ca0-0645-47ec-a224-660d244ed63e</UserSecretsId>
+    <!-- Publish only English satellite resources; the images don't need translated library messages. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Kestrel only, no IIS: don't generate web.config. -->
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Environment-specific settings (Development, Testing) stay out of the publish output and so
+         out of the container image; they are still copied to bin/ for local runs and tests.
+         appsettings.json and appsettings.Production.json (if added) are what the image runs with. -->
+    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Production.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ProxyManager.Infrastructure\ProxyManager.Infrastructure.csproj" />
@@ -25,17 +37,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WolverineFx" Version="6.64.1" />
-    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.64.1" />
+    <PackageReference Include="WolverineFx" Version="6.64.2" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.64.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="11.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0" />
-    <PackageReference Include="Microsoft.OpenApi" Version="3.11.0" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.21.0" />
+    <PackageReference Include="Microsoft.OpenApi" Version="3.11.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="3.1.1" />
     <PackageReference Include="Serilog" Version="4.4.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="11.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.64.1" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.64.2" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

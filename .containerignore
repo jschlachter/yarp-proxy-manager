@@ -1,4 +1,22 @@
-**/node_modules
+# Build context for the .NET Containerfiles (src/ProxyManager*, context = repo root).
+# Allowlist: everything is excluded unless re-included below, so new files at the repo root
+# (secrets, logs, tooling config) stay out of the build by default. The UI has its own context
+# (src/ProxyManager.UI) and its own .containerignore.
+*
+!global.json
+!src/
+
+# Inside src/: never send build output, local runtime state or private material.
+src/ProxyManager.UI
 **/bin
 **/obj
-.git
+**/node_modules
+**/logs
+**/certs
+**/*.pfx
+**/*.pem
+**/*.key
+**/.env*
+**/appsettings.Development.json
+**/.DS_Store
+**/*.http

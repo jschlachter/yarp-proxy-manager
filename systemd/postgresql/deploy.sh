@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploys the PostgreSQL Quadlet units on this host.
 #
-# Run as the user that runs the pod (rootless). Copies services/* into the Quadlet directory and
+# Run as the user that runs the containers (rootless). Copies services/* into the Quadlet directory and
 # reloads systemd so the generator picks them up. Safe to re-run.
 #
 # Usage:
@@ -20,10 +20,10 @@ QUADLET_DIR="${QUADLET_DIR:-$HOME/.config/containers/systemd/proxymanager}"
 if podman secret exists pm-db-pass; then
     echo "==> Secret pm-db-pass already exists — skipping."
 else
+    # Not printed: the API, proxy and files units read it from the secret. To see it on this host:
+    #   podman secret inspect --showsecret --format '{{.SecretData}}' pm-db-pass
     echo "==> Creating Postgres superuser password secret..."
-    DB_PASS="$(openssl rand -base64 36 | tr -d '\n')"
-    printf %s "$DB_PASS" | podman secret create pm-db-pass -
-    echo "    Postgres password (shown once, store it somewhere safe): $DB_PASS"
+    openssl rand -base64 36 | tr -d '\n' | podman secret create pm-db-pass -
 fi
 
 echo "==> Installing units to $QUADLET_DIR..."

@@ -6,10 +6,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>West94.ProxyManager.Files</AssemblyName>
     <UserSecretsId>8a042e8a-e0b6-48e1-96d6-fd4fbe6efc2f</UserSecretsId>
+    <!-- Publish only English satellite resources; the images don't need translated library messages. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Kestrel only, no IIS: don't generate web.config. -->
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="4.1.0" />
+    <!-- Environment-specific settings (Development, Testing) stay out of the publish output and so
+         out of the container image; they are still copied to bin/ for local runs and tests.
+         appsettings.json and appsettings.Production.json (if added) are what the image runs with. -->
+    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Production.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="11.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="11.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="11.0.0" />
@@ -17,14 +29,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="11.0.0" />
     <PackageReference Include="Serilog" Version="4.4.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="11.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="WolverineFx" Version="6.64.1" />
-    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.64.1" />
-    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.64.1" />
+    <PackageReference Include="WolverineFx" Version="6.64.2" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.64.2" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.64.2" />
   </ItemGroup>
 
   <ItemGroup>

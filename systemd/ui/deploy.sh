@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploys the UI Quadlet units on this host.
 #
-# Run as the user that runs the pod (rootless). Copies services/* into the Quadlet directory and
+# Run as the user that runs the containers (rootless). Copies services/* into the Quadlet directory and
 # reloads systemd so the generator picks them up. Safe to re-run.
 #
 # Usage:

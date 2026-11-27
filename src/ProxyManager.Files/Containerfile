@@ -1,19 +1,25 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 as builder
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS builder
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_HTTP_PORT=8080
 ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 
 WORKDIR /app
 
-COPY . ./
-
-# Restore as distinct layers
+# Restore from the project files alone, so the NuGet layer stays cached until a dependency
+# changes. List every project in this one's reference graph.
+COPY global.json ./
+COPY src/ProxyManager.Core/ProxyManager.Core.csproj src/ProxyManager.Core/
+COPY src/ProxyManager.Files/ProxyManager.Files.csproj src/ProxyManager.Files/
 RUN dotnet restore src/ProxyManager.Files/ProxyManager.Files.csproj
 
-# Build and publish a release
-RUN dotnet publish src/ProxyManager.Files/ProxyManager.Files.csproj -c Release -o out
+COPY src/ src/
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# Build and publish a release. UseAppHost=false: the entrypoint runs `dotnet <dll>`, so the native
+# launcher would be dead weight.
+RUN dotnet publish src/ProxyManager.Files/ProxyManager.Files.csproj -c Release -o out --no-restore -p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_HTTP_PORTS=8080
 WORKDIR /app
 
 COPY --from=builder /app/out .

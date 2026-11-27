@@ -1,0 +1,17 @@
+# Build context for src/ProxyManager.UI/Containerfile. Keeps host-built artifacts (macOS native
+# modules, stale build cache) and test output out of the image and the context upload.
+node_modules
+.next
+.swc
+out
+build
+coverage
+playwright-report
+test-results
+tests
+*.tsbuildinfo
+.env*
+npm-debug.log*
+.DS_Store
+Containerfile
+.containerignore

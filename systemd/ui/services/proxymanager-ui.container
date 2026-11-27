@@ -1,18 +1,28 @@
 [Unit]
 Description=Proxy Manager UI
-After=network-online.target
-Wants=network-online.target
+# Wants (not Requires): the UI calls the API per request, so an API restart shouldn't restart the UI.
+After=network-online.target proxymanager-api.service proxymanager-files.service
+Wants=network-online.target proxymanager-api.service proxymanager-files.service
+PartOf=proxymanager.target
 
 [Container]
 Image=west94.com/proxymanager-ui:1.0.0-alpha
 ContainerName=proxymanager-ui
+
+# Site-specific, non-secret settings (AUTHENTIK_ACCOUNT_URL, ADMIN_GROUP_CLAIM).
+# Installed by systemd/proxymanager/deploy.sh from systemd/proxymanager.env; see systemd/proxymanager.env.example.
+EnvironmentFile=%h/proxymanager/proxymanager.env
+
+# Backends by container name, both on 8080. Not published to the host; the proxy routes to it.
+# Don't set ADMIN_GROUP_CLAIM here: an Environment= line would override the env file above.
 Environment=PROXY_MANAGER_API_URL=http://proxymanager-api:8080
-Environment=ADMIN_GROUP_CLAIM=proxy-admins
-Pod=proxymanager.pod
+Environment=PROXY_MANAGER_FILES_URL=http://proxymanager-files:8080
+
+Network=proxymanager.network
 
 [Service]
 Restart=always
 TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

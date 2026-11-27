@@ -1,6 +1,8 @@
 [Unit]
 Description=Proxy Manager RustFS Container
 After=network-online.target
+Wants=network-online.target
+PartOf=proxymanager.target
 
 [Container]
 Environment=RUSTFS_ADDRESS=:9000
@@ -9,9 +11,15 @@ Environment=RUSTFS_CONSOLE_ENABLE=true
 Secret=rfs-access-key,type=env,target=RUSTFS_ACCESS_KEY
 Secret=rfs-secret-key,type=env,target=RUSTFS_SECRET_KEY
 
-Image=docker.io/rustfs/rustfs:latest
+# Pinned so a restart can't pull a different release; bump deliberately. 1.0.5 ships curl and
+# /health, which the healthcheck below relies on.
+Image=docker.io/rustfs/rustfs:1.0.5
 ContainerName=proxymanager-rustfs
-Pod=proxymanager.pod
+Network=proxymanager.network
+# Published only for local dev runs (S3 API) and the console; Files reaches it as
+# proxymanager-rustfs:9000. See systemd/TODO.md.
+PublishPort=9000:9000
+PublishPort=9001:9001
 Volume=%h/proxymanager-rustfs/data:/data:U,z,rw
 
 HealthCmd=curl -fsS -o /dev/null http://localhost:9000/health
@@ -29,4 +37,4 @@ RestartSec=10sec
 TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

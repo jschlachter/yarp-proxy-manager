@@ -67,6 +67,11 @@ try
     services.Configure<LettuceEncryptOptions>(configuration.GetSection("LettuceEncrypt"));
     services.AddLettuceEncrypt();
 
+    // Certificate served when nothing else matches (no SNI, or a host with no certificate yet) —
+    // notably the management host on an empty database. See FallbackCertificateSetup.
+    services.Configure<FallbackCertificateOptions>(configuration.GetSection(FallbackCertificateOptions.Section));
+    services.AddSingleton<IConfigureOptions<LettuceEncryptOptions>, FallbackCertificateSetup>();
+
     // Persist only the ACME account key across restarts (not certificates — those already flow
     // through the Certificate aggregate via AggregateCertificateSource/AggregateCertificateRepository
     // below). Deliberately NOT using LettuceEncrypt's built-in PersistDataToDirectory: it would also

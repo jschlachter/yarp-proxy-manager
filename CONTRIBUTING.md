@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing. This guide covers how to propose changes and what a pull request needs to be merged.
 
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it. Report unacceptable behaviour to [conduct@west94.org](mailto:conduct@west94.org).
+
 ## Before you start
 
 - **Bugs:** open an issue with the bug report form. Search existing issues first.

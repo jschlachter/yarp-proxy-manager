@@ -1,0 +1,52 @@
+name: PR Title
+on:
+  # pull_request_target so the check also runs for PRs from forks. Safe here: the
+  # job never checks out or runs code from the PR, it only reads the title.
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    name: Conventional Commits title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@66e72920af32222769c386d81f89656ebcb6d6d5 # v6.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          scopes: |
+            proxy
+            api
+            files
+            ui
+            core
+            infra
+            deploy
+            deps
+            deps-dev
+            ci
+            docs
+          requireScope: false
+          # Dependabot titles ("chore(deps): bump ...") are lowercase; skip them.
+          ignoreLabels: |
+            dependencies
+          # Subject starts with a capital letter, matching existing history:
+          # "feat: Add optional YARP health checks ..."
+          subjectPattern: ^[A-Z].+$
+          subjectPatternError: |
+            The subject "{subject}" in "{title}" should start with a capital letter
+            and use the imperative mood, e.g. "feat(ui): Add certificate expiry badge".

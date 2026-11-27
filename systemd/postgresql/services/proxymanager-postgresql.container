@@ -2,6 +2,7 @@
 Description=Proxy Manager PostgreSQL Database
 After=network-online.target
 Wants=network-online.target
+PartOf=proxymanager.target
 
 [Container]
 Environment=POSTGRES_USER=proxymanager_admin
@@ -11,7 +12,10 @@ Secret=pm-db-pass,type=env,target=POSTGRES_PASSWORD
 Image=docker.io/library/postgres:18-alpine
 ContainerName=proxymanager-postgresql
 Volume=proxymanager-database.volume:/var/lib/postgresql
-Pod=proxymanager.pod
+Network=proxymanager.network
+# Published only so local dev runs can use this database (appsettings.Development.json); the
+# services reach it as proxymanager-postgresql:5432. See systemd/TODO.md.
+PublishPort=5432:5432
 
 ShmSize=128mb
 
@@ -29,4 +33,4 @@ Restart=always
 TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

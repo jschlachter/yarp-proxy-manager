@@ -1,17 +1,33 @@
 [Unit]
 Description=Proxy Manager API
 After=network-online.target proxymanager-postgresql.service proxymanager-rabbitmq.service
+Wants=network-online.target
 Requires=proxymanager-postgresql.service proxymanager-rabbitmq.service
+PartOf=proxymanager.target
 
 [Container]
 Image=west94.com/proxymanager-api:1.0.0-alpha
 ContainerName=proxymanager-api
-EnvironmentFile=.env
-Pod=proxymanager.pod
+
+# Site-specific, non-secret settings (Authentication__Audience, ...).
+# Installed by systemd/proxymanager/deploy.sh from systemd/proxymanager.env; see systemd/proxymanager.env.example.
+EnvironmentFile=%h/proxymanager/proxymanager.env
+
+# Listens on 8080 (the image's ASPNETCORE_HTTP_PORTS), reached as http://proxymanager-api:8080; not
+# published to the host. Service addresses (database, broker, Files) are in the image's
+# appsettings.Production.json, by container name; don't repeat them here, env vars would override it.
+
+# Secrets (Podman secrets, created by the owning service's deploy.sh)
+Secret=pm-db-pass,type=env,target=POSTGRES_PASSWORD
+Secret=proxymanager-files-service-token,type=env,target=FilesService__ServiceToken
+Secret=proxymanager-rabbitmq-user,type=env,target=RabbitMQ__UserName
+Secret=proxymanager-rabbitmq-password,type=env,target=RabbitMQ__Password
+
+Network=proxymanager.network
 
 [Service]
 Restart=always
 TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

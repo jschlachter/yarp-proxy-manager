@@ -7,7 +7,19 @@
     <AssemblyName>West94.ProxyManager</AssemblyName>
     <RootNamespace>West94.ProxyManager</RootNamespace>
     <UserSecretsId>64e29ca0-0645-47ec-a224-660d244ed63e</UserSecretsId>
+    <!-- Publish only English satellite resources; the images don't need translated library messages. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Kestrel only, no IIS: don't generate web.config. -->
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Environment-specific settings (Development, Testing) stay out of the publish output and so
+         out of the container image; they are still copied to bin/ for local runs and tests.
+         appsettings.json and appsettings.Production.json (if added) are what the image runs with. -->
+    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Production.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ProxyManager.Infrastructure\ProxyManager.Infrastructure.csproj" />

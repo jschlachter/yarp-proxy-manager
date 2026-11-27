@@ -1,0 +1,13 @@
+[Unit]
+Description=Proxy Manager (proxy, API, Files, UI, PostgreSQL, RabbitMQ, RustFS)
+# Every Proxy Manager container unit has WantedBy=proxymanager.target, so starting this starts the
+# whole stack (in each unit's After=/Requires= order), and PartOf=proxymanager.target, so stopping
+# or restarting this stops or restarts all of them.
+#
+# A plain systemd unit, not a Quadlet file: systemd/proxymanager/deploy.sh installs it to
+# ~/.config/systemd/user/ and enables it.
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=default.target

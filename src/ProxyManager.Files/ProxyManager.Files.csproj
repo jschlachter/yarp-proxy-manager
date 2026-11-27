@@ -6,7 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>West94.ProxyManager.Files</AssemblyName>
     <UserSecretsId>8a042e8a-e0b6-48e1-96d6-fd4fbe6efc2f</UserSecretsId>
+    <!-- Publish only English satellite resources; the images don't need translated library messages. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Kestrel only, no IIS: don't generate web.config. -->
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Environment-specific settings (Development, Testing) stay out of the publish output and so
+         out of the container image; they are still copied to bin/ for local runs and tests.
+         appsettings.json and appsettings.Production.json (if added) are what the image runs with. -->
+    <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
+    <Content Update="appsettings.Production.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.1.2" />

@@ -1,6 +1,6 @@
 ---
 name: podman-quadlet
-description: This repo's conventions for Podman Quadlet units in `systemd/` (per-service folders, deploy.sh, proxymanager pod and network, naming, secrets). Use together with the rootless-quadlet skill whenever the user mentions Quadlet, Podman systemd units, adding a new container/service to the pod, `systemd/*.container` files, converting a compose file or `podman run` command to systemd, container healthchecks or startup ordering under systemd, Podman secrets, or debugging a Quadlet unit that won't generate or start, even if they don't say "Quadlet" explicitly.
+description: This repo's conventions for Podman Quadlet units in `systemd/` (per-service folders, deploy.sh, proxymanager network and target, naming, secrets). Use together with the rootless-quadlet skill whenever the user mentions Quadlet, Podman systemd units, adding a new container/service to the stack, `systemd/*.container` files, converting a compose file or `podman run` command to systemd, container healthchecks or startup ordering under systemd, Podman secrets, or debugging a Quadlet unit that won't generate or start, even if they don't say "Quadlet" explicitly.
 ---
 
 This repo's conventions for Podman Quadlet units under `systemd/`. General rootless Quadlet
@@ -30,16 +30,25 @@ Match the existing units in `systemd/` unless the user says otherwise:
   `podman secret exists <name>` before creating, and don't regenerate an existing credential).
   Copy an existing `deploy.sh` (e.g. `systemd/rustfs/deploy.sh`) as the template so the scripts
   stay uniform (`set -euo pipefail`, `QUADLET_DIR` override).
-  Units that every service depends on (`proxymanager.pod`, `proxymanager.network`) belong to the
-  `proxymanager` service folder, because the proxy is the pod's anchor. Since the other services
-  reference them, `systemd/proxymanager/deploy.sh` must run first on a fresh host.
+  What every service depends on (`services/proxymanager.network`, plus `proxymanager.target`, a
+  plain systemd unit at the folder root) belongs to the `proxymanager` service folder. Since the
+  other services reference them, `systemd/proxymanager/deploy.sh` must run first on a fresh host;
+  it installs the target to `~/.config/systemd/user/` and enables it (Quadlet ignores `.target`
+  files in its own directory).
 - One file per service, named `proxymanager-<service>.container` (the main proxy is just
   `proxymanager.container`); `ContainerName=` set explicitly to the same name so other containers
   can address it (`http://proxymanager-api:8080`).
-- Every unit is in `Pod=proxymanager.pod`, on `proxymanager.network`. Ports are published in
-  `systemd/proxymanager/services/proxymanager.pod` — new externally reachable ports go there. Only
-  publish what the host genuinely needs.
-- Rootless, so `[Install] WantedBy=default.target`.
+- **No pod.** Every container is standalone with `Network=proxymanager.network`, so each has its
+  own network namespace: services address each other by container name (Podman's network DNS) and
+  can all use their image's default port (both ASP.NET Core services listen on 8080). Don't add
+  `Pod=`: pod members share one `localhost`, so their ports collide, and containers outside a pod
+  can't resolve pod members by name.
+- Ports are published on the owning container (`PublishPort=`). Only the proxy's 80/8443 are meant
+  for the outside world; publish anything else only if the host genuinely needs it.
+- Every container joins the stack target: `[Unit] PartOf=proxymanager.target` (stop/restart of the
+  target reaches it) and `[Install] WantedBy=proxymanager.target` (starting the target starts it).
+- Anything that keys state on the hostname needs a fixed `HostName=` (RabbitMQ stores its data
+  under `rabbit@<hostname>`; the default hostname is the container ID, new on every start).
 - `[Service]` always has `Restart=always` and `TimeoutStartSec=900` (first start may pull a large
   image).
 - `[Unit]`: `After=network-online.target` plus `Wants=network-online.target`; add
@@ -55,16 +64,18 @@ Match the existing units in `systemd/` unless the user says otherwise:
   `ExecStartPre=mkdir -p %h/...` so the first start doesn't fail.
 - Images: app images are `west94.com/proxymanager-<svc>:<version>` built by
   `scripts/build-images.sh`; third-party images are fully qualified (`docker.io/library/...`).
-- Deployment: each service's `deploy.sh` runs on the Quadlet host as the pod's user, creates that
+- Deployment: each service's `deploy.sh` runs on the Quadlet host as the containers' user, creates that
   service's secrets, and copies `services/*` to `~/.config/containers/systemd/proxymanager/`
   (override with `QUADLET_DIR`). It copies everything in `services/`, so new unit types need no
   script change.
-- `scripts/deploy-vm.sh` is a separate, standalone helper for trying Quadlets locally on the
-  Podman Desktop VM. **Leave it alone** when adding or changing services; it is not part of the
-  per-service deploy flow and the user maintains it on its own.
-- After adding/changing units, the start command is
-  `systemctl --user start proxymanager-pod.service proxymanager-ui.service`. Update the closing
-  hint in `deploy-vm.sh` and the CLAUDE.md Deployment section if the set of units changes.
+- `scripts/deploy-vm.sh` (local Podman Desktop VM) and `scripts/deploy-remote.sh` (SSH host) stage
+  every `systemd/<svc>/` folder and run its `deploy.sh`, so a new service folder needs no script
+  change. Both must tar with `COPYFILE_DISABLE=1 tar --no-xattrs` on macOS; otherwise AppleDouble
+  `._*` files land in the Quadlet directory and break generation.
+- Start, stop or restart everything through the target:
+  `systemctl --user start|restart proxymanager.target`. To stop and wait until every container is
+  down, name the services too: `systemctl --user stop proxymanager.target 'proxymanager*.service'`
+  (`stop` only waits for the units it was given).
 
 ## Repo-specific practices
 
@@ -79,11 +90,11 @@ Match the existing units in `systemd/` unless the user says otherwise:
 
 1. **Understand the source.** Convert from a compose file, `podman run`, or a description. For a
    compose file, `podlet compose` can bootstrap output if installed, but review it — it won't know
-   this repo's pod/network conventions.
+   this repo's network/target conventions.
 2. **Write the unit(s)** under `systemd/<svc>/services/`, following the conventions above. A new
    service means a `systemd/<svc>/` folder with `deploy.sh` and `services/` containing the
-   `.container` (plus a `.volume` if stateful). Add port entries to `proxymanager.pod` if it must
-   be reachable from the host.
+   `.container` (plus a `.volume` if stateful), with `Network=`, `PartOf=` and `WantedBy=` as
+   above. Add `PublishPort=` to it only if it must be reachable from the host.
 3. **Validate before deploying.** Dry-run the generator to catch typos and see the resulting
    service (binary path varies: `/usr/lib/podman/quadlet` or `/usr/libexec/podman/quadlet`):
    ```bash
@@ -92,14 +103,14 @@ Match the existing units in `systemd/` unless the user says otherwise:
    ```
    Unknown keys, bad section names, and missing referenced units are reported here.
 4. **Deploy:** `./systemd/<svc>/deploy.sh` for one service (run `systemd/proxymanager/deploy.sh`
-   first on a fresh machine, since it installs the pod and network). It copies units and runs `daemon-reload`. (`scripts/deploy-vm.sh` is the
-   user's separate local Podman Desktop test helper; don't modify it.)
+   first on a fresh machine, since it installs the network and the target). It copies units and runs
+   `daemon-reload`. `scripts/deploy-vm.sh` deploys every service to the local Podman Desktop VM.
 5. **Start and verify** on the VM:
    ```bash
-   systemctl --user start proxymanager-pod.service
+   systemctl --user start proxymanager.target
    systemctl --user status proxymanager-<svc>.service
    journalctl --user -u proxymanager-<svc>.service -f
-   podman ps --pod
+   podman ps --filter network=systemd-proxymanager
    podman healthcheck run proxymanager-<svc>
    ```
 
@@ -109,9 +120,13 @@ For general failures (unit not generated, bind-mount permissions, escaping, secr
 use the checklist in `rootless-quadlet`. Specific to this repo:
 
 - **`proxymanager-<svc>.service` won't start on a fresh host:** `systemd/proxymanager/deploy.sh`
-  hasn't run yet, so `proxymanager.pod` / `proxymanager.network` don't exist.
-- **Another service can't reach the new one:** it must be in `Pod=proxymanager.pod`; ports for
-  host access go on `proxymanager.pod`, not on the container.
+  hasn't run yet, so `proxymanager.network` / `proxymanager.target` don't exist.
+- **Another service can't reach the new one:** it must have `Network=proxymanager.network` and an
+  explicit `ContainerName=`; address it by that name and the port its process listens on.
+- **New service doesn't start with the rest:** missing `WantedBy=proxymanager.target` (or
+  `systemd/proxymanager/deploy.sh` never ran, so the target isn't enabled).
+- **A unit vanished from the generator output:** look for `._*` files next to it in the Quadlet
+  directory (macOS tar metadata); a malformed `._x.container` knocks out `x.container`.
 - **Generator dry run on the Podman Desktop VM:**
   `podman machine ssh podman-machine-default -- /usr/libexec/podman/quadlet -dryrun -user`.
 

@@ -1,22 +1,40 @@
 [Unit]
 Description=Proxy Manager
+# Wants (not Requires) on the database and broker: the proxy is the edge, so restarting either must
+# not take down ingress for user routes. After= still orders a normal start behind their health.
 After=network-online.target proxymanager-postgresql.service proxymanager-rabbitmq.service
-Requires=proxymanager-postgresql.service proxymanager-rabbitmq.service
+Wants=network-online.target proxymanager-postgresql.service proxymanager-rabbitmq.service
+PartOf=proxymanager.target
 
 [Container]
 Image=west94.com/proxymanager:1.0.0-alpha
 ContainerName=proxymanager
-# LettuceEncrypt__EmailAddress (ACME account contact) and LettuceEncrypt__AcceptTermsOfService
-# are supplied via the shared .env file (standard ASP.NET Core "__" config override convention),
-# same as Authentication:* and other secrets consumed by the sibling units in this pod.
-EnvironmentFile=.env
-Volume=%h/proxymanager/certs:/app/certs
-Pod=proxymanager.pod
+
+# Site-specific, non-secret settings (Authentication__ClientId, LettuceEncrypt__EmailAddress, ...).
+# Installed by systemd/proxymanager/deploy.sh from systemd/proxymanager.env; see systemd/proxymanager.env.example.
+EnvironmentFile=%h/proxymanager/proxymanager.env
+
+# Service addresses (database, broker, Files) are in the image's appsettings.Production.json, by
+# container name; don't repeat them here, env vars would override that file.
+
+# Secrets (Podman secrets, created by the owning service's deploy.sh)
+Secret=pm-db-pass,type=env,target=POSTGRES_PASSWORD
+Secret=proxymanager-oidc-client-secret,type=env,target=Authentication__ClientSecret
+Secret=proxymanager-files-service-token,type=env,target=FilesService__ServiceToken
+Secret=proxymanager-rabbitmq-user,type=env,target=RabbitMQ__UserName
+Secret=proxymanager-rabbitmq-password,type=env,target=RabbitMQ__Password
+
+# :Z relabels for SELinux hosts; without it the container can't read certs or write the ACME account key.
+Volume=%h/proxymanager/certs:/app/certs:Z
+Network=proxymanager.network
+# The only public entry point: HTTP (and Let's Encrypt HTTP-01) and HTTPS.
+PublishPort=80:80
+PublishPort=8443:8443
 
 [Service]
 ExecStartPre=mkdir -p %h/proxymanager/certs
 Restart=always
-TimeoutStartSec=900 
+TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

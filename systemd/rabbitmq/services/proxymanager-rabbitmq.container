@@ -2,13 +2,26 @@
 Description=Proxy Manager RabbitMQ
 After=network-online.target
 Wants=network-online.target
-
+PartOf=proxymanager.target
 
 [Container]
 Image=docker.io/library/rabbitmq:4-management-alpine
-ContainerName=proxy-manager-rabbitmq
+ContainerName=proxymanager-rabbitmq
 Volume=proxymanager-rabbitmq.volume:/var/lib/rabbitmq
-Pod=proxymanager.pod
+Network=proxymanager.network
+# RabbitMQ keeps its data under the node name rabbit@<hostname>. Without a fixed hostname it would be
+# the container ID, which changes each time Quadlet recreates the container, and the broker would
+# come up empty on every restart.
+HostName=proxymanager-rabbitmq
+# Published only for local dev runs (AMQP) and the management UI; the services reach the broker as
+# proxymanager-rabbitmq:5672. See systemd/TODO.md.
+PublishPort=5672:5672
+PublishPort=15672:15672
+
+# Broker credentials: a rabbitmq.conf fragment (default_user/default_pass) from a Podman secret
+# created by systemd/rabbitmq/deploy.sh. Applied only on first boot, while the data volume is empty.
+# The proxy, API and Files units read the same credentials from the -user/-password secrets.
+Secret=proxymanager-rabbitmq-conf,type=mount,target=/etc/rabbitmq/conf.d/90-proxymanager.conf,mode=0444
 
 HealthCmd=rabbitmq-diagnostics --quiet check_running && rabbitmq-diagnostics --quiet check_local_alarms
 HealthInterval=15s
@@ -23,4 +36,4 @@ Restart=always
 TimeoutStartSec=900
 
 [Install]
-WantedBy=default.target
+WantedBy=proxymanager.target

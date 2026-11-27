@@ -38,7 +38,7 @@
           { "BearerToken": "access_token" },
           { "RequestHeaderRemove": "Cookie" },
           { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
-          { "ClaimHeader": "X-auth-groups", "Claim": "groups" },
+          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" },
           { "ClaimHeader": "X-Auth-Name", "Claim": "name" }
         ]
       },
@@ -47,13 +47,12 @@
         "AuthorizationPolicy": "AuthenticatedUsersOnly",
         "Order": 2,
         "Match": {
-          "Path": "/manage/{**catch-all}"
+          "Path": "/{**catch-all}"
         },
         "Transforms": [
-          { "PathRemovePrefix": "/manage" },
           { "RequestHeaderRemove": "Cookie" },
           { "ClaimHeader": "X-Auth-Sub", "Claim": "sub" },
-          { "ClaimHeader": "X-auth-groups", "Claim": "groups" },
+          { "ClaimHeader": "X-Auth-Groups", "Claim": "groups" },
           { "ClaimHeader": "X-Auth-Name", "Claim": "name" }
         ]
       }
@@ -62,7 +61,7 @@
       "apiCluster": {
         "Destinations": {
           "primary": {
-            "Address": "http://proxymanager-api:5001/"
+            "Address": "http://proxymanager-api:8080/"
           }
         },
         "HealthCheck": {

@@ -38,7 +38,7 @@
     "jest": "^30.4.1",
     "jest-environment-jsdom": "^30.4.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^7"
   },
   "allowScripts": {
     "fsevents@2.3.3": true,

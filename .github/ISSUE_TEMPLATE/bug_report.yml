@@ -1,0 +1,103 @@
+name: Bug report
+description: Something isn't working as expected.
+title: "bug: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search [existing issues](../issues?q=is%3Aissue) first.
+
+        **Security issues:** don't file them here. Report them privately as described in [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of YARP Proxy Manager is affected? Pick all that apply.
+      multiple: true
+      options:
+        - Proxy (routing, TLS, OIDC sign-in)
+        - Management API
+        - Files service
+        - UI
+        - Deployment (Quadlet units, scripts, images)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the problem, including the proxy host or certificate settings involved.
+      placeholder: |
+        1. Create a proxy host with ...
+        2. Request https://...
+        3. See ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: How are you running it?
+      options:
+        - Quadlet stack (systemd/ units)
+        - Containers, other setup (compose, Kubernetes, ...)
+        - From source (dotnet run / npm run dev)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Image tag or commit SHA.
+      placeholder: e.g. 0.4.0 or c6e735c
+    validations:
+      required: true
+
+  - type: textarea
+    id: platform
+    attributes:
+      label: Platform details
+      description: OS, Podman/Docker version, OIDC provider (Authentik version, other), and browser for UI issues.
+      placeholder: |
+        - OS: Fedora 43
+        - Podman: 5.6
+        - OIDC provider: Authentik 2026.8
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: |
+        Logs from the affected services, e.g. `journalctl --user -u proxymanager-api`. This is rendered as code, so no backticks are needed.
+      render: shell
+
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Before submitting
+      options:
+        - label: I removed secrets from the logs and config above (client secrets, tokens, cookies, `X-Files-Service-Token`, passwords, private keys).
+          required: true
+        - label: I searched existing issues and this hasn't been reported.
+          required: true

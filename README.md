@@ -227,12 +227,7 @@ docs/                           design notes
 
 ## Contributing
 
-Issues and pull requests are welcome. For anything beyond a small fix, please open an issue first to discuss the change.
-
-- Build and test locally (`dotnet build ProxyManager.slnx`, unit tests, and `npm test` for UI changes) before opening a PR; CI runs the .NET build and unit tests on every pull request.
-- Tag new tests with `[Trait("Category", "Unit")]` or `[Trait("Category", "Integration")]`.
-- C# conventions: file-scoped namespaces, primary constructors, the Options pattern instead of injecting `IConfiguration`, and `TypedResults` in endpoints. See `.claude/rules/` for the full guidelines.
-- For a change that involves a real design decision, add an ADR under `adrs/`.
+Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, code conventions, and the Conventional Commits format used for pull request titles. Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## Acknowledgements
 
